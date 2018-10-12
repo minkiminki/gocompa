@@ -3,3 +3,5 @@
 *\#*
 snuplc/obj/*.o
 snuplc/snuplc
+test/*
+!.mod
