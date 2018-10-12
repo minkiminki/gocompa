@@ -87,6 +87,7 @@ enum EOperation {
 
   // function call-related operations
   opCall,                           ///< call:  dst = call src1
+  opTailCall,                       ///< tail call:  dst = call src1
   opReturn,                         ///< return: return optional src1
   opParam,                          ///< parameter: dst = index,src1 = parameter
 

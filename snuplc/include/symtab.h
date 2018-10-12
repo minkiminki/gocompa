@@ -120,6 +120,12 @@ class CSymbol {
     /// @{
 
     /// @brief set the base register to access this symbol
+    void SetInRegister(bool inreg);
+
+    /// @brief get the offset to access this symbol
+    bool GetInRegister(void) const;
+  
+    /// @brief set the base register to access this symbol
     void SetBaseRegister(string rbase);
 
     /// @brief set the offset to access this symbol
@@ -130,6 +136,12 @@ class CSymbol {
 
     /// @brief get the offset to access this symbol
     int GetOffset(void) const;
+
+    /// @brief set the base register to access this symbol
+    void SetRegister(string rbase);
+
+    /// @brief get the base register to access this symbol
+    string GetRegister(void) const;
 
     /// @}
 
@@ -154,8 +166,10 @@ class CSymbol {
     const CType   *_datatype;     ///< data type
     const CDataInitializer *_data;///< data initializer
 
+    bool           _inreg;        ///< true iff in register
     string         _rbase;        ///< base register
     int            _offset;       ///< offset
+    string         _virtualreg;   ///< virtual register
 };
 
 /// @name CSymbol output operators
