@@ -11,7 +11,7 @@ PRIV_DIR=private
 DEPS=ir.h \
 		 backend.h
 SRC=ir.cpp \
-		backend.cpp
+		backend64.cpp
 MOD=scanner.cpp \
 		parser.cpp \
 		type.cpp \
