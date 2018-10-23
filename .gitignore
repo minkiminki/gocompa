@@ -1,4 +1,8 @@
 .DS_Store
 *~
 *\#*
-snuplc/obj/*.o
+*.o
+! snuplc/obj/*.o
+snuplc/snuplc
+test/*
+! test/*.mod
