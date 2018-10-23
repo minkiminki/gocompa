@@ -93,6 +93,10 @@ enum EOperation {
   // special
   opLabel,                          ///< jump label; no arguments
   opNop,                            ///< no operation
+
+  // newly added
+  opTailCall,                       ///< tailcall:  dst = call src1
+  opPhi,                            ///< phi:  dst = phi src1 src2
 };
 
 /// @brief returns true if @a op is a relational operation
@@ -314,6 +318,32 @@ class CTacReference: public CTacName {
 /// base class for all instructions
 ///
 
+class CTacInstr;
+
+class CBasicBlock : public CTac {
+public:
+  CBasicBlock(void);
+  virtual ~CBasicBlock(void);
+
+  vector<CBasicBlock*>& GetPrevBlks(void);
+  vector<CBasicBlock*>& GetNextBlks(void);
+  void AddPrevBlks(CBasicBlock *prev);
+  void AddNextBlks(CBasicBlock *next);
+  CTacInstr* GetFirstInstr(void);
+  CTacInstr* GetLastInstr(void);
+  void SetFirstInstr(CTacInstr *first);
+  void SetLastInstr(CTacInstr *last);
+  void SetBlockNum(int blocknum);
+  int GetBlockNum(void) const;
+
+protected:
+  vector<CBasicBlock*> _prevblks;
+  vector<CBasicBlock*> _nextblks;
+  CTacInstr *_firstinstr;
+  CTacInstr *_lastinstr;
+  int _blocknum;
+};
+
 class CTacInstr : public CTac {
   public:
     /// @name constructors/destructors
@@ -357,6 +387,14 @@ class CTacInstr : public CTac {
     /// @brief return the destination
     CTac* GetDest(void) const;
 
+    /// newly added
+    CTacInstr* GetPrevInstr(void) const;
+    CTacInstr* GetNextInstr(void) const;
+    void SetPrevInstr(CTacInstr *prev);
+    void SetNextInstr(CTacInstr *next);
+    CBasicBlock* GetFromBlock(void) const;
+    void SetFromBlock(CBasicBlock*);
+
     /// @}
 
     /// @name output
@@ -383,6 +421,12 @@ class CTacInstr : public CTac {
     CTacAddr      *_src1;            ///< source operand 1
     CTacAddr      *_src2;            ///< source operand 2
     CTac          *_dst;             ///< destination operand
+
+    /// newly added
+    CTacInstr *_prev;
+    CTacInstr *_next;
+    CBasicBlock *_block;
+    /// sth for liveness info
 
     friend class CCodeBlock;
 };
@@ -448,6 +492,19 @@ class CTacLabel : public CTacInstr {
 class CAstNode;
 class CCodeBlock;
 
+class CBlockTable {
+public:
+  CBlockTable(void);
+  virtual ~CBlockTable(void);
+
+  vector<CBasicBlock*>& GetBlockList(void);
+  int AddBlock(CBasicBlock *block);
+
+protected:
+  vector<CBasicBlock*> _blocklist;
+  int maxblock;
+};
+
 class CScope {
   public:
     /// @name constructors/destructors
@@ -507,6 +564,9 @@ class CScope {
     /// @param hint optional descriptive string
     CTacLabel* CreateLabel(const char *hint=NULL);
 
+    /// newly added
+    CBlockTable* GetBlockTable() const;
+  
     /// @}
 
 
@@ -543,6 +603,9 @@ class CScope {
 
     unsigned int _temp_id;           ///< next id for temporaries
     unsigned int _label_id;          ///< next id for labels
+
+    /// newly added
+    CBlockTable* _blktab;
 };
 
 /// @name CScope output operators
@@ -731,7 +794,7 @@ class CCodeBlock {
     /// @param out output stream
     /// @param indent indentation
     virtual void toDot(ostream &out, int indent=0) const;
-
+  
     /// @}
 
   protected:

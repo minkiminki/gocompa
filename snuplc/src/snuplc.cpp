@@ -177,7 +177,7 @@ void DumpAST(string file, CAstModule *ast)
       dot << "}" << endl;
       dot.flush();
 
-      RunDOT(fn);
+      //minki      RunDOT(fn);
     }
   }
 }
@@ -233,6 +233,9 @@ int main(int argc, char *argv[])
     cout << "compiling " << file << "..." << endl;
     CAstNode *ast = p->Parse();
 
+      printf("seee333sssssssssssssssssssssssss"); // TODO erase it
+
+    
     if (p->HasError()) {
       const CToken *error = p->GetErrorToken();
       cout << "parse error at " << error->GetLineNumber() << ":"
@@ -241,9 +244,14 @@ int main(int argc, char *argv[])
     } else {
       DumpAST(file, dynamic_cast<CAstModule*>(ast));
 
+      printf("s333sssssssssssssssssssssssss"); // TODO erase it
+
+      
       // AST to TAC conversion
       CModule *m = new CModule(ast);
 
+      printf("ssssssssssssssssssssssssss"); // TODO erase it
+      
       DumpTAC(file, m);
 
       // output x86 assembly to console or file

@@ -93,6 +93,10 @@ char EOperationName[][OPERATION_STRLEN] = {
   // special
   "label",                          ///< jump label; no arguments
   "nop",                            ///< no operation
+
+  // newly added
+  "tcall",                          ///< tcall:  dst = call src1
+  "phi",                            ///< phi:  dst = phi src1 src2
 };
 
 bool IsRelOp(EOperation t)
@@ -224,16 +228,113 @@ ostream& CTacReference::print(ostream &out, int indent) const
 
 
 //------------------------------------------------------------------------------
+// CBasicBlock
+//
+
+/*
+CBasicBlock::CBasicBlock(void)
+  : _firstinstr(NULL), _lastinstr(NULL)
+{  
+}
+
+CBasicBlock::~CBasicBlock(void)
+{
+}
+
+vector<CBasicBlock*>& CBasicBlock::GetPrevBlks(void)
+{
+  return _prevblks;
+}
+
+vector<CBasicBlock*>& CBasicBlock::GetNextBlks(void)
+{
+  return _nextblks;
+}
+
+void CBasicBlock::AddPrevBlks(CBasicBlock *prev)
+{
+  assert(prev != NULL);
+  _prevblks.push_back(prev);
+  return;
+}
+
+void CBasicBlock::AddNextBlks(CBasicBlock *next)
+{
+  assert(next != NULL);
+  _nextblks.push_back(next);
+  return;
+}
+
+CTacInstr *CBasicBlock::GetFirstInstr(void)
+{
+  return _firstinstr;
+}
+
+CTacInstr *CBasicBlock::GetLastInstr(void)
+{
+  return _lastinstr;
+}
+
+void CBasicBlock::SetFirstInstr(CTacInstr *first)
+{
+  _firstinstr = first;
+}
+
+void CBasicBlock::SetLastInstr(CTacInstr *last)
+{
+  _lastinstr = last;
+}
+
+void CBasicBlock::SetBlockNum(int blocknum)
+{
+  _blocknum = blocknum;
+}
+
+int CBasicBlock::GetBlockNum(void) const
+{
+  return _blocknum;
+}
+*/
+
+
+//------------------------------------------------------------------------------
+// CBlockTable
+//
+/*
+CBlockTable::CBlockTable(void)
+{
+}
+
+CBlockTable::~CBlockTable(void)
+{
+}
+
+vector<CBasicBlock*>& CBlockTable::GetBlockList(void)
+{
+  return _blocklist;
+}
+
+int CBlockTable::AddBlock(CBasicBlock *block)
+{
+  assert(block != NULL);
+  block->SetBlockNum(++maxblock);
+  _blocklist.push_back(block);
+  return maxblock;
+}
+*/
+
+//------------------------------------------------------------------------------
 // CTacInstr
 //
 CTacInstr::CTacInstr(string name)
-  : _id(-1), _op(opNop), _src1(NULL), _src2(NULL), _dst(NULL), _name(name)
+  : _id(-1), _op(opNop), _src1(NULL), _src2(NULL), _dst(NULL), _name(name), _block(NULL)
 {
 }
 
 CTacInstr::CTacInstr(EOperation op, CTac *dst, CTacAddr *src1, CTacAddr *src2)
-  : _id(-1), _op(op), _src1(src1), _src2(src2), _dst(dst)
+  : _id(-1), _op(op), _src1(src1), _src2(src2), _dst(dst)//, _block(NULL)
 {
+  printf("aaaaaaaaaaaaaaaaaaaaaaaa %d \n", op);
   if (IsBranch()) {
     CTacLabel *lbl = dynamic_cast<CTacLabel*>(_dst);
     assert(lbl != NULL);
@@ -294,6 +395,39 @@ void CTacInstr::SetDest(CTac* dst)
   _dst = dst;
 }
 
+/// newly added
+/*
+CTacInstr* CTacInstr::GetPrevInstr(void) const
+{
+  return _prev;
+}
+
+CTacInstr* CTacInstr::GetNextInstr(void) const
+{
+  return _next;
+}
+
+void CTacInstr::SetPrevInstr(CTacInstr *prev)
+{
+  _prev = prev;
+}
+
+void CTacInstr::SetNextInstr(CTacInstr *next)
+{
+  _next = next;
+}
+
+CBasicBlock* CTacInstr::GetFromBlock(void) const
+{
+  return _block;
+}
+
+void CTacInstr::SetFromBlock(CBasicBlock* block)
+{
+  _block = block;
+}
+*/
+
 ostream& CTacInstr::print(ostream &out, int indent) const
 {
   string ind(indent, ' ');
@@ -324,6 +458,16 @@ ostream& CTacInstr::print(ostream &out, int indent) const
   } else {
     out << "[CTacInstr: '" << _name << "']";
   }
+
+  /// newly added
+  // CBasicBlock *block = GetFromBlock();
+  // if(block != NULL) {
+  //   printf("sssssssssssss");
+  //   out << " [" << (block->GetBlockNum()) << "]";
+  // }
+  // else{
+  //   out << " [ no block info ]";
+  // }
 
   return out;
 }
@@ -484,6 +628,13 @@ ostream& operator<<(ostream &out, const CScope *t)
   return t->print(out);
 }
 
+/// newly added
+/*
+CBlockTable* CScope::GetBlockTable() const
+{
+  return _blktab;
+}
+*/
 
 //------------------------------------------------------------------------------
 // CModule
