@@ -93,6 +93,9 @@ enum EOperation {
   // special
   opLabel,                          ///< jump label; no arguments
   opNop,                            ///< no operation
+
+	a,
+	b,
 };
 
 /// @brief returns true if @a op is a relational operation

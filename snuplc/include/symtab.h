@@ -138,6 +138,11 @@ class CSymbol {
     /// @param indent indentation
     virtual ostream&  print(ostream &out, int indent=0) const;
 
+		//modified
+		// @brief to get whether this symbol stored in register
+		// @return true: stored in reg, false: not
+		bool isInReg(void);
+
   private:
     /// @name symbol handling
     /// @{

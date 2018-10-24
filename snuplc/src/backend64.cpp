@@ -40,6 +40,7 @@
 #include "backend.h"
 using namespace std;
 
+string regs[6] = {"%rdi\0","%rci\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 
 //------------------------------------------------------------------------------
 // CBackend
@@ -207,23 +208,24 @@ void CBackendx86_64::EmitScope(CScope *scope)
   EmitInstruction("subq", Imm(size) + ", %rsp", "make room for locals");
 
   // clear stack
-  size_t wsize = size/4;
-  if (wsize > 4) {
+	//modified
+  size_t lsize = size/8;
+  if (lsize > 4) {
     _out << endl;
     EmitInstruction("cld", "", "memset local stack area to 0");
     EmitInstruction("xorq", "%rax, %rax");
-    EmitInstruction("movq", Imm(wsize) + ", %rcx");
+    EmitInstruction("mov", Imm(lsize) + ", %rcx");
     EmitInstruction("mov", "%rsp, %rdi");
     EmitInstruction("rep", "stosq");
-  } else if (wsize > 0) {
+  } else if (lsize > 0) {
     _out << endl;
     EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
     do {
-      wsize--;
+      lsize--;
       ostringstream o;
-      o << "%rax, " << dec << wsize*4 << "(%rsp)";
+      o << "%rax, " << dec << lsize*8 << "(%rsp)";
       EmitInstruction("movq", o.str());
-    } while (wsize > 0);
+    } while (lsize > 0);
   }
 
   // initialize local arrays
@@ -500,7 +502,8 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
         assert(n != NULL);
         int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
-        if (npar > 0) EmitInstruction("addq", Imm(npar*4) + ", %rsp");
+				//modified
+        if (npar > 6) EmitInstruction("addq", Imm((npar-6)*4) + ", %rsp");
 
         // function result
         CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
@@ -517,11 +520,20 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitInstruction("jmp", Label("exit"));
       break;
 
+		//modified
     case opParam:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      EmitInstruction("pushq", "%rax");
+	  {
+			CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
+			int paramIndex = t->GetValue();
+			if(paramIndex >= 6) {
+				Load(i->GetSrc(1), "%rax", cmt.str());
+				EmitInstruction("pushq", "%rax");
+			}
+			else {
+				Load(i->GetSrc(1), regs[paramIndex], cmt.str());
+			}
+		} //EmitInstruction("pushq", "%rax");
       break;
-
 
     // special
     case opLabel:
@@ -756,8 +768,13 @@ size_t CBackendx86_64::ComputeStackOffsets(CSymtab *symtab,
       CSymParam *p = dynamic_cast<CSymParam*>(s);
       assert(p != NULL);
 
-      p->SetBaseRegister("%rbp");
-      p->SetOffset(param_ofs + p->GetIndex()*4);
+			if(p->GetIndex() >= 6) {
+				p->SetBaseRegister("%rbp");
+				p->SetOffset(param_ofs + p->GetIndex()*4);
+			} else {
+				p->SetBaseRegister(regs[p->GetIndex()]);
+				p->SetOffset(0);
+			}
     }
   }
 
