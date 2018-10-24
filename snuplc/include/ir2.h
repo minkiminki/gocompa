@@ -19,37 +19,44 @@
 
 class CBasicBlock : public CTac {
 public:
-
-  CBasicBlock(int blocknum);
+  CBasicBlock(void);
   virtual ~CBasicBlock(void);
 
-  vector<CBasicBlock*>& GetPrevBlks(void);
-  vector<CBasicBlock*>& GetNextBlks(void);
+  list<CBasicBlock*>& GetPrevBlks(void);
+  list<CBasicBlock*>& GetNextBlks(void);
   void AddPrevBlks(CBasicBlock *prev);
   void AddNextBlks(CBasicBlock *next);
-  CTacInstr* GetFirstInstr(void);
-  CTacInstr* GetLastInstr(void);
-  void SetFirstInstr(CTacInstr *first);
-  void SetLastInstr(CTacInstr *last);
+
+  list<CTacInstr*>& GetInstrs(void);
+  void AddInstr(CTacInstr* instr);
   void SetBlockNum(int blocknum);
   int GetBlockNum(void) const;
 
+  virtual ostream&  print(ostream &out, int indent=0) const;
+  
 protected:
-  vector<CBasicBlock*> _prevblks;
-  vector<CBasicBlock*> _nextblks;
-  CTacInstr *_firstinstr;
-  CTacInstr *_lastinstr;
+  list<CBasicBlock*> _prevblks;
+  list<CBasicBlock*> _nextblks;
+  list<CTacInstr*> _instrs;
   int _blocknum;
 };
 
-class CBlockTable {
+class CBlockTable : public CTac {
 public:
   CBlockTable(void);
   virtual ~CBlockTable(void);
-  vector<CBasicBlock*>& GetBlockList(void);
+  list<CBasicBlock*>& GetBlockList(void);
+  void SetInitBlock(CBasicBlock* initblock);
+  CBasicBlock* GetInitBlock(void) const;
+  list<CBasicBlock*>& GetFinBlocks(void);
+  void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
+  virtual ostream&  print(ostream &out, int indent=0) const;
+
 protected:
-  vector<CBasicBlock*> _blocklist;
+  list<CBasicBlock*> _blocklist;
+  CBasicBlock* _initblock;
+  list<CBasicBlock*> _finblocks;
   int maxblock;
 };
 
@@ -69,12 +76,8 @@ class CTacInstr_prime : public CTacInstr {
     /// @brief destructor
     virtual ~CTacInstr_prime(void);
 
-    CTacInstr* GetPrevInstr(void) const;
-    CTacInstr* GetNextInstr(void) const;
-    void SetPrevInstr(CTacInstr *prev);
-    void SetNextInstr(CTacInstr *next);
     CBasicBlock* GetFromBlock(void) const;
-    void SetFromBlock(CBasicBlock*);
+    void SetFromBlock(CBasicBlock* block);
   
     /// @}
 
@@ -89,8 +92,6 @@ class CTacInstr_prime : public CTacInstr {
     /// @}
 
   protected:
-    CTacInstr *_prev;
-    CTacInstr *_next;
     CBasicBlock *_block;
 };
 
@@ -172,7 +173,7 @@ class CCodeBlock_prime : public CCodeBlock {
 
     /// @}
 
-    CBlockTable* GetBlockTable();
+    CBlockTable* GetBlockTable() const;
 
 
     /// @name output

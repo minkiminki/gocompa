@@ -1,42 +1,8 @@
-//------------------------------------------------------------------------------
-/// @brief SnuPL intermediate representation
-/// @author Bernhard Egger <bernhard@csap.snu.ac.kr>
-/// @section changelog Change Log
-/// 2012/09/14 Bernhard Egger created
-/// 2013/03/14 Bernhard Egger adapted to SnuPL/0
-/// 2013/06/06 Bernhard Egger cleanup, added documentation
-/// 2014/11/04 Bernhard Egger added opPos
-/// 2016/04/01 Bernhard Egger adapted to SnuPL/1
-///
-/// @section license_section License
-/// Copyright (c) 2012-2018, Computer Systems and Platforms Laboratory, SNU
-/// All rights reserved.
-///
-/// Redistribution and use in source and binary forms,  with or without modifi-
-/// cation, are permitted provided that the following conditions are met:
-///
-/// - Redistributions of source code must retain the above copyright notice,
-///   this list of conditions and the following disclaimer.
-/// - Redistributions in binary form must reproduce the above copyright notice,
-///   this list of conditions and the following disclaimer in the documentation
-///   and/or other materials provided with the distribution.
-///
-/// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-/// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO,  THE
-/// IMPLIED WARRANTIES OF MERCHANTABILITY  AND FITNESS FOR A PARTICULAR PURPOSE
-/// ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDER  OR CONTRIBUTORS BE
-/// LIABLE FOR ANY DIRECT,  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSE-
-/// QUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF  SUBSTITUTE
-/// GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-/// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT
-/// LIABILITY, OR TORT  (INCLUDING NEGLIGENCE OR OTHERWISE)  ARISING IN ANY WAY
-/// OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-/// DAMAGE.
-//------------------------------------------------------------------------------
-
 #include <iomanip>
 #include <cassert>
 #include <map>
+#include <algorithm>
+#include <list>
 
 #include "ir.h"
 #include "ir2.h"
@@ -48,7 +14,7 @@ using namespace std;
 // CTacInstr
 //
 CTacInstr_prime::CTacInstr_prime(CTacInstr *instr)
-  : CTacInstr(instr->GetOperation(), instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL), _prev(NULL), _next(NULL)
+  : CTacInstr(instr->GetOperation(), instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL)
 {
 }
 
@@ -63,42 +29,43 @@ CTacInstr_prime::~CTacInstr_prime(void)
 
 ostream& CTacInstr_prime::print(ostream &out, int indent) const
 {
-  
-  string ind(indent, ' ');
 
-  out << ind << right << dec << setw(3) << _id << ": ";
+  CTacInstr::print(out, indent);
+  // string ind(indent, ' ');
 
-  if (_name == "") {
-    bool relop = IsRelOp(GetOperation());
+  // out << ind << right << dec << setw(3) << _id << ": ";
 
-    out << "    " << left << setw(6);
-    if (relop) out << "if"; else out << _op;
-    out << " ";
-    CTacAddr *adr = dynamic_cast<CTacAddr*>(_dst);
-    if (adr != NULL) out << _dst << " <- ";
-    if (_src1 != NULL) out << _src1;
-    if (_src2 != NULL) {
-      if (relop) out << " " << _op; else out << ",";
-      out << " " << _src2;
-    }
-    CTacInstr *target = dynamic_cast<CTacInstr_prime*>(_dst);
-    if (target != NULL) {
-      if (relop) out << " goto ";
+  // if (_name == "") {
+  //   bool relop = IsRelOp(GetOperation());
 
-      CTacLabel_prime *l = dynamic_cast<CTacLabel_prime*>(target);
-      if (l != NULL) out << l->GetLabel_prime();
-      else out << target->GetId();
-    }
-  } else {
-    out << "[CTacInstr: '" << _name << "']";
-  }
+  //   out << "    " << left << setw(6);
+  //   if (relop) out << "if"; else out << _op;
+  //   out << " ";
+  //   CTacAddr *adr = dynamic_cast<CTacAddr*>(_dst);
+  //   if (adr != NULL) out << _dst << " <- ";
+  //   if (_src1 != NULL) out << _src1;
+  //   if (_src2 != NULL) {
+  //     if (relop) out << " " << _op; else out << ",";
+  //     out << " " << _src2;
+  //   }
+  //   CTacInstr *target = dynamic_cast<CTacInstr_prime*>(_dst);
+  //   if (target != NULL) {
+  //     if (relop) out << " goto ";
+
+  //     CTacLabel_prime *l = dynamic_cast<CTacLabel_prime*>(target);
+  //     if (l != NULL) out << l->GetLabel_prime();
+  //     else out << target->GetId();
+  //   }
+  // } else {
+  //   out << "[CTacInstr: '" << _name << "']";
+  // }
 
   CBasicBlock *block = GetFromBlock();
   if(block != NULL) {
-    out << " [" << (block->GetBlockNum()) << "]";
+    out << "[" << (block->GetBlockNum()) << "]";
   }
   else{
-    out << " [ no block info ]";
+    out << "[ no block info ]";
   }
 
   return out;
@@ -160,12 +127,11 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
 
   CBasicBlock *block = GetFromBlock();
   if(block != NULL) {
-    out << " [" << (block->GetBlockNum()) << "]";
+    out << "[" << (block->GetBlockNum()) << "]";
   }
   else{
-    out << " [ no block info ]";
+    out << "[ no block info ]";
   }
-
 
   return out;
 }
@@ -206,6 +172,8 @@ CCodeBlock_prime::CCodeBlock_prime(CCodeBlock *cblock)
       instr->SetDest(t->second);
   }
 
+  _blktab = new CBlockTable();
+
 }
 
 CCodeBlock_prime::~CCodeBlock_prime(void)
@@ -215,23 +183,20 @@ CCodeBlock_prime::~CCodeBlock_prime(void)
 
 ostream& CCodeBlock_prime::print(ostream &out, int indent) const
 {
-  string ind(indent, ' ');
+  CCodeBlock::print(out, indent);
 
-  out << ind << "[[ " << GetName() << endl;
-
-  list<CTacInstr*>::const_iterator it = _ops.begin();
-  while (it != _ops.end()) {
-    (*it++)->print(out, indent+2);
-    out << endl;
+  CBlockTable* bt = GetBlockTable();
+  if(bt == NULL){
+    out << "[ no block table] ";
   }
-
-  out << ind << "]]" << endl;
+  else{
+    out << GetBlockTable();
+  }
 
   return out;
 }
 
-CBasicBlock::CBasicBlock(int blocknum)
-  : _firstinstr(NULL), _lastinstr(NULL), _blocknum(blocknum)
+CBasicBlock::CBasicBlock()
 {  
 }
 
@@ -239,14 +204,21 @@ CBasicBlock::~CBasicBlock(void)
 {
 }
 
-vector<CBasicBlock*>& CBasicBlock::GetPrevBlks(void)
+list<CBasicBlock*>& CBasicBlock::GetPrevBlks(void)
 {
   return _prevblks;
 }
 
-vector<CBasicBlock*>& CBasicBlock::GetNextBlks(void)
+list<CBasicBlock*>& CBasicBlock::GetNextBlks(void)
 {
   return _nextblks;
+}
+
+void CBasicBlock::AddInstr(CTacInstr *instr)
+{
+  assert(instr != NULL);
+  _instrs.push_back(instr);
+  return;
 }
 
 void CBasicBlock::AddPrevBlks(CBasicBlock *prev)
@@ -263,24 +235,9 @@ void CBasicBlock::AddNextBlks(CBasicBlock *next)
   return;
 }
 
-CTacInstr *CBasicBlock::GetFirstInstr(void)
+list<CTacInstr*>& CBasicBlock::GetInstrs(void)
 {
-  return _firstinstr;
-}
-
-CTacInstr *CBasicBlock::GetLastInstr(void)
-{
-  return _lastinstr;
-}
-
-void CBasicBlock::SetFirstInstr(CTacInstr *first)
-{
-  _firstinstr = first;
-}
-
-void CBasicBlock::SetLastInstr(CTacInstr *last)
-{
-  _lastinstr = last;
+  return _instrs;
 }
 
 void CBasicBlock::SetBlockNum(int blocknum)
@@ -293,8 +250,29 @@ int CBasicBlock::GetBlockNum(void) const
   return _blocknum;
 }
 
+ostream& CBasicBlock::print(ostream &out, int indent) const
+{
+  string ind(indent, ' ');
+
+  out << "(" << GetBlockNum() << " -";
+
+  list<CBasicBlock*>::const_iterator it = _prevblks.begin();
+  while (it != _prevblks.end()){
+    out << " " << ((*it++)->GetBlockNum());
+  }
+
+  out <<" /";
+
+  it = _nextblks.begin();
+  while (it != _nextblks.end()){
+    out << " " << ((*it++)->GetBlockNum());
+  }
+  out << ")";
+  return out;
+}
+
 CBlockTable::CBlockTable(void)
-  : maxblock(0)
+  : maxblock(0), _initblock(NULL)
 {
 }
 
@@ -302,7 +280,7 @@ CBlockTable::~CBlockTable(void)
 {
 }
 
-vector<CBasicBlock*>& CBlockTable::GetBlockList(void)
+list<CBasicBlock*>& CBlockTable::GetBlockList(void)
 {
   return _blocklist;
 }
@@ -315,24 +293,32 @@ int CBlockTable::AddBlock(CBasicBlock *block)
   return maxblock;
 }
 
-CTacInstr* CTacInstr_prime::GetPrevInstr(void) const
+void CBlockTable::SetInitBlock(CBasicBlock* initblock)
 {
-  return _prev;
+  _initblock = initblock;
 }
 
-CTacInstr* CTacInstr_prime::GetNextInstr(void) const
+void CBlockTable::AddFinBlock(CBasicBlock* finblock)
 {
-  return _next;
+  assert(finblock != NULL);
+  _finblocks.push_back(finblock);
+
+  // assert(finblock != NULL);
+  // list<CBasicBlock*>::iterator it = find(_finblocks.begin(), _finblocks.end(), finblock);
+  // if (it == _finblocks.end()) {
+  //   _finblocks.push_back(finblock);
+  // }
+  return;
 }
 
-void CTacInstr_prime::SetPrevInstr(CTacInstr *prev)
+CBasicBlock* CBlockTable::GetInitBlock(void) const
 {
-  _prev = prev;
+  return _initblock;
 }
 
-void CTacInstr_prime::SetNextInstr(CTacInstr *next)
+list<CBasicBlock*>& CBlockTable::GetFinBlocks(void)
 {
-  _next = next;
+  return _finblocks;
 }
 
 CBasicBlock* CTacInstr_prime::GetFromBlock(void) const
@@ -345,8 +331,28 @@ void CTacInstr_prime::SetFromBlock(CBasicBlock* block)
   _block = block;
 }
 
-CBlockTable* CCodeBlock_prime::GetBlockTable()
+CBlockTable* CCodeBlock_prime::GetBlockTable() const
 {
   return _blktab;
+}
+
+ostream& CBlockTable::print(ostream &out, int indent) const
+{
+  string ind(indent, ' ');
+  out << "<block table>";
+
+  list<CBasicBlock*>::const_iterator it = _blocklist.begin();
+  while (it != _blocklist.end()) {
+    out << " " << (*it++);
+  }
+
+  out << " [initial : " << (GetInitBlock()->GetBlockNum()) << "] ";
+  out << "[final :";
+  it = _finblocks.begin();
+  while (it != _finblocks.end()) {
+    out << " " << ((*it++)->GetBlockNum());
+  }
+  out << "]";
+  return out;
 }
 
