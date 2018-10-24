@@ -10,6 +10,9 @@
 using namespace std;
 
 
+// ********************************************************************** /
+// ********************************************************************** /
+// IR to IR'
 CCodeBlock* to_ir_prime_block(CCodeBlock *cb) {
   return (new CCodeBlock_prime(cb));
 }
@@ -24,6 +27,10 @@ void to_ir_prime_scope(CScope *m) {
   return;
 }
 
+
+// ********************************************************************** /
+// ********************************************************************** /
+// Basic Block Analysis
 void basic_block_analysis_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
@@ -112,8 +119,30 @@ void basic_block_analysis_scope(CScope *m) {
   return;
 }
 
+
+// ********************************************************************** /
+// ********************************************************************** /
+// Tail Call optimization
+void tail_call_optimization_block(CCodeBlock *cb) {
+}
+
+void tail_call_optimization_scope(CScope *m){
+  tail_call_optimization_block(m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    tail_call_optimization_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
+// Every Optimization
 void full_optimize(CScope *m) {
   to_ir_prime_scope(m);
   basic_block_analysis_scope(m);
+  tail_call_optimization_scope(m);
   return;
 }
