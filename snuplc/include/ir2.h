@@ -10,6 +10,7 @@
 
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))
+#define opMov ((EOperation)((int)opNop + 3))
 
 //------------------------------------------------------------------------------
 /// @brief instruction class
