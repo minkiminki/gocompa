@@ -48,15 +48,9 @@ using namespace std;
 // CTacInstr
 //
 CTacInstr_prime::CTacInstr_prime(CTacInstr *instr)
-  : CTacInstr(instr->GetOperation(), instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), TODO(0)
-  // : _id(instr->_id), _op(instr->_op), _src1(instr->_src1), _src2(instr->_src2), _dst(instr->_dst), _name(instr->name), TODO(0)
+  : CTacInstr(instr->GetOperation(), instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL), _prev(NULL), _next(NULL)
 {
 }
-
-// CTacInstr_prime::CTacInstr_prime(CTacInstr *instr)
-//   : _id(instr->_id), _op(instr->_op), _src1(instr->_src1), _src2(instr->_src2), _dst(instr->_dst), _name(instr->name), TODO(0)
-// {
-// }
 
 CTacInstr_prime::~CTacInstr_prime(void)
 {
@@ -98,7 +92,14 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
   } else {
     out << "[CTacInstr: '" << _name << "']";
   }
-  out << " minki instr";
+
+  CBasicBlock *block = GetFromBlock();
+  if(block != NULL) {
+    out << " [" << (block->GetBlockNum()) << "]";
+  }
+  else{
+    out << " [ no block info ]";
+  }
 
   return out;
 }
@@ -156,8 +157,16 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
         //<< "  (refcnt: " << _refcnt << ")"
         ;
   }
-  out << " minki label";
-  
+
+  CBasicBlock *block = GetFromBlock();
+  if(block != NULL) {
+    out << " [" << (block->GetBlockNum()) << "]";
+  }
+  else{
+    out << " [ no block info ]";
+  }
+
+
   return out;
 }
 
@@ -166,7 +175,7 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
 // CCodeBlock
 //
 CCodeBlock_prime::CCodeBlock_prime(CCodeBlock *cblock)
-  : CCodeBlock(cblock->GetOwner()), TODO(0)
+  : CCodeBlock(cblock->GetOwner())
 {
   assert(_owner != NULL);
 
@@ -217,7 +226,127 @@ ostream& CCodeBlock_prime::print(ostream &out, int indent) const
   }
 
   out << ind << "]]" << endl;
-  out << " minki block";
 
   return out;
 }
+
+CBasicBlock::CBasicBlock(int blocknum)
+  : _firstinstr(NULL), _lastinstr(NULL), _blocknum(blocknum)
+{  
+}
+
+CBasicBlock::~CBasicBlock(void)
+{
+}
+
+vector<CBasicBlock*>& CBasicBlock::GetPrevBlks(void)
+{
+  return _prevblks;
+}
+
+vector<CBasicBlock*>& CBasicBlock::GetNextBlks(void)
+{
+  return _nextblks;
+}
+
+void CBasicBlock::AddPrevBlks(CBasicBlock *prev)
+{
+  assert(prev != NULL);
+  _prevblks.push_back(prev);
+  return;
+}
+
+void CBasicBlock::AddNextBlks(CBasicBlock *next)
+{
+  assert(next != NULL);
+  _nextblks.push_back(next);
+  return;
+}
+
+CTacInstr *CBasicBlock::GetFirstInstr(void)
+{
+  return _firstinstr;
+}
+
+CTacInstr *CBasicBlock::GetLastInstr(void)
+{
+  return _lastinstr;
+}
+
+void CBasicBlock::SetFirstInstr(CTacInstr *first)
+{
+  _firstinstr = first;
+}
+
+void CBasicBlock::SetLastInstr(CTacInstr *last)
+{
+  _lastinstr = last;
+}
+
+void CBasicBlock::SetBlockNum(int blocknum)
+{
+  _blocknum = blocknum;
+}
+
+int CBasicBlock::GetBlockNum(void) const
+{
+  return _blocknum;
+}
+
+CBlockTable::CBlockTable(void)
+  : maxblock(0)
+{
+}
+
+CBlockTable::~CBlockTable(void)
+{
+}
+
+vector<CBasicBlock*>& CBlockTable::GetBlockList(void)
+{
+  return _blocklist;
+}
+
+int CBlockTable::AddBlock(CBasicBlock *block)
+{
+  assert(block != NULL);
+  block->SetBlockNum(++maxblock);
+  _blocklist.push_back(block);
+  return maxblock;
+}
+
+CTacInstr* CTacInstr_prime::GetPrevInstr(void) const
+{
+  return _prev;
+}
+
+CTacInstr* CTacInstr_prime::GetNextInstr(void) const
+{
+  return _next;
+}
+
+void CTacInstr_prime::SetPrevInstr(CTacInstr *prev)
+{
+  _prev = prev;
+}
+
+void CTacInstr_prime::SetNextInstr(CTacInstr *next)
+{
+  _next = next;
+}
+
+CBasicBlock* CTacInstr_prime::GetFromBlock(void) const
+{
+  return _block;
+}
+
+void CTacInstr_prime::SetFromBlock(CBasicBlock* block)
+{
+  _block = block;
+}
+
+CBlockTable* CCodeBlock_prime::GetBlockTable()
+{
+  return _blktab;
+}
+

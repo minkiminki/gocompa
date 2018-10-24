@@ -17,6 +17,42 @@
 /// base class for all instructions
 ///
 
+class CBasicBlock : public CTac {
+public:
+
+  CBasicBlock(int blocknum);
+  virtual ~CBasicBlock(void);
+
+  vector<CBasicBlock*>& GetPrevBlks(void);
+  vector<CBasicBlock*>& GetNextBlks(void);
+  void AddPrevBlks(CBasicBlock *prev);
+  void AddNextBlks(CBasicBlock *next);
+  CTacInstr* GetFirstInstr(void);
+  CTacInstr* GetLastInstr(void);
+  void SetFirstInstr(CTacInstr *first);
+  void SetLastInstr(CTacInstr *last);
+  void SetBlockNum(int blocknum);
+  int GetBlockNum(void) const;
+
+protected:
+  vector<CBasicBlock*> _prevblks;
+  vector<CBasicBlock*> _nextblks;
+  CTacInstr *_firstinstr;
+  CTacInstr *_lastinstr;
+  int _blocknum;
+};
+
+class CBlockTable {
+public:
+  CBlockTable(void);
+  virtual ~CBlockTable(void);
+  vector<CBasicBlock*>& GetBlockList(void);
+  int AddBlock(CBasicBlock *block);
+protected:
+  vector<CBasicBlock*> _blocklist;
+  int maxblock;
+};
+
 class CTacInstr_prime : public CTacInstr {
   public:
     /// @name constructors/destructors
@@ -33,6 +69,13 @@ class CTacInstr_prime : public CTacInstr {
     /// @brief destructor
     virtual ~CTacInstr_prime(void);
 
+    CTacInstr* GetPrevInstr(void) const;
+    CTacInstr* GetNextInstr(void) const;
+    void SetPrevInstr(CTacInstr *prev);
+    void SetNextInstr(CTacInstr *next);
+    CBasicBlock* GetFromBlock(void) const;
+    void SetFromBlock(CBasicBlock*);
+  
     /// @}
 
     /// @name output
@@ -46,7 +89,9 @@ class CTacInstr_prime : public CTacInstr {
     /// @}
 
   protected:
-    int TODO;
+    CTacInstr *_prev;
+    CTacInstr *_next;
+    CBasicBlock *_block;
 };
 
 
@@ -127,6 +172,8 @@ class CCodeBlock_prime : public CCodeBlock {
 
     /// @}
 
+    CBlockTable* GetBlockTable();
+
 
     /// @name output
     /// @{
@@ -139,7 +186,7 @@ class CCodeBlock_prime : public CCodeBlock {
     /// @}
 
   protected:
-    int TODO;
+    CBlockTable* _blktab; 
 };
 
 
