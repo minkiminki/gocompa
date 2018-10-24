@@ -493,6 +493,9 @@ class CScope {
     /// @brief get the (first) code block of this scope
     CCodeBlock* GetCodeBlock(void) const;
 
+    /// newly added
+    void SetCodeBlock(CCodeBlock* cb);
+
     /// @}
 
 

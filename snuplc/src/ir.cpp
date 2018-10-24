@@ -422,6 +422,11 @@ CCodeBlock* CScope::GetCodeBlock(void) const
   return _cb;
 }
 
+void CScope::SetCodeBlock(CCodeBlock *cb)
+{
+  _cb = cb;
+}
+
 CTacTemp* CScope::CreateTemp(const CType *type)
 {
   CSymtab *st = GetSymbolTable();

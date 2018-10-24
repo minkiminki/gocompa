@@ -42,7 +42,9 @@
 #include "scanner.h"
 #include "parser.h"
 #include "ir.h"
-#include "backend.h"
+#include "ir2.h"
+#include "backend2.h"
+#include "opt.h"
 using namespace std;
 
 
@@ -244,7 +246,12 @@ int main(int argc, char *argv[])
       // AST to TAC conversion
       CModule *m = new CModule(ast);
 
+      // newly added
+      full_optimize(m);
+      
       DumpTAC(file, m);
+
+      // converting to IR'
 
       // output x86 assembly to console or file
       ostream *out = &cout;
