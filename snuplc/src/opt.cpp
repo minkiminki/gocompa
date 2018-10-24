@@ -15,13 +15,14 @@ CCodeBlock* to_ir_prime_block(CCodeBlock *cb) {
 }
 
 void to_ir_prime_scope(CScope *m) {
-  m->SetCodeBlock(to_ir_prime_block(m->GetCodeBlock()));
 
+  m->SetCodeBlock(to_ir_prime_block(m->GetCodeBlock()));
+  
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
     to_ir_prime_scope(*sit++);
   }
-  
+
   return;
 }
 

@@ -93,6 +93,10 @@ char EOperationName[][OPERATION_STRLEN] = {
   // special
   "label",                          ///< jump label; no arguments
   "nop",                            ///< no operation
+
+  // newly added
+  "tcall",                          ///< tcall:  dst = tcall src1
+  "phi",                            ///< phi: dst = phi src1 src2
 };
 
 bool IsRelOp(EOperation t)
@@ -282,6 +286,18 @@ CTacAddr* CTacInstr::GetSrc(int index) const
     case 2: return _src2;
   }
   return NULL;
+}
+
+void CTacInstr::SetOperation(EOperation op) {
+  _op = op;
+}
+
+void CTacInstr::SetSrc(int index, CTacAddr *src) {
+  switch (index) {
+  case 0 : _src1 = src; return;
+  case 1: _src2 = src; return;
+  default: assert(false);
+  }
 }
 
 CTac* CTacInstr::GetDest(void) const

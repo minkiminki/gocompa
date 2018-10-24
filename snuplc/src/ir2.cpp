@@ -36,6 +36,7 @@
 
 #include <iomanip>
 #include <cassert>
+#include <map>
 
 #include "ir.h"
 #include "ir2.h"
@@ -169,17 +170,33 @@ CCodeBlock_prime::CCodeBlock_prime(CCodeBlock *cblock)
 {
   assert(_owner != NULL);
 
+  map<CTac*, CTacInstr*> labelmap;
+
   list<CTacInstr*>::const_iterator it = (cblock->GetInstr()).begin();
-  while (it != _ops.end()) {
-    if ((*it) -> IsBranch()) {
-      CTacLabel *lbl = dynamic_cast<CTacLabel*>(*it++);
-      assert(lbl != NULL);
-      AddInstr(new CTacLabel_prime(lbl, lbl->GetLabel(), lbl->GetRefCnt()));
+  while (it != (cblock->GetInstr()).end()) {
+    CTacInstr *instr = *it++;
+    CTacLabel *lbl = dynamic_cast<CTacLabel*>(instr);
+    CTacInstr_prime *newinstr;
+
+    if (lbl != NULL) {
+      newinstr = new CTacLabel_prime(lbl, lbl->GetLabel(), lbl->GetRefCnt());
+      labelmap[lbl] = newinstr;
+      //      labelmap.insert(std::pair<CTacInstr*, CTacLabel_prime*>(lbl, newinstr));
     }
     else {
-      AddInstr(new CTacInstr_prime(*it++));
+      newinstr= new CTacInstr_prime(instr);
     }
+    AddInstr(newinstr);
   }
+
+  it = _ops.begin();
+  while (it != _ops.end()) {
+    CTacInstr *instr = *it++;
+    map<CTac*, CTacInstr*>::iterator t = labelmap.find(instr->GetDest());
+    if (t != labelmap.end())
+      instr->SetDest(t->second);
+  }
+
 }
 
 CCodeBlock_prime::~CCodeBlock_prime(void)

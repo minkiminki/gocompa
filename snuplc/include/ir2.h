@@ -8,6 +8,9 @@
 #include "symtab.h"
 #include "ir.h"
 
+#define OpTailCall (OpNop + 1)
+#define OpPhi (OpNop + 2)
+
 //------------------------------------------------------------------------------
 /// @brief instruction class
 ///

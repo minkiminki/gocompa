@@ -366,15 +366,18 @@ class CTacInstr : public CTac {
     /// @param out output stream
     /// @param indent indentation
     virtual ostream&  print(ostream &out, int indent=0) const;
+  
+    /// @brief set the destination operand to @a dst
+    void SetDest(CTac *dst);
 
+    void SetOperation(EOperation op);
+    void SetSrc(int index, CTacAddr *src);
+  
     /// @}
 
   protected:
     /// @brief set the instruction @a id (unique per procedure)
     void SetId(int unsigned id);
-
-    /// @brief set the destination operand to @a dst
-    void SetDest(CTac *dst);
 
     unsigned int   _id;              ///< unique instruction id
     EOperation     _op;              ///< opcode
