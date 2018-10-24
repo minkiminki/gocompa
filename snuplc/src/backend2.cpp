@@ -37,6 +37,7 @@
 #include <iomanip>
 #include <cassert>
 
+#include "ir2.h"
 #include "backend2.h"
 using namespace std;
 
@@ -506,6 +507,25 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       }
       break;
 
+    // TODO : fix it!!!
+    case opTailCall:
+      {
+        EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
+
+        // fix stack pointer
+        CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
+        assert(n != NULL);
+        int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
+        if (npar > 0) EmitInstruction("addl", Imm(npar*4) + ", %esp");
+
+        // function result
+        CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
+        if (t != NULL) {
+          Store(i->GetDest(), 'a');
+        }
+      }
+      break;
+      
     case opReturn:
       if (i->GetSrc(1) != NULL) {
         Load(i->GetSrc(1), "%eax", cmt.str());

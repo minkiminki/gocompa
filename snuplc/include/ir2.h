@@ -8,8 +8,8 @@
 #include "symtab.h"
 #include "ir.h"
 
-#define OpTailCall (OpNop + 1)
-#define OpPhi (OpNop + 2)
+#define opTailCall ((EOperation)((int)opNop + 1))
+#define opPhi ((EOperation)((int)opNop + 2))
 
 //------------------------------------------------------------------------------
 /// @brief instruction class

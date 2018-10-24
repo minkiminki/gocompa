@@ -123,7 +123,63 @@ void basic_block_analysis_scope(CScope *m) {
 // ********************************************************************** /
 // ********************************************************************** /
 // Tail Call optimization
+bool can_tail_call(const CSymProc* proc){
+  int n = proc->GetNParams();
+  if(n>6) return false;
+
+  for(int i=1; i<=n; i++){
+    const CSymParam* param = proc->GetParam(i);
+    const CType *t = param->GetDataType();
+    if((t->IsPointer()) || (t->IsArray())){
+      return false;
+    }
+  }
+  return true;
+}
+
 void tail_call_optimization_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  list<CTacInstr*>::const_iterator it = (cbp->GetInstr()).begin();
+  CTacInstr* instr0 = *it;
+  if(next(it,1) != (cbp->GetInstr()).end()) {
+
+    if(instr0->GetOperation() == opCall){
+      CTacName *n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
+      assert(n != NULL);
+      const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
+      assert(proc != NULL);
+
+      if(can_tail_call(proc))
+	instr0->SetOperation(opTailCall);
+    }    
+  }
+
+  while (it != (cbp->GetInstr()).end()) {
+    CTacInstr* instr1 = *it++;
+    if(instr1->GetOperation() == opReturn){
+      if(it != (cbp->GetInstr()).end()){
+	CTacInstr* instr2 = *it++;
+
+	if(instr2->GetOperation() == opCall){
+	  if((instr2->GetDest()) == (instr1->GetSrc(1))){
+	    CTacName *n = dynamic_cast<CTacName*>(instr2->GetSrc(1));
+	    assert(n != NULL);
+	    const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
+	    assert(proc != NULL);
+
+	    if(can_tail_call(proc))
+	      instr2->SetOperation(opTailCall);
+	  }
+	}
+      }
+      else{
+	break;
+      }
+    }
+  }
+  return;
 }
 
 void tail_call_optimization_scope(CScope *m){
