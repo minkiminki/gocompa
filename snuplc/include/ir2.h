@@ -52,7 +52,10 @@ public:
   list<CBasicBlock*>& GetFinBlocks(void);
   void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
+  void RemoveBlock(CBasicBlock *block);
+  void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
   virtual ostream&  print(ostream &out, int indent=0) const;
+
 
 protected:
   list<CBasicBlock*> _blocklist;

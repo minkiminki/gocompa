@@ -62,10 +62,10 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
 
   CBasicBlock *block = GetFromBlock();
   if(block != NULL) {
-    out << "[" << (block->GetBlockNum()) << "]";
+    out << "  [" << (block->GetBlockNum()) << "]";
   }
   else{
-    out << "[ no block info ]";
+    out << "  [no block info]";
   }
 
   return out;
@@ -121,16 +121,16 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
 
     out << ind << right << dec << setw(3) << _id << ": "
         << left << _label << ":"
-        //<< "  (refcnt: " << _refcnt << ")"
+        // << "  (refcnt: " << _refcnt << ")"
         ;
   }
 
   CBasicBlock *block = GetFromBlock();
   if(block != NULL) {
-    out << "[" << (block->GetBlockNum()) << "]";
+    out << " [" << (block->GetBlockNum()) << "]";
   }
   else{
-    out << "[ no block info ]";
+    out << " [no block info]";
   }
 
   return out;
@@ -223,14 +223,14 @@ void CBasicBlock::AddInstr(CTacInstr *instr)
 
 void CBasicBlock::AddPrevBlks(CBasicBlock *prev)
 {
-  assert(prev != NULL);
+  //  assert(prev != NULL);
   _prevblks.push_back(prev);
   return;
 }
 
 void CBasicBlock::AddNextBlks(CBasicBlock *next)
 {
-  assert(next != NULL);
+  //  assert(next != NULL);
   _nextblks.push_back(next);
   return;
 }
@@ -258,14 +258,26 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
 
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();
   while (it != _prevblks.end()){
-    out << " " << ((*it++)->GetBlockNum());
+    CBasicBlock* blk = *it++;
+    if(blk == NULL){
+      out << " IN";
+    }
+    else{
+      out << " " << (blk->GetBlockNum());
+    }
   }
 
   out <<" /";
 
   it = _nextblks.begin();
   while (it != _nextblks.end()){
-    out << " " << ((*it++)->GetBlockNum());
+    CBasicBlock* blk = *it++;
+    if(blk == NULL){
+      out << " OUT";
+    }
+    else{
+      out << " " << (blk->GetBlockNum());
+    }
   }
   out << ")";
   return out;
@@ -291,6 +303,107 @@ int CBlockTable::AddBlock(CBasicBlock *block)
   block->SetBlockNum(++maxblock);
   _blocklist.push_back(block);
   return maxblock;
+}
+
+template<typename T>
+int erase_success(list<T>& l, T key){
+  typename list<T>::iterator findit = find(l.begin(), l.end(), key);
+  if(findit != l.end()){
+    l.erase(findit);
+    return 0;
+  }
+  else{
+    return -1;
+  }
+}
+
+void CBlockTable::CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next)
+{
+  // assert(blk != NULL);
+  // assert(blk_next != NULL);
+  // /* 1 - remove from list */
+  // list<CBasicBlock*>::iterator it = find(_blocklist.begin(), _blocklist.end(), blk);
+  // assert(it != _blocklist.end());
+  // _blocklist.erase(it);
+
+  // /* 2 - remove from nextblock */
+  // CBasicBlock* blk_prev = next((blk->GetPrevBlks()).begin(), 1);  
+  // it = (blk->GetNextBlks()).begin();
+  // while (it != (blk->GetNextBlks()).end()) {
+  //   CBasicBlock* blk_prev = *it++;
+  //   if(blk_prev == NULL){
+  //     list<CBasicBlock*>::iterator findit
+  // 	= find(_finblocks.begin(), _finblocks.end(), blk);
+  //     if(findit != _finblocks.end()){
+  // 	_finblocks.erase(findit);
+  //     }
+  //   }
+  //   else{
+  //     list<CBasicBlock*>::iterator findit
+  // 	= find((blk_prev->GetPrevBlks()).begin(), (blk_prev->GetPrevBlks()).end(), blk);
+  //     assert(findit != (blk_prev->GetPrevBlks()).end());
+  //     (blk_prev->GetPrevBlks()).erase(findit);
+  //   }
+  // }
+
+  // /* 3 - erase instrs */
+
+  // list<CTacInstr*>::iterator iit = blk->GetInstrs().begin();
+  // while (iit != (blk->GetInstrs()).end()) {
+  //   CTacInstr* instr = *iit++;
+  //   assert(instr != NULL);
+  //   CTacInstr_prime *instrp = dynamic_cast<CTacInstr_prime*>(instr);
+  //   assert(instrp != NULL);
+  //   instrp->SetFromBlock(NULL);
+  //   // assert(cb->RemoveInstr(instr) >=0);
+  // }
+  
+}
+
+void CBlockTable::RemoveBlock(CBasicBlock *blk)
+{
+  assert(blk != NULL);
+
+  /* 1 - remove from list */
+  list<CBasicBlock*>::iterator it = find(_blocklist.begin(), _blocklist.end(), blk);
+  assert(it != _blocklist.end());
+  _blocklist.erase(it);
+
+  /* 2 - remove from nextblock */
+  it = (blk->GetNextBlks()).begin();
+  while (it != (blk->GetNextBlks()).end()) {
+    CBasicBlock* blk_next = *it++;
+    if(blk_next == NULL){
+      assert(erase_success(_finblocks, blk) >= 0);
+      // list<CBasicBlock*>::iterator findit
+      // 	= find(_finblocks.begin(), _finblocks.end(), blk);
+      // if(findit != _finblocks.end()){
+      // 	_finblocks.erase(findit);
+      // }
+    }
+    else{
+      assert(erase_success(blk_next->GetPrevBlks(), blk) >= 0);
+      // list<CBasicBlock*>::iterator findit
+      // 	= find((blk_next->GetPrevBlks()).begin(), (blk_next->GetPrevBlks()).end(), blk);
+      // assert(findit != (blk_next->GetPrevBlks()).end());
+      // (blk_next->GetPrevBlks()).erase(findit);
+    }
+  }
+
+  /* 3 - erase instrs */
+
+  list<CTacInstr*>::iterator iit = blk->GetInstrs().begin();
+  while (iit != (blk->GetInstrs()).end()) {
+    CTacInstr* instr = *iit++;
+    assert(instr != NULL);
+    CTacInstr_prime *instrp = dynamic_cast<CTacInstr_prime*>(instr);
+    assert(instrp != NULL);
+    instrp->SetFromBlock(NULL);
+    // assert(cb->RemoveInstr(instr) >=0);
+  }
+
+  /* 4 - delete it */
+  
 }
 
 void CBlockTable::SetInitBlock(CBasicBlock* initblock)

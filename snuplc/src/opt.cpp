@@ -30,7 +30,29 @@ void to_ir_prime_scope(CScope *m) {
 
 // ********************************************************************** /
 // ********************************************************************** /
+// clean up
+void clean_up_scope(CScope *m) {
+  m->GetCodeBlock()->CleanupControlFlow();
+  
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    clean_up_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // Basic Block Analysis
+bool is_initial_instr(EOperation e){
+  return (IsRelOp(e) || (e == opLabel));
+}
+
+bool is_final_instr(EOperation e){
+    return (opReturn || (e == opGoto));
+}
+
 void basic_block_analysis_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
@@ -41,72 +63,137 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   list<CTacInstr*> ops = cbp->GetInstr();
 
   list<CTacInstr*>::const_iterator it = ops.begin();
+
   CBasicBlock *blk = new CBasicBlock();
   blk->SetBlockNum(cbt->AddBlock(blk));
   cbt->SetInitBlock(blk);
-
+  blk->AddPrevBlks(NULL);
+  bool cascade = true;
+  bool is_first = false;
+  
   // set block info of CTacInstr
   while(it != ops.end()){
     CTacInstr_prime *instr = dynamic_cast<CTacInstr_prime*>(*it++);
     assert (instr != NULL);
-    CTacLabel_prime *l = dynamic_cast<CTacLabel_prime*>(instr);
-    if (l != NULL){
-      blk = new CBasicBlock();
-      blk->SetBlockNum(cbt->AddBlock(blk));
-      l->SetFromBlock(blk);
-      blk->AddInstr(instr);
-    } 
+    EOperation o = instr->GetOperation();
+    
+    if (o == opLabel){
+      CBasicBlock* blk_new = new CBasicBlock();
+      blk_new->SetBlockNum(cbt->AddBlock(blk_new));
+      if(cascade){
+	blk_new->AddPrevBlks(blk);
+	blk->AddNextBlks(blk_new);
+      }
+      blk = blk_new;
+      is_first = false;
+    }
+    else if(cascade){
+      if(IsRelOp(o)){
+	CBasicBlock* blk_new = new CBasicBlock();
+	blk_new->SetBlockNum(cbt->AddBlock(blk_new));
+	blk_new->AddPrevBlks(blk);
+	blk->AddNextBlks(blk_new);
+	blk = blk_new;
+	is_first = true;
+      }
+      else if(is_first){
+	CBasicBlock* blk_new = new CBasicBlock();
+	blk_new->SetBlockNum(cbt->AddBlock(blk_new));
+	blk_new->AddPrevBlks(blk);
+	blk->AddNextBlks(blk_new);
+	blk = blk_new;
+	is_first = false;
+      }
+      else{
+	is_first = false;
+      }
+    }
+
+    if(IsRelOp(o)){
+      is_first = true;
+    }
     else{
+      is_first = false;
+    }
+
+    if(blk != NULL){
       instr->SetFromBlock(blk);
       blk->AddInstr(instr);
     }
+
+    cascade = true;
+    if(o == opReturn){
+      cbt->AddFinBlock(blk);
+      blk->AddNextBlks(NULL);
+      blk = NULL;
+      cascade = false;
+    }
+    else if(o == opGoto){
+      cascade = false;
+    }
+    else{
+      cascade = true;
+    }
+    
+  }
+  if(cascade){
+    blk->AddNextBlks(NULL);
+    cbt->AddFinBlock(blk);
   }
 
   // set block contol flow info
-  blk = NULL;
   it = ops.begin();
-  bool cascade = false;
-
   while(it != ops.end()){
     CTacInstr_prime *instr = dynamic_cast<CTacInstr_prime*>(*it++);
     assert (instr != NULL);
-    CBasicBlock *blk_new = instr->GetFromBlock();  
-    EOperation op = instr->GetOperation();
-    
-    if(IsRelOp(op)) {
-      CTacInstr_prime *lbl = dynamic_cast<CTacInstr_prime*>(instr->GetDest());
-      assert(lbl != NULL);
-      blk = lbl -> GetFromBlock();
-      assert(blk != NULL);
-      blk_new->AddNextBlks(blk);
-      blk->AddPrevBlks(blk_new);
-    }
-    else if(op == opGoto) {
-      CTacInstr_prime *lbl = dynamic_cast<CTacInstr_prime*>(instr->GetDest());
-      assert(lbl != NULL);
-      blk = lbl -> GetFromBlock();
-      assert(blk != NULL);
-      blk_new->AddNextBlks(blk);
-      blk->AddPrevBlks(blk_new);
-    }
-    else if(op == opReturn) {
-      cascade = false;
-      cbt->AddFinBlock(instr->GetFromBlock());
-    }
-    else if((op == opLabel) && cascade) {
-      blk_new->AddPrevBlks(blk);
-      blk->AddNextBlks(blk_new);
-      cascade = true;
-    }
-    else {
-      cascade = true;
-    }
-    blk = blk_new;
-  }    
+    blk = instr->GetFromBlock();
 
-  if(cascade){
-    cbt->AddFinBlock(blk);
-  }  
+    if((blk != NULL) && instr->IsBranch()) {
+      CTacInstr_prime *lbl = dynamic_cast<CTacInstr_prime*>(instr->GetDest());
+      assert(lbl != NULL);
+      CBasicBlock *blk_new = lbl->GetFromBlock();
+      assert(blk_new != NULL);
+
+      blk->AddNextBlks(blk_new);
+      blk_new->AddPrevBlks(blk);
+    }
+  }
+
+  // eliminate unused basic block
+  bool success = true;
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+    while (it != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *it++;
+      assert(blk != NULL);
+      if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
+	cbt->RemoveBlock(blk);
+	success = true; break;
+      }
+    }    
+  }
+
+  // combine block
+  success = true;
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+    while (it != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *it++;
+      assert(blk != NULL);
+      if((next((blk->GetPrevBlks()).begin(), 1) == (blk->GetPrevBlks()).end()) &&
+	 (next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end())){
+	CBasicBlock *blk_next = *it;
+	if(blk_next != NULL){
+	  cbt->CombineBlock(blk, blk_next);
+	  success = false;
+	  //success = true; break;
+	}
+      }
+    }    
+  }
+
 }
 
 void basic_block_analysis_scope(CScope *m) {
@@ -197,6 +284,7 @@ void tail_call_optimization_scope(CScope *m){
 // ********************************************************************** /
 // Every Optimization
 void full_optimize(CScope *m) {
+  clean_up_scope(m);
   to_ir_prime_scope(m);
   basic_block_analysis_scope(m);
   tail_call_optimization_scope(m);

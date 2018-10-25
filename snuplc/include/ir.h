@@ -708,6 +708,8 @@ class CCodeBlock {
     /// @retval CTacInstr* inserted instruction
     CTacInstr* AddInstr(CTacInstr *instr);
 
+    int RemoveInstr(CTacInstr *instr);
+  
     /// @brief return (a reference to) the list of instructions
     const list<CTacInstr*>& GetInstr(void) const;
 
