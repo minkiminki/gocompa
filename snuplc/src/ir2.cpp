@@ -280,6 +280,14 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
 
   out << "(" << GetBlockNum() << " -";
 
+  // out << "\n[[\n";
+  // list<CTacInstr*>::const_iterator iit = _instrs.begin();
+  // while (iit != _instrs.end()) {
+  //   (*iit++)->print(out, indent+2);
+  //   out << endl;
+  // }
+  // out << "]]\n";
+  
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();
   while (it != _prevblks.end()){
     CBasicBlock* blk = *it++;

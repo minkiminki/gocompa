@@ -2,7 +2,7 @@
 *~
 *\#*
 *.o
-! snuplc/obj/*.o
+!snuplc/bin/*.o
 snuplc/snuplc
 test/*
-! test/*.mod
+!test/*.mod

@@ -9,9 +9,9 @@ BIN_DIR=bin
 PRIV_DIR=private
 
 DEPS=ir.h \
-		 ir2.h \
-		 opt.h \
-		 backend.h
+		ir2.h \
+		opt.h \
+		backend.h
 SRC=ir.cpp \
 		ir2.cpp \
 		opt.cpp \
