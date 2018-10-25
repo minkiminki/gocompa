@@ -13,8 +13,21 @@ using namespace std;
 // give number for paramaters
 void param_numbering_block(CCodeBlock *cb) {
   list<CTacInstr*>::const_iterator it = (cb->GetInstr()).begin();
-  CTacInstr* instr = *it;
-  /* TODO : fill it!! */
+  int number = 0;
+  while (it != (cb->GetInstr()).end()) {
+    CTacInstr* instr = *it++;
+    assert(instr != NULL);
+    switch(instr->GetOperation()){
+    case opCall :
+      number = 0;
+      break;
+    case opParam :
+      CTacConst *c = dynamic_cast<CTacConst*>(instr->GetDest());
+      assert(c != NULL);
+      c->SetValue(++number);
+      break;
+    }
+  }
 }
 
 void param_numbering_scope(CScope *m){

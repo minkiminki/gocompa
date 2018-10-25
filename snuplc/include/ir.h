@@ -233,6 +233,7 @@ class CTacConst : public CTacAddr {
 
     /// @brief return the constant value
     int GetValue(void) const;
+    void SetValue(int value);
 
     /// @}
 

@@ -181,6 +181,11 @@ int CTacConst::GetValue(void) const
   return _value;
 }
 
+void CTacConst::SetValue(int value)
+{
+  _value = value;
+}
+
 ostream& CTacConst::print(ostream &out, int indent) const
 {
   string ind(indent, ' ');
