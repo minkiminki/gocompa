@@ -42,6 +42,7 @@
 #include "scanner.h"
 #include "parser.h"
 #include "ir.h"
+#include "opt.h"
 #include "backend.h"
 using namespace std;
 
@@ -244,6 +245,9 @@ int main(int argc, char *argv[])
 
       // AST to TAC conversion
       CModule *m = new CModule(ast);
+
+      // do optimize
+      full_optimize(m);
 
       DumpTAC(file, m);
 

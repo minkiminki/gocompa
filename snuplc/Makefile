@@ -9,8 +9,10 @@ BIN_DIR=bin
 PRIV_DIR=private
 
 DEPS=ir.h \
-		 backend.h
+		opt.h \
+		backend.h
 SRC=ir.cpp \
+		opt.cpp \
 		backend64.cpp
 MOD=scanner.cpp \
 		parser.cpp \
