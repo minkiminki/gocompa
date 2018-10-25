@@ -4,9 +4,12 @@
 #include <iostream>
 #include <list>
 #include <vector>
+#include <cassert>
 
 #include "symtab.h"
 #include "ir.h"
+
+#define ADMIT (assert(false));
 
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))

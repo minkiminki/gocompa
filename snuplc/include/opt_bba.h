@@ -1,0 +1,14 @@
+#ifndef __SnuPL_OPT_BBA_H__
+#define __SnuPL_OPT_BBA_H__
+
+#include <iostream>
+#include <list>
+#include <vector>
+
+#include "ir2.h"
+#include "symtab.h"
+
+
+void basic_block_analysis_scope(CScope *m);
+
+#endif // __SnuPL_OPT_BBA_H__

@@ -10,10 +10,16 @@ PRIV_DIR=private
 
 DEPS=ir.h \
 		ir2.h \
+		opt_pre.h \
+		opt_bba.h \
+		opt_tco.h \
 		opt.h \
 		backend.h
 SRC=ir.cpp \
 		ir2.cpp \
+		opt_pre.cpp \
+		opt_bba.cpp \
+		opt_tco.cpp \
 		opt.cpp \
 		backend.cpp
 MOD=scanner.cpp \
