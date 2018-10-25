@@ -45,12 +45,9 @@ void clean_up_scope(CScope *m) {
 // ********************************************************************** /
 // ********************************************************************** /
 // Basic Block Analysis
-bool is_initial_instr(EOperation e){
-  return (IsRelOp(e) || (e == opLabel));
-}
 
 bool is_final_instr(EOperation e){
-    return (opReturn || (e == opGoto));
+  return ((e == opReturn) || (e == opGoto));
 }
 
 void basic_block_analysis_block(CCodeBlock *cb) {
@@ -70,8 +67,9 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   blk->AddPrevBlks(NULL);
   bool cascade = true;
   bool is_first = false;
-  
-  // set block info of CTacInstr
+
+  /*****************************/
+    // set block info of CTacInstr
   while(it != ops.end()){
     CTacInstr_prime *instr = dynamic_cast<CTacInstr_prime*>(*it++);
     assert (instr != NULL);
@@ -85,56 +83,25 @@ void basic_block_analysis_block(CCodeBlock *cb) {
 	blk->AddNextBlks(blk_new);
       }
       blk = blk_new;
+      instr->SetFromBlock(blk);
+      blk->AddInstr(instr);
+      cascade = true;
       is_first = false;
     }
     else if(cascade){
-      if(IsRelOp(o)){
+      if(is_first){
 	CBasicBlock* blk_new = new CBasicBlock();
 	blk_new->SetBlockNum(cbt->AddBlock(blk_new));
 	blk_new->AddPrevBlks(blk);
 	blk->AddNextBlks(blk_new);
 	blk = blk_new;
-	is_first = true;
       }
-      else if(is_first){
-	CBasicBlock* blk_new = new CBasicBlock();
-	blk_new->SetBlockNum(cbt->AddBlock(blk_new));
-	blk_new->AddPrevBlks(blk);
-	blk->AddNextBlks(blk_new);
-	blk = blk_new;
-	is_first = false;
-      }
-      else{
-	is_first = false;
-      }
-    }
-
-    if(IsRelOp(o)){
-      is_first = true;
-    }
-    else{
-      is_first = false;
-    }
-
-    if(blk != NULL){
+      assert(blk != NULL);
       instr->SetFromBlock(blk);
       blk->AddInstr(instr);
+      cascade = !is_final_instr(o);
+      is_first = IsRelOp(o);
     }
-
-    cascade = true;
-    if(o == opReturn){
-      cbt->AddFinBlock(blk);
-      blk->AddNextBlks(NULL);
-      blk = NULL;
-      cascade = false;
-    }
-    else if(o == opGoto){
-      cascade = false;
-    }
-    else{
-      cascade = true;
-    }
-    
   }
   if(cascade){
     blk->AddNextBlks(NULL);
@@ -148,7 +115,10 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     assert (instr != NULL);
     blk = instr->GetFromBlock();
 
-    if((blk != NULL) && instr->IsBranch()) {
+    if(blk == NULL){
+      continue;
+    }
+    else if(instr->IsBranch()) {
       CTacInstr_prime *lbl = dynamic_cast<CTacInstr_prime*>(instr->GetDest());
       assert(lbl != NULL);
       CBasicBlock *blk_new = lbl->GetFromBlock();
@@ -157,6 +127,11 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       blk->AddNextBlks(blk_new);
       blk_new->AddPrevBlks(blk);
     }
+    else if((instr->GetOperation()) == opReturn) {
+      blk->AddNextBlks(NULL);
+      cbt->AddFinBlock(blk);
+    }
+
   }
 
   // eliminate unused basic block
@@ -168,8 +143,8 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       CBasicBlock *blk = *it++;
       assert(blk != NULL);
       if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
-	cbt->RemoveBlock(blk);
-	success = true; break;
+  	cbt->RemoveBlock(blk);
+  	success = true; break;
       }
     }    
   }
@@ -183,13 +158,13 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       CBasicBlock *blk = *it++;
       assert(blk != NULL);
       if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
-	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
-	if(blk_next != NULL){
-	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
-	    cbt->CombineBlock(blk, blk_next);
-	    success = true; break;
-	  }
-	}
+  	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
+  	if(blk_next != NULL){
+  	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
+  	    cbt->CombineBlock(blk, blk_next);
+  	    success = true; break;
+  	  }
+  	}
       }
     }    
   }
