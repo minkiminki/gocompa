@@ -8,6 +8,8 @@
 
 #include "symtab.h"
 #include "ir.h"
+#include <boost/dynamic_bitset.hpp>
+using namespace boost;
 
 #define ADMIT (assert(false));
 
@@ -37,7 +39,7 @@ public:
   int GetBlockNum(void) const;
 
   virtual ostream&  print(ostream &out, int indent=0) const;
-  
+
 protected:
   list<CBasicBlock*> _prevblks;
   list<CBasicBlock*> _nextblks;
@@ -85,7 +87,7 @@ class CTacInstr_prime : public CTacInstr {
 
     CBasicBlock* GetFromBlock(void) const;
     void SetFromBlock(CBasicBlock* block);
-  
+
     /// @}
 
     /// @name output
@@ -100,6 +102,7 @@ class CTacInstr_prime : public CTacInstr {
 
   protected:
     CBasicBlock *_block;
+    dynamic_bitset<> liveness;
 };
 
 
@@ -121,7 +124,7 @@ class CTacLabel_prime : public CTacInstr_prime {
   //    CTacLabel_prime(CTacInstr* instr);
     CTacLabel_prime(CTacInstr *instr, const string label, int refcnt);
 
-  
+
     /// @brief destructor
     virtual ~CTacLabel_prime(void);
 
@@ -194,7 +197,7 @@ class CCodeBlock_prime : public CCodeBlock {
     /// @}
 
   protected:
-    CBlockTable* _blktab; 
+    CBlockTable* _blktab;
 };
 
 
