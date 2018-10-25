@@ -5,7 +5,6 @@
 #include <list>
 #include <vector>
 
-#include "ir.h"
 #include "ir2.h"
 #include "symtab.h"
 

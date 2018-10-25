@@ -506,6 +506,25 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       }
       break;
 
+    // TODO : fix it!!!
+    case opTailCall:
+      {
+        EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
+
+        // fix stack pointer
+        CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
+        assert(n != NULL);
+        int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
+        if (npar > 0) EmitInstruction("addl", Imm(npar*4) + ", %esp");
+
+        // function result
+        CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
+        if (t != NULL) {
+          Store(i->GetDest(), 'a');
+        }
+      }
+      break;
+
     case opReturn:
       if (i->GetSrc(1) != NULL) {
         Load(i->GetSrc(1), "%eax", cmt.str());
@@ -521,7 +540,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
 
     // special
     case opLabel:
-      _out << Label(dynamic_cast<CTacLabel*>(i)) << ":" << endl;
+      _out << Label(dynamic_cast<CTacLabel_prime*>(i)) << ":" << endl;
       break;
 
     case opNop:
@@ -585,7 +604,7 @@ string CBackendx86::Operand(const CTac *op)
 {
   const CTacName *n;
   const CTacConst *c;
-  const CTacLabel *l;
+  const CTacLabel_prime *l;
 
   string operand;
 
@@ -619,7 +638,7 @@ string CBackendx86::Operand(const CTac *op)
       operand = "(%edi)";
     }
   } else
-  if ((l = dynamic_cast<const CTacLabel*>(op)) != NULL) {
+  if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
     operand = Label(l);
   } else {
     operand = "?";
@@ -635,15 +654,15 @@ string CBackendx86::Imm(int value) const
   return o.str();
 }
 
-string CBackendx86::Label(const CTacLabel* label) const
+string CBackendx86::Label(const CTacLabel_prime* label) const
 {
   CScope *cs = GetScope();
   assert(cs != NULL);
 
   ostringstream o;
-  o << "l_" << cs->GetName() << "_" << label->GetLabel();
+  o << "l_" << cs->GetName() << "_" << label->GetLabel_prime();
   return o.str();
-  return "l_" + cs->GetName() + "_" + label->GetLabel();
+  return "l_" + cs->GetName() + "_" + label->GetLabel_prime();
 }
 
 string CBackendx86::Label(string label) const

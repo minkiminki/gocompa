@@ -4,9 +4,7 @@
 #include <algorithm>
 #include <list>
 
-#include "ir.h"
 #include "ir2.h"
-#include "ast.h"
 using namespace std;
 
 

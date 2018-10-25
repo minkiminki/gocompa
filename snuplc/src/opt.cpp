@@ -3,9 +3,6 @@
 #include <iomanip>
 #include <cassert>
 
-#include "ir.h"
-#include "ir2.h"
-#include "backend2.h"
 #include "opt.h"
 using namespace std;
 

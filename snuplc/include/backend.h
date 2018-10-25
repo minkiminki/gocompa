@@ -40,6 +40,7 @@
 
 #include "symtab.h"
 #include "ir.h"
+#include "ir2.h"
 
 using namespace std;
 
@@ -154,7 +155,7 @@ class CBackendx86 : public CBackend {
     string Imm(int value) const;
 
     /// @brief return a x86-label for CTaclabel @a label
-    string Label(const CTacLabel *label) const;
+    string Label(const CTacLabel_prime *label) const;
 
     /// @brief return a x86-label for string @a label
     string Label(string label) const;

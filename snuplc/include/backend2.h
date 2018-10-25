@@ -39,7 +39,6 @@
 #include <vector>
 
 #include "symtab.h"
-#include "ir.h"
 #include "ir2.h"
 
 using namespace std;

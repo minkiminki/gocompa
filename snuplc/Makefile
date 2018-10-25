@@ -11,13 +11,11 @@ PRIV_DIR=private
 DEPS=ir.h \
 		 ir2.h \
 		 opt.h \
-		 backend2.h
-#		 backend.h
+		 backend.h
 SRC=ir.cpp \
 		ir2.cpp \
 		opt.cpp \
-		backend2.cpp
-#		backend.cpp
+		backend.cpp
 MOD=scanner.cpp \
 		parser.cpp \
 		type.cpp \
