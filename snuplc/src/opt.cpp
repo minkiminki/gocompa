@@ -182,13 +182,13 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     while (it != (cbt->GetBlockList()).end()) {
       CBasicBlock *blk = *it++;
       assert(blk != NULL);
-      if((next((blk->GetPrevBlks()).begin(), 1) == (blk->GetPrevBlks()).end()) &&
-	 (next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end())){
-	CBasicBlock *blk_next = *it;
+      if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
+	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
 	if(blk_next != NULL){
-	  cbt->CombineBlock(blk, blk_next);
-	  success = false;
-	  //success = true; break;
+	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
+	    cbt->CombineBlock(blk, blk_next);
+	    success = true; break;
+	  }
 	}
       }
     }    
