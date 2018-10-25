@@ -338,7 +338,24 @@ void tail_call_optimization_block(CCodeBlock *cb) {
 	const CSymbol *s = n->GetSymbol();
 	assert(s != NULL);
         if((s->GetDataType()->IsPointer()) || (s->GetDataType()->IsArray())){
-	  if(s->GetSymbolType() == stLocal){
+	  if((s->GetSymbolType() != stGlobal) && (s->GetSymbolType() != stParam)){
+
+	    if(iit != instrs.rend()){
+	      instr0 = *iit;
+	      assert(instr0 != NULL);
+	      if(instr0->GetOperation() == opAddress){
+		if(n == dynamic_cast<CTacName*>(instr0->GetDest())){
+		  n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
+		  assert(n != NULL);
+		  const CSymbol *s = n->GetSymbol();
+		  assert(s != NULL);
+		  if((s->GetSymbolType() == stGlobal) || (s->GetSymbolType() == stParam)){
+		    i--;
+		    continue;
+		  }
+		}
+	      }
+	    }
 	    exitloop = true;
 	    break;
 	  }
