@@ -52,7 +52,8 @@ bool dump_asm = true;
 bool dump_dot = true;
 bool run_dot  = true;
 bool run_gcc  = false;
-string rte_path = "rte/AMD64/";
+string rte_path;
+// string rte_path = "rte/AMD64/";
 vector<string> files;
 
 
@@ -92,9 +93,26 @@ void Syntax(string msg)
   exit(EXIT_FAILURE);
 }
 
-void ParseArgs(int argc, char *argv[])
+int ParseArgs(int argc, char *argv[])
 {
-  int i = 1;
+  int arch;
+  if(argc <= 1){
+    Syntax("Missing Arch");
+  }
+  else{
+    arch = stoi(argv[1]);
+    if(arch == 32){
+      string rte_path = "rte/IA32/";
+    }
+    else if(arch == 64){
+      string rte_path = "rte/AMD64/";
+    }
+    else{
+      Syntax("Unvalid Arch");
+    }
+  }
+
+  int i = 2;
 
   while (i < argc) {
     if ((strlen(argv[i]) >= 2) && (argv[i][0] == '-') && (argv[i][1] == '-')) {
@@ -115,6 +133,8 @@ void ParseArgs(int argc, char *argv[])
     else files.push_back(string(argv[i]));
     i++;
   }
+
+  return arch;
 }
 
 void RunDOT(string file)
@@ -130,7 +150,7 @@ void RunDOT(string file)
   }
 }
 
-void RunCompile(string file)
+void RunCompile(int arch, string file)
 {
   if (run_gcc) {
     ostringstream cmd;
@@ -138,11 +158,18 @@ void RunCompile(string file)
     string exe(file);
     exe.erase(exe.find(".mod"));
 
-    //original cmd << "gcc -m32 -o" << exe << " "
-    cmd << "gcc -o" << exe << " "
-        << rte_path << "IO.s" << " "
-        << rte_path << "ARRAY.s" << " "
-        << file;
+    if(arch == 32){
+      cmd << "gcc -m32 -o" << exe << " "
+	  << rte_path << "IO.s" << " "
+	  << rte_path << "ARRAY.s" << " "
+	  << file;
+    }
+    else{
+      cmd << "gcc -o" << exe << " "
+	  << rte_path << "IO.s" << " "
+	  << rte_path << "ARRAY.s" << " "
+	  << file;
+    }
 
     cout << "  running command '" << cmd.str() << "'..." << endl;
     if (system(cmd.str().c_str()) < 0) {
@@ -218,7 +245,7 @@ void DumpTAC(string file, CModule *m)
 
 int main(int argc, char *argv[])
 {
-  ParseArgs(argc, argv);
+  int arch = ParseArgs(argc, argv);
 
   vector<string>::const_iterator it = files.begin();
 
@@ -226,6 +253,9 @@ int main(int argc, char *argv[])
 
   while (it != files.end()) {
     string file = *it++;
+    // if(arch == 32){
+    //   file = file + "_32";
+    // }
 
     // scanning, parsing & semantical analysis
     CScanner *s = new CScanner(new ifstream(file));
@@ -246,7 +276,7 @@ int main(int argc, char *argv[])
       CModule *m = new CModule(ast);
 
       // do optimize
-      full_optimize(m);
+      full_optimize(arch, m);
 
       DumpTAC(file, m);
 
@@ -260,7 +290,17 @@ int main(int argc, char *argv[])
       }
 
       //original CBackend *be = new CBackendx86(*out);
-      CBackend *be = new CBackendx86_64(*out);
+      CBackend *be;
+      if(arch == 32){
+        be = new CBackendx86(*out);
+      }
+      else if(arch == 64){
+	be = new CBackendx86_64(*out);
+      }
+      else{
+	assert(false);
+      }
+
       be->Emit(m);
 
       if (sout != NULL) {
@@ -268,7 +308,7 @@ int main(int argc, char *argv[])
         delete sout;
       }
 
-      RunCompile(file + ".s");
+      RunCompile(arch, file + ".s");
 
       delete be;
       delete m;

@@ -13,6 +13,6 @@
 #include "symtab.h"
 
 
-void full_optimize(CScope *m);
+void full_optimize(int arch, CScope *m);
 
 #endif // __SnuPL_OPT_H__

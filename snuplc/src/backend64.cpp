@@ -42,56 +42,56 @@ using namespace std;
 
 string regs[6] = {"%rdi\0","%rci\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 
-//------------------------------------------------------------------------------
-// CBackend
-//
-CBackend::CBackend(ostream &out)
-  : _out(out)
-{
-}
+// //------------------------------------------------------------------------------
+// // CBackend
+// //
+// CBackend::CBackend(ostream &out)
+//   : _out(out)
+// {
+// }
 
-CBackend::~CBackend(void)
-{
-}
+// CBackend::~CBackend(void)
+// {
+// }
 
-bool CBackend::Emit(CModule *m)
-{
-  assert(m != NULL);
-  _m = m;
+// bool CBackend::Emit(CModule *m)
+// {
+//   assert(m != NULL);
+//   _m = m;
 
-  if (!_out.good()) return false;
+//   if (!_out.good()) return false;
 
-  bool res = true;
+//   bool res = true;
 
-  try {
-    EmitHeader();
-    EmitCode();
-    EmitData();
-    EmitFooter();
+//   try {
+//     EmitHeader();
+//     EmitCode();
+//     EmitData();
+//     EmitFooter();
 
-    res = _out.good();
-  } catch (...) {
-    res = false;
-  }
+//     res = _out.good();
+//   } catch (...) {
+//     res = false;
+//   }
 
-  return res;
-}
+//   return res;
+// }
 
-void CBackend::EmitHeader(void)
-{
-}
+// void CBackend::EmitHeader(void)
+// {
+// }
 
-void CBackend::EmitCode(void)
-{
-}
+// void CBackend::EmitCode(void)
+// {
+// }
 
-void CBackend::EmitData(void)
-{
-}
+// void CBackend::EmitData(void)
+// {
+// }
 
-void CBackend::EmitFooter(void)
-{
-}
+// void CBackend::EmitFooter(void)
+// {
+// }
 
 
 //------------------------------------------------------------------------------

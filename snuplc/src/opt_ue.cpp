@@ -28,7 +28,6 @@ void unused_elimination_block(CCodeBlock *cb) {
     CTacInstr_prime *instr = dynamic_cast<CTacInstr_prime*>(*it++);
     assert (instr != NULL);
     if(instr->GetFromBlock() == NULL){
-      cout << instr << endl;
       assert(cb->RemoveInstr(instr) >= 0);
     }
   }

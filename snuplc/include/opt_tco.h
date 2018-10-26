@@ -9,6 +9,6 @@
 #include "symtab.h"
 
 
-void tail_call_optimization_scope(CScope *m);
+void tail_call_optimization_scope(int arch, CScope *m);
 
 #endif // __SnuPL_OPT_TCO_H__

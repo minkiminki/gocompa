@@ -10,9 +10,12 @@ using namespace std;
 // ********************************************************************** /
 // ********************************************************************** /
 // Tail Call optimization
-bool can_tail_call(const CSymProc* proc){
+bool can_tail_call(int arch, const CSymProc* proc){
   int n = proc->GetNParams();
-  if(n>6) return false;
+  cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaa" << n << endl;
+  if((n > 6) || (arch == 32 && n > 0)){
+    return false;
+  }
 
   for(int i=1; i<=n; i++){
     const CSymParam* param = proc->GetParam(i);
@@ -24,7 +27,7 @@ bool can_tail_call(const CSymProc* proc){
   return true;
 }
 
-void tail_call_optimization_block(CCodeBlock *cb) {
+void tail_call_optimization_block(int arch, CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
 
@@ -102,7 +105,9 @@ void tail_call_optimization_block(CCodeBlock *cb) {
     assert(proc != NULL);
 
     int i = proc->GetNParams();
-    if(i>6) continue;
+    if((i > 6) || (arch == 32 && i > 0)){
+      continue;
+    }
 
     bool exitloop = false;
     for(; i >= 1; i--){
@@ -154,12 +159,12 @@ void tail_call_optimization_block(CCodeBlock *cb) {
   }
 }
 
-void tail_call_optimization_scope(CScope *m){
-  tail_call_optimization_block(m->GetCodeBlock());
+void tail_call_optimization_scope(int arch, CScope *m){
+  tail_call_optimization_block(arch, m->GetCodeBlock());
 
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
-    tail_call_optimization_scope(*sit++);
+    tail_call_optimization_scope(arch, *sit++);
   }
   return;
 }
