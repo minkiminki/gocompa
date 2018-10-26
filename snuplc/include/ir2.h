@@ -136,13 +136,13 @@ class CTacLabel_prime : public CTacInstr_prime {
     /// @{
 
     /// @brief return the label
-    const string GetLabel_prime(void) const;
+    const string GetLabel(void) const;
 
     /// @brief increase/decrease the reference counter
-    int AddReference_prime(int ofs);
+    int AddReference(int ofs);
 
     /// @brief read the reference counter
-    int GetRefCnt_prime(void) const;
+    int GetRefCnt(void) const;
 
     /// @}
 

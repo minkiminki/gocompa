@@ -52,7 +52,7 @@ bool dump_asm = true;
 bool dump_dot = true;
 bool run_dot  = true;
 bool run_gcc  = false;
-string rte_path = "rte/IA32/";
+string rte_path = "rte/AMD64/";
 vector<string> files;
 
 
@@ -138,7 +138,8 @@ void RunCompile(string file)
     string exe(file);
     exe.erase(exe.find(".mod"));
 
-    cmd << "gcc -m32 -o" << exe << " "
+    //original cmd << "gcc -m32 -o" << exe << " "
+    cmd << "gcc -o" << exe << " "
         << rte_path << "IO.s" << " "
         << rte_path << "ARRAY.s" << " "
         << file;
@@ -258,7 +259,8 @@ int main(int argc, char *argv[])
         out = sout;
       }
 
-      CBackend *be = new CBackendx86(*out);
+      //original CBackend *be = new CBackendx86(*out);
+      CBackend *be = new CBackendx86_64(*out);
       be->Emit(m);
 
       if (sout != NULL) {

@@ -355,11 +355,11 @@ class CPointerType : public CScalarType {
 
     /// @brief return the storage size for this type
     /// @retval int storage size in bytes
-    virtual unsigned int GetSize(void) const { return 4; };
+    virtual unsigned int GetSize(void) const { return 8; };
 
     /// @brief return the alignment requirements for this type
     /// @retval int aligmnent in bytes
-    virtual int GetAlign(void) const { return 4; };
+    virtual int GetAlign(void) const { return 8; };
 
     /// @brief return the base type
     /// @retval CType* base type

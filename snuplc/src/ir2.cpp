@@ -45,7 +45,7 @@ CTacInstr_prime::~CTacInstr_prime(void)
   if (IsBranch()) {
     CTacLabel_prime *lbl = dynamic_cast<CTacLabel_prime*>(_dst);
     assert(lbl != NULL);
-    lbl->AddReference_prime(-1);
+    lbl->AddReference(-1);
   }
 }
 
@@ -120,25 +120,25 @@ CTacLabel_prime::~CTacLabel_prime(void)
 {
 }
 
-const string CTacLabel_prime::GetLabel_prime(void) const
+const string CTacLabel_prime::GetLabel(void) const
 {
   return _label;
 }
 
-int CTacLabel_prime::AddReference_prime(int ofs)
+int CTacLabel_prime::AddReference(int ofs)
 {
   _refcnt += ofs;
   return _refcnt;
 }
 
-int CTacLabel_prime::GetRefCnt_prime(void) const
+int CTacLabel_prime::GetRefCnt(void) const
 {
   return _refcnt;
 }
 
 ostream& CTacLabel_prime::print(ostream &out, int indent) const
 {
-  if (true || GetRefCnt_prime() > 0) {
+  if (true || GetRefCnt() > 0) {
     string ind(indent, ' ');
 
     out << ind << right << dec << setw(3) << _id << ": "

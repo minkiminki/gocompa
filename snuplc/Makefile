@@ -23,7 +23,7 @@ SRC=ir.cpp \
 		opt_tco.cpp \
 		opt_ue.cpp \
 		opt.cpp \
-		backend.cpp
+		backend64.cpp
 MOD=scanner.cpp \
 		parser.cpp \
 		type.cpp \
