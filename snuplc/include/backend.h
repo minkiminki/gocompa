@@ -173,7 +173,8 @@ class CBackendx86 : public CBackend {
     /// @param symtab symbol table
     /// @param param_ofs offset to parameters from base pointer after epilogue
     /// @param local_ofs offset to local vars from base pointer after epilogue
-    size_t ComputeStackOffsets(CSymtab *symtab, int param_ofs, int local_ofs);
+    // size_t ComputeStackOffsets(CSymtab *symtab, int param_ofs, int local_ofs);
+    void StackDump(CSymtab *symtab);
 
     /// @}
 
@@ -276,7 +277,8 @@ class CBackendx86_64 : public CBackend {
     /// @param symtab symbol table
     /// @param param_ofs offset to parameters from base pointer after epilogue
     /// @param local_ofs offset to local vars from base pointer after epilogue
-    size_t ComputeStackOffsets(CSymtab *symtab, int param_ofs, int local_ofs);
+    // size_t ComputeStackOffsets(CSymtab *symtab, int param_ofs, int local_ofs);
+    void StackDump(CSymtab *symtab);
 
     /// @}
 

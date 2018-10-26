@@ -185,7 +185,8 @@ class CCodeBlock_prime : public CCodeBlock {
     /// @}
 
     CBlockTable* GetBlockTable() const;
-
+    int GetStackSize() const;
+    void SetStackSize(int size);
 
     /// @name output
     /// @{
@@ -199,6 +200,7 @@ class CCodeBlock_prime : public CCodeBlock {
 
   protected:
     CBlockTable* _blktab;
+  int _size;
 };
 
 

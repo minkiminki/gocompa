@@ -42,6 +42,55 @@ using namespace std;
 
 string regs[6] = {"%rdi\0","%rci\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 
+
+// size_t ComputeStackOffsets(CSymtab *symtab,
+// 			   int param_ofs,int local_ofs)
+// {
+//   assert(symtab != NULL);
+//   vector<CSymbol*> slist = symtab->GetSymbols();
+
+//   size_t sp_align = 4; // stack pointer alignment
+//   size_t size = 0;
+
+//   for (size_t i=0; i<slist.size(); i++) {
+//     CSymbol *s = slist[i];
+//     const CType *t = s->GetDataType();
+
+//     ESymbolType st = s->GetSymbolType();
+
+//     if (st == stLocal) {
+//       int ssize = t->GetSize();
+//       int align = t->GetAlign();
+
+//       local_ofs -= ssize;
+
+//       if ((align > 1) && (local_ofs % align != 0)) {
+//         // align towards smaller addresses
+//         align = (local_ofs - align +1) / align * align - local_ofs;
+//       } else {
+//         align = 0;
+//       }
+
+//       size += ssize - align;      // align is negative
+//       local_ofs += align;
+
+//       s->SetBaseRegister("%ebp");
+//       s->SetOffset(local_ofs);
+
+//     } else if (st == stParam) {
+//       CSymParam *p = dynamic_cast<CSymParam*>(s);
+//       assert(p != NULL);
+
+//       p->SetBaseRegister("%ebp");
+//       p->SetOffset(param_ofs + p->GetIndex()*4);
+//     }
+//   }
+
+//   size = (size + sp_align-1) / sp_align * sp_align;
+//   return size;
+// }
+
+
 // //------------------------------------------------------------------------------
 // // CBackend
 // //
@@ -194,7 +243,15 @@ void CBackendx86_64::EmitScope(CScope *scope)
   CSymtab *st = scope->GetSymbolTable();
   assert(st != NULL);
 
-  size_t size = ComputeStackOffsets(st, 8, -12);
+  CCodeBlock_prime *cb = dynamic_cast<CCodeBlock_prime*>(scope->GetCodeBlock());
+  assert(cb != NULL);
+  // cb->SetStackSize(ComputeStackOffsets(st, 8, -12));
+
+  size_t size = cb->GetStackSize();
+
+  StackDump(st);
+
+  // size_t size = ComputeStackOffsets(st, 8, -12);
 
   // prologue
   _out << _ind << "# prologue" << endl;
@@ -236,7 +293,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
        << _ind << "# function body" << endl;
 
   SetScope(scope);
-  CCodeBlock *cb = scope->GetCodeBlock();
+  // CCodeBlock *cb = scope->GetCodeBlock();
 
   if (cb != NULL) EmitCodeBlock(cb);
 
@@ -729,63 +786,90 @@ int CBackendx86_64::OperandSize(CTac *t) const
   return size;
 }
 
-size_t CBackendx86_64::ComputeStackOffsets(CSymtab *symtab,
-                                        int param_ofs,int local_ofs)
+// size_t CBackendx86_64::ComputeStackOffsets(CSymtab *symtab,
+//                                         int param_ofs,int local_ofs)
+// {
+//   assert(symtab != NULL);
+//   vector<CSymbol*> slist = symtab->GetSymbols();
+
+// 	// modified
+//   size_t sp_align = 8; // stack pointer alignment
+//   size_t size = 0;
+
+//   for (size_t i=0; i<slist.size(); i++) {
+//     CSymbol *s = slist[i];
+//     const CType *t = s->GetDataType();
+
+//     ESymbolType st = s->GetSymbolType();
+
+//     if (st == stLocal) {
+//       int ssize = t->GetSize();
+//       int align = t->GetAlign();
+
+//       local_ofs -= ssize;
+
+//       if ((align > 1) && (local_ofs % align != 0)) {
+//         // align towards smaller addresses
+//         align = (local_ofs - align +1) / align * align - local_ofs;
+//       } else {
+//         align = 0;
+//       }
+
+//       size += ssize - align;      // align is negative
+//       local_ofs += align;
+
+//       s->SetBaseRegister("%rbp");
+//       s->SetOffset(local_ofs);
+
+//     } else if (st == stParam) {
+//       CSymParam *p = dynamic_cast<CSymParam*>(s);
+//       assert(p != NULL);
+
+// 			if(p->GetIndex() >= 6) {
+// 				p->SetBaseRegister("%rbp");
+// 				p->SetOffset(param_ofs + p->GetIndex()*4);
+// 			} else {
+// 				p->SetBaseRegister(regs[p->GetIndex()]);
+// 				p->SetOffset(0);
+// 			}
+//     }
+//   }
+
+//   size = (size + sp_align-1) / sp_align * sp_align;
+
+//   // Note: no checks regarding stack overflow are performed
+//   // Big arrays or lots of temporaries might cause an overflow
+//   // Some rudementary size checking on arrays is done in CTypeManager::GetArray
+//   // We should make all sizes 64-bit (in type.h, also 'size'
+//   // here) and check for 3GB overflows on 32-bit Linuxes,
+//   // bu then again this is a semester project, not a production-grade compiler.
+
+//   // dump
+//   _out << _ind << "# stack offsets:" << endl;
+//   for (size_t i=0; i<slist.size(); i++) {
+//     CSymbol *s = slist[i];
+//     ESymbolType st = s->GetSymbolType();
+
+//     if ((st == stLocal) || (st == stParam)) {
+//       ostringstream loc;
+//       loc << right << setw(4) << s->GetOffset()
+//         << "(" << s->GetBaseRegister() << ")";
+//       _out << _ind << "#   "
+//         << left << setw(10) << loc.str() << "  "
+//         << right << setw(2) << s->GetDataType()->GetSize() << "  "
+//         << s
+//         << endl;
+//     }
+//   }
+//   _out << endl;
+
+//   return size;
+// }
+
+void CBackendx86_64::StackDump(CSymtab *symtab)
 {
   assert(symtab != NULL);
   vector<CSymbol*> slist = symtab->GetSymbols();
-
-	// modified
-  size_t sp_align = 8; // stack pointer alignment
-  size_t size = 0;
-
-  for (size_t i=0; i<slist.size(); i++) {
-    CSymbol *s = slist[i];
-    const CType *t = s->GetDataType();
-
-    ESymbolType st = s->GetSymbolType();
-
-    if (st == stLocal) {
-      int ssize = t->GetSize();
-      int align = t->GetAlign();
-
-      local_ofs -= ssize;
-
-      if ((align > 1) && (local_ofs % align != 0)) {
-        // align towards smaller addresses
-        align = (local_ofs - align +1) / align * align - local_ofs;
-      } else {
-        align = 0;
-      }
-
-      size += ssize - align;      // align is negative
-      local_ofs += align;
-
-      s->SetBaseRegister("%rbp");
-      s->SetOffset(local_ofs);
-
-    } else if (st == stParam) {
-      CSymParam *p = dynamic_cast<CSymParam*>(s);
-      assert(p != NULL);
-
-			if(p->GetIndex() >= 6) {
-				p->SetBaseRegister("%rbp");
-				p->SetOffset(param_ofs + p->GetIndex()*4);
-			} else {
-				p->SetBaseRegister(regs[p->GetIndex()]);
-				p->SetOffset(0);
-			}
-    }
-  }
-
-  size = (size + sp_align-1) / sp_align * sp_align;
-
-  // Note: no checks regarding stack overflow are performed
-  // Big arrays or lots of temporaries might cause an overflow
-  // Some rudementary size checking on arrays is done in CTypeManager::GetArray
-  // We should make all sizes 64-bit (in type.h, also 'size'
-  // here) and check for 3GB overflows on 32-bit Linuxes,
-  // bu then again this is a semester project, not a production-grade compiler.
 
   // dump
   _out << _ind << "# stack offsets:" << endl;
@@ -806,7 +890,6 @@ size_t CBackendx86_64::ComputeStackOffsets(CSymtab *symtab,
   }
   _out << endl;
 
-  return size;
 }
 
 void CBackendx86_64::EmitCalleePush(char regs){

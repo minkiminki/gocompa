@@ -635,7 +635,7 @@ int CCodeBlock::RemoveInstr(CTacInstr *instr)
   list<CTacInstr*>::iterator findit
     = find(_ops.begin(), _ops.end(), instr);
   if(findit != _ops.end()){
-    cout << "remove "<< instr << "\n";
+    // cout << "remove "<< instr << "\n";
     _ops.erase(findit);
     return 0;
   }

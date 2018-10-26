@@ -14,6 +14,7 @@ DEPS=ir.h \
 		opt_bba.h \
 		opt_tco.h \
 		opt_ue.h \
+		opt_ra.h \
 		opt.h \
 		backend.h
 SRC=ir.cpp \
@@ -22,6 +23,7 @@ SRC=ir.cpp \
 		opt_bba.cpp \
 		opt_tco.cpp \
 		opt_ue.cpp \
+		opt_ra.cpp \
 		opt.cpp \
 		backend_default.cpp \
 		backend.cpp \

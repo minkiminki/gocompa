@@ -10,5 +10,6 @@ void full_optimize(int arch, CScope *m) {
   basic_block_analysis_scope(m);
   tail_call_optimization_scope(arch, m);
   unused_elimination_scope(m);
+  register_allocation_scope(arch, m);
   return;
 }
