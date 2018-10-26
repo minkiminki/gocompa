@@ -187,6 +187,8 @@ class CCodeBlock_prime : public CCodeBlock {
     CBlockTable* GetBlockTable() const;
     int GetStackSize() const;
     void SetStackSize(int size);
+		int GetParamNum() const;
+		void SetParamNum(int param_num);
 
     /// @name output
     /// @{
@@ -200,7 +202,8 @@ class CCodeBlock_prime : public CCodeBlock {
 
   protected:
     CBlockTable* _blktab;
-  int _size;
+		int _size;
+		int _param_num;
 };
 
 

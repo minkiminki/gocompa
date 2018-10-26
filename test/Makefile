@@ -1,10 +1,18 @@
 ROOT=..
+is64=true
 
 %: %.mod
+ifeq ($(is64),true)
+	$(ROOT)/snuplc/snuplc 64 --ast --tac $<
+	cp $<.s $<_64.s
+	cp $<.tac $<_64.tac
+	gcc -static -o $@ $<.s $(ROOT)/rte/AMD64/IO.s $(ROOT)/rte/AMD64/ARRAY.s
+else
 	$(ROOT)/snuplc/snuplc 32 --ast --tac $<
+	cp $<.s $<_32.s
+	cp $<.tac $<_32.tac
 	gcc -static -m32 -o $@ $<.s $(ROOT)/rte/IA32/IO.s $(ROOT)/rte/IA32/ARRAY.s
-#	$(ROOT)/snuplc/snuplc 64 --ast --tac $<
-#	gcc -static -o $@ $<.s $(ROOT)/rte/AMD64/IO.s $(ROOT)/rte/AMD64/ARRAY.s
+endif
 
 all:
 	@for i in *.mod; do \

@@ -196,6 +196,7 @@ CCodeBlock_prime::CCodeBlock_prime(CCodeBlock *cblock)
 
   _blktab = new CBlockTable();
   _size = 0;
+	_param_num = 0;
 
 }
 
@@ -477,6 +478,16 @@ int CCodeBlock_prime::GetStackSize() const
 void CCodeBlock_prime::SetStackSize(int size)
 {
   _size = size;
+}
+
+int CCodeBlock_prime::GetParamNum() const
+{
+	return _param_num;
+}
+
+void CCodeBlock_prime::SetParamNum(int param_num)
+{
+	_param_num = param_num;
 }
 
 ostream& CBlockTable::print(ostream &out, int indent) const

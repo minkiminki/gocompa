@@ -40,7 +40,7 @@
 #include "backend.h"
 using namespace std;
 
-string regs[6] = {"%rdi\0","%rci\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
+string regs[6] = {"%rdi\0","%rsi\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 
 
 // size_t ComputeStackOffsets(CSymtab *symtab,
@@ -248,6 +248,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
   // cb->SetStackSize(ComputeStackOffsets(st, 8, -12));
 
   size_t size = cb->GetStackSize();
+	int param_num = cb->GetParamNum();
 
   StackDump(st);
 
@@ -258,7 +259,9 @@ void CBackendx86_64::EmitScope(CScope *scope)
   EmitInstruction("pushq", "%rbp");
   EmitInstruction("movq", "%rsp, %rbp");
 	// currently push/pop all regs
-	EmitCalleePush(0b11111);
+	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
+	EmitCalleePush(callee_used_regs);
+	EmitParamPush(param_num);
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
 	//EmitInstruction("pushl", "%rsi");
 	//EmitInstruction("pushl", "%rdi");
@@ -306,7 +309,9 @@ void CBackendx86_64::EmitScope(CScope *scope)
   //EmitInstruction("popq", "%rsi");
   //EmitInstruction("popq", "%rbx");
 	// currently push/pop all regs
-	EmitCalleePop(0b11111);
+	int param_size = (param_num <= 6) ? param_num*8 : 6*8;
+	EmitCalleePop(callee_used_regs);
+  EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
   EmitInstruction("popq", "%rbp");
   EmitInstruction("ret");
   _out << endl;
@@ -551,6 +556,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
 
     // function call-related operations
+		case opTailCall:
     case opCall:
       {
         EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
@@ -560,7 +566,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         assert(n != NULL);
         int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
 				//modified
-        if (npar > 6) EmitInstruction("addq", Imm((npar-6)*4) + ", %rsp");
+        if (npar > 6) EmitInstruction("addq", Imm((npar-6)*8) + ", %rsp");
 
         // function result
         CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
@@ -582,12 +588,12 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 	  {
 			CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
 			int paramIndex = t->GetValue();
-			if(paramIndex >= 6) {
+			if(paramIndex > 6) {
 				Load(i->GetSrc(1), "%rax", cmt.str());
 				EmitInstruction("pushq", "%rax");
 			}
 			else {
-				Load(i->GetSrc(1), regs[paramIndex], cmt.str());
+				Load(i->GetSrc(1), regs[paramIndex-1], cmt.str());
 			}
 		} //EmitInstruction("pushq", "%rax");
       break;
@@ -892,30 +898,35 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 
 }
 
-void CBackendx86_64::EmitCalleePush(char regs){
+void CBackendx86_64::EmitCalleePush(const boost::dynamic_bitset<> regs){
 	/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-	if(regs & 0b00001)
+	if(regs[0])
 		EmitInstruction("pushq", "%rbx", "save callee saved registers");
-	if(regs & 0b00010)
+	if(regs[1])
 		EmitInstruction("pushq", "%r12", "save callee saved registers");
-	if(regs & 0b00100)
+	if(regs[2])
 		EmitInstruction("pushq", "%r13", "save callee saved registers");
-	if(regs & 0b01000)
+	if(regs[3])
 		EmitInstruction("pushq", "%r14", "save callee saved registers");
-	if(regs & 0b10000)
+	if(regs[4])
 		EmitInstruction("pushq", "%r15", "save callee saved registers");
 }
 
-void CBackendx86_64::EmitCalleePop(char regs){
+void CBackendx86_64::EmitCalleePop(const boost::dynamic_bitset<> regs){
 	/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-	if(regs & 0b10000)
+	if(regs[4])
 		EmitInstruction("popq", "%r15", "restore callee saved registers");
-	if(regs & 0b01000)
+	if(regs[3])
 		EmitInstruction("popq", "%r14", "restore callee saved registers");
-	if(regs & 0b00100)
+	if(regs[2])
 		EmitInstruction("popq", "%r13", "restore callee saved registers");
-	if(regs & 0b00010)
+	if(regs[1])
 		EmitInstruction("popq", "%r12", "restore callee saved registers");
-	if(regs & 0b00001)
+	if(regs[0])
 		EmitInstruction("popq", "%rbx", "restore callee saved registers");
+}
+
+void CBackendx86_64::EmitParamPush(int param_num){
+	for(int i = 0; i < param_num; i++)
+		EmitInstruction("pushq", regs[i]);
 }

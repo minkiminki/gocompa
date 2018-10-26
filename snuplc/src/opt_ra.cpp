@@ -10,15 +10,48 @@ using namespace std;
 // ********************************************************************** /
 // ********************************************************************** /
 // Register Alloction
-size_t ComputeStackOffsets(CSymtab *symtab,
-			   int param_ofs,int local_ofs)
-{
-  assert(symtab != NULL);
+
+void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
   vector<CSymbol*> slist = symtab->GetSymbols();
 
-  size_t sp_align = 4; // stack pointer alignment
+	// compute stack offset
+	int callee_save = 5;
+	int param_ofs = -(callee_save)*8;
+	int local_ofs = param_ofs;
+  size_t sp_align = 8; // stack pointer alignment
   size_t size = 0;
+	int param_num = 0;
 
+	// for first iteration, assign regs for param(<6) and compute param number
+  for (size_t i=0; i<slist.size(); i++) {
+    CSymbol *s = slist[i];
+    const CType *t = s->GetDataType();
+
+    ESymbolType st = s->GetSymbolType();
+
+    if (st == stParam) {
+			if(++param_num > 6){
+			} else {
+				CSymParam *p = dynamic_cast<CSymParam*>(s);
+				assert(p != NULL);
+
+				p->SetBaseRegister("%rbp");
+				p->SetOffset(param_ofs - (p->GetIndex()+1)*8);
+			}
+    }
+  }
+
+	//set locals after param values, set param>6 on eariler stack :) :(
+	if(param_num > 6){
+		local_ofs -= 6 * 8;
+		param_ofs = 16 + (param_num - 6)*8;
+	}
+	else
+		local_ofs -= param_num * 8;
+
+	// iterate again to assign locals and params(>6) after get param num
   for (size_t i=0; i<slist.size(); i++) {
     CSymbol *s = slist[i];
     const CType *t = s->GetDataType();
@@ -41,31 +74,22 @@ size_t ComputeStackOffsets(CSymtab *symtab,
       size += ssize - align;      // align is negative
       local_ofs += align;
 
-      s->SetBaseRegister("%ebp");
+      s->SetBaseRegister("%rbp");
       s->SetOffset(local_ofs);
+		} else if (st == stParam) {
+			if(param_num > 6){
+				CSymParam *p = dynamic_cast<CSymParam*>(s);
+				assert(p != NULL);
 
-    } else if (st == stParam) {
-      CSymParam *p = dynamic_cast<CSymParam*>(s);
-      assert(p != NULL);
-
-      p->SetBaseRegister("%ebp");
-      p->SetOffset(param_ofs + p->GetIndex()*4);
+				p->SetBaseRegister("%rbp");
+				p->SetOffset(param_ofs - (p->GetIndex()-5)*8);
+			}
     }
-  }
+	}
   size = (size + sp_align-1) / sp_align * sp_align;
-  return size;
-}
 
-void register_allocation_block(int arch, CSymtab *st, CCodeBlock *cb) {
-  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
-  assert(cbp != NULL);
-  // TODO depende on arch
-  switch(arch){
-  case 32: cbp->SetStackSize(ComputeStackOffsets(st, 8, -12)); break;
-  case 64: cbp->SetStackSize(ComputeStackOffsets(st, 8, -12)); // TODO - FIX IT!!
-    break;
-  default: assert(false);
-  }
+	cbp->SetParamNum(param_num);
+  cbp->SetStackSize(size);
 }
 
 void register_allocation_scope(int arch, CScope *m) {
