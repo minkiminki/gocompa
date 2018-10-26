@@ -631,7 +631,6 @@ CTacInstr* CCodeBlock::AddInstr(CTacInstr *instr)
 
 int CCodeBlock::RemoveInstr(CTacInstr *instr)
 {
-  /* DO NOT USE IT - it doesn't work */
   assert(instr != NULL);
   list<CTacInstr*>::iterator findit
     = find(_ops.begin(), _ops.end(), instr);
@@ -645,6 +644,17 @@ int CCodeBlock::RemoveInstr(CTacInstr *instr)
   }
 }
 
+void CCodeBlock::InstrRenumber()
+{
+  _inst_id = 0;
+  list<CTacInstr*>::const_iterator it = _ops.begin();
+  while(it != _ops.end()){
+    CTacInstr* instr = *it++;
+    assert(instr != NULL);
+    instr->SetId(_inst_id++);
+  }
+}
+
 const list<CTacInstr*>& CCodeBlock::GetInstr(void) const
 {
   return _ops;
@@ -653,7 +663,7 @@ const list<CTacInstr*>& CCodeBlock::GetInstr(void) const
 void CCodeBlock::CleanupControlFlow(void)
 {
   list<CTacInstr*>::iterator it = _ops.begin();
-  
+
   // 1. pass: delete all branches (absolute/conditional) that jump to the
   //          immediately next instruction. Deleting branch instruction will
   //          automatically decrease the reference count of the target label.
@@ -670,7 +680,7 @@ void CCodeBlock::CleanupControlFlow(void)
       }
     }
   }
-  
+
   // 2. pass: remove all labels with reference count 0
   it = _ops.begin();
   while (it != _ops.end()) {
@@ -683,7 +693,7 @@ void CCodeBlock::CleanupControlFlow(void)
       it = _ops.erase(--it);
     }
   }
-  
+
   // 3. renumber instructions (we shouldn't do that really, but it's prettier)
   _inst_id = 0;
   it = _ops.begin();
@@ -747,4 +757,3 @@ ostream& operator<<(ostream &out, const CCodeBlock *t)
 {
   return t->print(out);
 }
-

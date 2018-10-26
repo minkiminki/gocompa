@@ -58,6 +58,7 @@ public:
   void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
   void RemoveBlock(CBasicBlock *block);
+  void BlockRenumber(void);
   void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
   virtual ostream&  print(ostream &out, int indent=0) const;
 

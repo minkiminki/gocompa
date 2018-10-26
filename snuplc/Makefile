@@ -13,6 +13,7 @@ DEPS=ir.h \
 		opt_pre.h \
 		opt_bba.h \
 		opt_tco.h \
+		opt_ue.h \
 		opt.h \
 		backend.h
 SRC=ir.cpp \
@@ -20,6 +21,7 @@ SRC=ir.cpp \
 		opt_pre.cpp \
 		opt_bba.cpp \
 		opt_tco.cpp \
+		opt_ue.cpp \
 		opt.cpp \
 		backend.cpp
 MOD=scanner.cpp \
@@ -58,4 +60,3 @@ clean:
 mrproper: clean
 	rm -rf doc/*
 	rm -rf ${BIN_DIR}/*
-

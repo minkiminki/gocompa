@@ -9,6 +9,7 @@
 #include "opt_pre.h"
 #include "opt_bba.h"
 #include "opt_tco.h"
+#include "opt_ue.h"
 #include "symtab.h"
 
 

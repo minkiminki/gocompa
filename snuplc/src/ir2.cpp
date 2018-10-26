@@ -219,7 +219,7 @@ ostream& CCodeBlock_prime::print(ostream &out, int indent) const
 }
 
 CBasicBlock::CBasicBlock()
-{  
+{
 }
 
 CBasicBlock::~CBasicBlock(void)
@@ -287,7 +287,7 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
   //   out << endl;
   // }
   // out << "]]\n";
-  
+
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();
   while (it != _prevblks.end()){
     CBasicBlock* blk = *it++;
@@ -381,7 +381,7 @@ void CBlockTable::RemoveBlock(CBasicBlock *blk)
   assert(blk != NULL);
 
   /* 1 - remove from list */
-  assert(erase_success(_blocklist, blk) >= 0);  
+  assert(erase_success(_blocklist, blk) >= 0);
   // list<CBasicBlock*>::iterator it = find(_blocklist.begin(), _blocklist.end(), blk);
   // assert(it != _blocklist.end());
   // _blocklist.erase(it);
@@ -399,7 +399,6 @@ void CBlockTable::RemoveBlock(CBasicBlock *blk)
   }
 
   /* 3 - erase instrs */
-
   list<CTacInstr*>::iterator iit = blk->GetInstrs().begin();
   while (iit != (blk->GetInstrs()).end()) {
     CTacInstr* instr = *iit++;
@@ -411,7 +410,7 @@ void CBlockTable::RemoveBlock(CBasicBlock *blk)
   }
 
   /* 4 - delete it */
-  
+
 }
 
 void CBlockTable::SetInitBlock(CBasicBlock* initblock)
@@ -441,6 +440,17 @@ CBasicBlock* CBlockTable::GetInitBlock(void) const
 list<CBasicBlock*>& CBlockTable::GetFinBlocks(void)
 {
   return _finblocks;
+}
+
+void CBlockTable::BlockRenumber(void)
+{
+  maxblock = 0;
+  list<CBasicBlock*>::const_iterator it = _blocklist.begin();
+  while(it != _blocklist.end()){
+    CBasicBlock* cb = *it++;
+    assert(cb != NULL);
+    cb->SetBlockNum(++maxblock);
+  }
 }
 
 CBasicBlock* CTacInstr_prime::GetFromBlock(void) const
@@ -477,4 +487,3 @@ ostream& CBlockTable::print(ostream &out, int indent) const
   out << "]";
   return out;
 }
-

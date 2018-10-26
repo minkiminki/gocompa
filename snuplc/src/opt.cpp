@@ -9,5 +9,6 @@ void full_optimize(CScope *m) {
   to_ir_prime_scope(m);
   basic_block_analysis_scope(m);
   tail_call_optimization_scope(m);
+  unused_elimination_scope(m);
   return;
 }

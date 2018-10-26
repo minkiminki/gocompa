@@ -367,13 +367,13 @@ class CTacInstr : public CTac {
     /// @param out output stream
     /// @param indent indentation
     virtual ostream&  print(ostream &out, int indent=0) const;
-  
+
     /// @brief set the destination operand to @a dst
     void SetDest(CTac *dst);
 
     void SetOperation(EOperation op);
     void SetSrc(int index, CTacAddr *src);
-  
+
     /// @}
 
   protected:
@@ -710,7 +710,9 @@ class CCodeBlock {
     CTacInstr* AddInstr(CTacInstr *instr);
 
     int RemoveInstr(CTacInstr *instr);
-  
+
+    void InstrRenumber(void);
+
     /// @brief return (a reference to) the list of instructions
     const list<CTacInstr*>& GetInstr(void) const;
 
