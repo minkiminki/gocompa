@@ -354,7 +354,7 @@ void CBackendx86::EmitLocalData(CScope *scope)
       ofs += 4;
 
       ostringstream comment;
-      comment << "local array '" << s->GetName() << "': " 
+      comment << "local array '" << s->GetName() << "': "
               << dim << " dimensions";
 
       EmitInstruction("movl", Imm(dim) + "," + dst.str(), comment.str());

@@ -37,7 +37,7 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     CTacInstr_prime *instr = dynamic_cast<CTacInstr_prime*>(*it++);
     assert (instr != NULL);
     EOperation o = instr->GetOperation();
-    
+
     if (o == opLabel){
       CBasicBlock* blk_new = new CBasicBlock();
       blk_new->SetBlockNum(cbt->AddBlock(blk_new));
@@ -109,7 +109,7 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   	cbt->RemoveBlock(blk);
   	success = true; break;
       }
-    }    
+    }
   }
 
   // combine block
@@ -129,14 +129,14 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   	  }
   	}
       }
-    }    
+    }
   }
 
 }
 
 void basic_block_analysis_scope(CScope *m) {
   basic_block_analysis_block(m->GetCodeBlock());
-  
+
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
     basic_block_analysis_scope(*sit++);

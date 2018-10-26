@@ -49,7 +49,7 @@ CCodeBlock* to_ir_prime_block(CCodeBlock *cb) {
 
 void to_ir_prime_scope(CScope *m) {
   m->SetCodeBlock(to_ir_prime_block(m->GetCodeBlock()));
-  
+
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
     to_ir_prime_scope(*sit++);
@@ -63,7 +63,7 @@ void to_ir_prime_scope(CScope *m) {
 // clean up
 void clean_up_scope(CScope *m) {
   m->GetCodeBlock()->CleanupControlFlow();
-  
+
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
     clean_up_scope(*sit++);

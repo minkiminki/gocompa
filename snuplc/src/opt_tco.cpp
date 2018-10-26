@@ -83,7 +83,7 @@ void tail_call_optimization_block(CCodeBlock *cb) {
 	 }
 	 else{
 	   continue;
-	 }	 
+	 }
       }
       else if(instr0->GetOperation() == opCall){
 	instr1 = instr0;
@@ -95,12 +95,12 @@ void tail_call_optimization_block(CCodeBlock *cb) {
     else{
       continue;
     }
-    
+
     CTacName *n = dynamic_cast<CTacName*>(instr1->GetSrc(1));
     assert(n != NULL);
     const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
     assert(proc != NULL);
-    
+
     int i = proc->GetNParams();
     if(i>6) continue;
 
