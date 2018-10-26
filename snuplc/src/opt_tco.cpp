@@ -10,23 +10,6 @@ using namespace std;
 // ********************************************************************** /
 // ********************************************************************** /
 // Tail Call optimization
-bool can_tail_call(int arch, const CSymProc* proc){
-  int n = proc->GetNParams();
-  cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaa" << n << endl;
-  if((n > 6) || (arch == 32 && n > 0)){
-    return false;
-  }
-
-  for(int i=1; i<=n; i++){
-    const CSymParam* param = proc->GetParam(i);
-    const CType *t = param->GetDataType();
-    if((t->IsPointer()) || (t->IsArray())){
-      return false;
-    }
-  }
-  return true;
-}
-
 void tail_call_optimization_block(int arch, CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
@@ -58,7 +41,6 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
     if(iit != instrs.rend()){
       instr0 = *iit++;
       if(instr0->GetOperation() == opReturn){
-
 	while(iit != instrs.rend()){
 	  assert(*iit != NULL);
 	  if((*iit)->GetOperation() == opNop){
@@ -120,6 +102,10 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 
       if(instr0->GetOperation() == opParam){
         n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
+	if(n == NULL){
+	  assert(dynamic_cast<CTacConst*>(instr0->GetSrc(1))!= NULL);
+	  continue;
+	}
 	assert(n != NULL);
 	const CSymbol *s = n->GetSymbol();
 	assert(s != NULL);
