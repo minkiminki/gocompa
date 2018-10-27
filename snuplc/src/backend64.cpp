@@ -40,8 +40,25 @@
 #include "backend.h"
 using namespace std;
 
-string regs[6] = {"%rdi\0","%rsi\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
+string param_regs[6] = {"%rdi\0","%rsi\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
+string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
+string caller_regs[2] = {"%r10\0", "%r11\0"};
 
+unsigned int GetSize_prime (const CType* ct)
+{
+	if(ct->IsPointer())
+		return 8;
+	else
+		return ct->GetSize();
+}
+
+int GetAlign_prime (const CType* ct)
+{
+	if(ct->IsPointer())
+		return 8;
+	else
+		return ct->GetAlign();
+}
 
 // size_t ComputeStackOffsets(CSymtab *symtab,
 // 			   int param_ofs,int local_ofs)
@@ -344,10 +361,10 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
       }
 
       // insert alignment only when necessary
-      if ((t->GetAlign() > 1) && (size % t->GetAlign() != 0)) {
-        size += t->GetAlign() - size % t->GetAlign();
+      if ((GetAlign_prime(t) > 1) && (size % GetAlign_prime(t) != 0)) {
+        size += GetAlign_prime(t) - size % GetAlign_prime(t);
         _out << setw(4) << " " << ".align "
-             << right << setw(3) << t->GetAlign() << endl;
+             << right << setw(3) << GetAlign_prime(t) << endl;
       }
 
       _out << left << setw(36) << s->GetName() + ":" << "# " << t << endl;
@@ -383,7 +400,7 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
           << endl;
       }
 
-      size += t->GetSize();
+      size += GetSize_prime(t);
     }
   }
 
@@ -593,7 +610,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 				EmitInstruction("pushq", "%rax");
 			}
 			else {
-				Load(i->GetSrc(1), regs[paramIndex-1], cmt.str());
+				Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
 			}
 		} //EmitInstruction("pushq", "%rax");
       break;
@@ -634,7 +651,7 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
   switch (OperandSize(src)) {
     case 1: mod = "zbq"; break;
     case 2: mod = "zwq"; break;
-    case 4: mod = ""; break;
+    case 4: mod = "l"; break;
     case 8: mod = "q"; break;
   }
 
@@ -696,7 +713,21 @@ string CBackendx86_64::Operand(const CTac *op)
     }
 
     if (dynamic_cast<const CTacReference*>(n) != NULL) {
-      EmitInstruction("movq", operand + ", %rdi");
+			switch (GetSize_prime(s->GetDataType())) {
+				case 1:
+					EmitInstruction("movzbq", operand + ", %rdi");
+					break;
+				case 2:
+					EmitInstruction("movzwq", operand + ", %rdi");
+					break;
+				case 4:
+					EmitInstruction("xorq", "%rdi, %rdi");
+					EmitInstruction("movl", operand + ", %edi");
+					break;
+				case 8:
+					EmitInstruction("movq", operand + ", %rdi");
+			}
+
       operand = "(%rdi)";
     }
   } else
@@ -786,7 +817,7 @@ int CBackendx86_64::OperandSize(CTac *t) const
       t = dynamic_cast<const CArrayType*>(t)->GetBaseType();
     }
 
-    size = t->GetSize();
+    size = GetSize_prime(t);
   }
 
   return size;
@@ -889,7 +920,7 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
         << "(" << s->GetBaseRegister() << ")";
       _out << _ind << "#   "
         << left << setw(10) << loc.str() << "  "
-        << right << setw(2) << s->GetDataType()->GetSize() << "  "
+        << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
         << s
         << endl;
     }
@@ -898,35 +929,33 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 
 }
 
-void CBackendx86_64::EmitCalleePush(const boost::dynamic_bitset<> regs){
-	/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-	if(regs[0])
-		EmitInstruction("pushq", "%rbx", "save callee saved registers");
-	if(regs[1])
-		EmitInstruction("pushq", "%r12", "save callee saved registers");
-	if(regs[2])
-		EmitInstruction("pushq", "%r13", "save callee saved registers");
-	if(regs[3])
-		EmitInstruction("pushq", "%r14", "save callee saved registers");
-	if(regs[4])
-		EmitInstruction("pushq", "%r15", "save callee saved registers");
+void CBackendx86_64::EmitCalleePush(const boost::dynamic_bitset<> used_regs){
+	/// bit order: (low) rbx, r12, r13, r14, r15 (high)
+	for(int i=0; i<5; i++)
+		if(used_regs[i])
+			EmitInstruction("pushq", callee_regs[i], "save callee saved registers");
 }
 
-void CBackendx86_64::EmitCalleePop(const boost::dynamic_bitset<> regs){
+void CBackendx86_64::EmitCalleePop(const boost::dynamic_bitset<> used_regs){
 	/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-	if(regs[4])
-		EmitInstruction("popq", "%r15", "restore callee saved registers");
-	if(regs[3])
-		EmitInstruction("popq", "%r14", "restore callee saved registers");
-	if(regs[2])
-		EmitInstruction("popq", "%r13", "restore callee saved registers");
-	if(regs[1])
-		EmitInstruction("popq", "%r12", "restore callee saved registers");
-	if(regs[0])
-		EmitInstruction("popq", "%rbx", "restore callee saved registers");
+	for(int i=4; i>=0; i--)
+		if(used_regs[i])
+			EmitInstruction("popq", callee_regs[i], "restore callee saved registers");
 }
 
+void CBackendx86_64::EmitCallerPush(const boost::dynamic_bitset<> used_regs){
+	for(int i=0; i<2; i++)
+		if(used_regs[i])
+			EmitInstruction("pushq", caller_regs[i],"save caller saved registers");
+}
+void CBackendx86_64::EmitCallerPop(const boost::dynamic_bitset<> used_regs){
+	for(int i=1; i>=0; i--)
+		if(used_regs[i])
+			EmitInstruction("popq", caller_regs[i],"restore caller saved registers");
+}
+
+//TODO: fix it after register coloring
 void CBackendx86_64::EmitParamPush(int param_num){
 	for(int i = 0; i < param_num; i++)
-		EmitInstruction("pushq", regs[i]);
+		EmitInstruction("pushq", param_regs[i], "put param regs into stack to use");
 }
