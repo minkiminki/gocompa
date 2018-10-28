@@ -435,7 +435,7 @@ class CArrayType : public CType {
     /// Returns 0 for open arrays.
     //
     /// @retval int data size in bytes
-    virtual unsigned int GetDataSize(void) const;
+    unsigned int GetDataSize(void) const;
 
     /// @brief return the alignment requirements for this type
     /// @retval int aligmnent in bytes

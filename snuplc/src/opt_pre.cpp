@@ -11,10 +11,10 @@ using namespace std;
 // ********************************************************************** /
 // give number for paramaters
 void param_numbering_block(CCodeBlock *cb) {
-  list<CTacInstr*>::const_iterator it = (cb->GetInstr()).begin();
+  list<CTacInstr*>::const_iterator it = (cb->GetInstr()).end();
   int number = 0;
-  while (it != (cb->GetInstr()).end()) {
-    CTacInstr* instr = *it++;
+  while (it != (cb->GetInstr()).begin()) {
+    CTacInstr* instr = *(--it);
     assert(instr != NULL);
     switch(instr->GetOperation()){
     case opCall :

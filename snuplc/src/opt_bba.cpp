@@ -11,7 +11,7 @@ using namespace std;
 // ********************************************************************** /
 // Basic Block Analysis
 bool is_final_instr(EOperation e){
-  return ((e == opReturn) || (e == opGoto));
+	return ((e == opReturn) || (e == opGoto));
 }
 
 bool is_join(CBasicBlock* blk){
@@ -68,8 +68,8 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       CBasicBlock* blk_new = new CBasicBlock();
       blk_new->SetBlockNum(cbt->AddBlock(blk_new));
       if(cascade){
-	blk_new->AddPrevBlks(blk);
-	blk->AddNextBlks(blk_new);
+				blk_new->AddPrevBlks(blk);
+				blk->AddNextBlks(blk_new);
       }
       blk = blk_new;
       instr->SetFromBlock(blk);
@@ -78,13 +78,13 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       is_first = false;
     }
     else if(cascade){
-      if(is_first){
-	CBasicBlock* blk_new = new CBasicBlock();
-	blk_new->SetBlockNum(cbt->AddBlock(blk_new));
-	blk_new->AddPrevBlks(blk);
-	blk->AddNextBlks(blk_new);
-	blk = blk_new;
-      }
+			if(is_first){
+				CBasicBlock* blk_new = new CBasicBlock();
+				blk_new->SetBlockNum(cbt->AddBlock(blk_new));
+				blk_new->AddPrevBlks(blk);
+				blk->AddNextBlks(blk_new);
+				blk = blk_new;
+			}
       assert(blk != NULL);
       instr->SetFromBlock(blk);
       blk->AddInstr(instr);
@@ -204,11 +204,11 @@ void basic_block_analysis_block(CCodeBlock *cb) {
 }
 
 void basic_block_analysis_scope(CScope *m) {
-  basic_block_analysis_block(m->GetCodeBlock());
+	basic_block_analysis_block(m->GetCodeBlock());
 
-  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
-  while (sit != m->GetSubscopes().end()) {
-    basic_block_analysis_scope(*sit++);
-  }
-  return;
+	vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+	while (sit != m->GetSubscopes().end()) {
+		basic_block_analysis_scope(*sit++);
+	}
+	return;
 }

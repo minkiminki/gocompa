@@ -21,7 +21,7 @@ end fib_helper;
 
 function fib(n: integer): integer;
 begin
-  fib_helper(n, 1, 1)
+  return fib_helper(n, 1, 1)
 end fib;
 
 function ReadNumber(str: char[]): integer;

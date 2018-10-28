@@ -17,6 +17,9 @@ using namespace boost;
 #define opPhi ((EOperation)((int)opNop + 2))
 #define opMov ((EOperation)((int)opNop + 3))
 
+unsigned int GetSize_prime(const CType* ct);
+int GetAlign_prime (const CType* ct);
+
 //------------------------------------------------------------------------------
 /// @brief instruction class
 ///

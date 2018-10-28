@@ -59,9 +59,13 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
     ESymbolType st = s->GetSymbolType();
 
     if (st == stLocal) {
-      int ssize = t->GetSize();
-      int align = t->GetAlign();
-
+      int ssize = GetSize_prime(t);
+      int align = GetAlign_prime(t);
+/*			if(t->IsPointer()) {
+				ssize = 8;
+				align = 8;
+			}
+*/
       local_ofs -= ssize;
 
       if ((align > 1) && (local_ofs % align != 0)) {
