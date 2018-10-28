@@ -245,6 +245,7 @@ class CBackendx86_64 : public CBackend {
 
     virtual void EmitInstruction(string mnemonic, string args="",
                                  string comment="");
+		virtual void EmitEpilogue();
 
     /// @brief emit a load instruction
     void Load(CTacAddr *src, string dst, string comment="");

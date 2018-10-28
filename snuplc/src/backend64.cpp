@@ -43,6 +43,7 @@ using namespace std;
 string param_regs[6] = {"%rdi\0","%rsi\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
+static bool isTailCall = false;
 
 unsigned int GetSize_prime (const CType* ct)
 {
@@ -317,10 +318,25 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   if (cb != NULL) EmitCodeBlock(cb);
 
+	if(isTailCall==false)
+		EmitEpilogue();
+
+}
+void CBackendx86_64::EmitEpilogue()
+{
   // epilogue
+  CScope *cs = GetScope();
+  assert(cs != NULL);
+  CCodeBlock_prime *cb = dynamic_cast<CCodeBlock_prime*>(cs->GetCodeBlock());
+  size_t size = cb->GetStackSize();
+	int param_num = cb->GetParamNum();
+	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
+  
   _out << endl;
-  _out << Label("exit") << ":" << endl;
-  _out << _ind << "# epilogue" << endl;
+	if(isTailCall==false) {
+		_out << Label("exit") << ":" << endl;
+		_out << _ind << "# epilogue" << endl;
+	}
   EmitInstruction("addq", Imm(size) + ", %rsp", "remove locals");
   //EmitInstruction("popq", "%rdi");
   //EmitInstruction("popq", "%rsi");
@@ -330,8 +346,10 @@ void CBackendx86_64::EmitScope(CScope *scope)
 	EmitCalleePop(callee_used_regs);
   EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
   EmitInstruction("popq", "%rbp");
-  EmitInstruction("ret");
+	if(isTailCall==false)
+		EmitInstruction("ret");
   _out << endl;
+	isTailCall = false;
 }
 
 void CBackendx86_64::EmitGlobalData(CScope *scope)
@@ -574,6 +592,11 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
     // function call-related operations
 		case opTailCall:
+			{
+				isTailCall = true;
+				EmitEpilogue();
+        EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
+			}
     case opCall:
       {
         EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
