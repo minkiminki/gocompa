@@ -35,9 +35,11 @@ int nodup_insert(list<T>& l, T key){
 //------------------------------------------------------------------------------
 // CTacInstr
 //
+
 CTacInstr_prime::CTacInstr_prime(CTacInstr *instr)
-  : CTacInstr(instr->GetOperation(), instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL)
+  : CTacInstr(opNop, instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL)
 {
+  SetOperation(instr->GetOperation());
 }
 
 CTacInstr_prime::~CTacInstr_prime(void)
@@ -51,7 +53,6 @@ CTacInstr_prime::~CTacInstr_prime(void)
 
 ostream& CTacInstr_prime::print(ostream &out, int indent) const
 {
-
   CBasicBlock *block = GetFromBlock();
   if(block != NULL) {
     // out << "  [" << (block->GetBlockNum()) << "]";
@@ -65,48 +66,36 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "  [---]";
   }
 
-  CTacInstr::print(out, indent);
-  // string ind(indent, ' ');
+  string ind(indent, ' ');
 
-  // out << ind << right << dec << setw(3) << _id << ": ";
+  out << ind << right << dec << setw(3) << _id << ": ";
 
-  // if (_name == "") {
-  //   bool relop = IsRelOp(GetOperation());
+  if (_name == "") {
+    bool relop = IsRelOp(GetOperation());
 
-  //   out << "    " << left << setw(6);
-  //   if (relop) out << "if"; else out << _op;
-  //   out << " ";
-  //   CTacAddr *adr = dynamic_cast<CTacAddr*>(_dst);
-  //   if (adr != NULL) out << _dst << " <- ";
-  //   if (_src1 != NULL) out << _src1;
-  //   if (_src2 != NULL) {
-  //     if (relop) out << " " << _op; else out << ",";
-  //     out << " " << _src2;
-  //   }
-  //   CTacInstr *target = dynamic_cast<CTacInstr_prime*>(_dst);
-  //   if (target != NULL) {
-  //     if (relop) out << " goto ";
+    out << "    " << left << setw(6);
+    if (relop) out << "if"; else out << _op;
+    out << " ";
+    CTacAddr *adr = dynamic_cast<CTacAddr*>(_dst);
+    if (adr != NULL) out << _dst << " <- ";
+    if (_src1 != NULL) out << _src1;
+    if (_src2 != NULL) {
+      if (relop) out << " " << _op; else out << ",";
+      out << " " << _src2;
+    }
+    CTacInstr *target = dynamic_cast<CTacInstr*>(_dst);
+    if (target != NULL) {
+      if (relop) out << " goto ";
 
-  //     CTacLabel_prime *l = dynamic_cast<CTacLabel_prime*>(target);
-  //     if (l != NULL) out << l->GetLabel_prime();
-  //     else out << target->GetId();
-  //   }
-  // } else {
-  //   out << "[CTacInstr: '" << _name << "']";
-  // }
+      CTacLabel_prime *l = dynamic_cast<CTacLabel_prime*>(target);
+      if (l != NULL) out << l->GetLabel();
+      else out << target->GetId();
+    }
+  } else {
+    out << "[CTacInstr: '" << _name << "']";
+  }
 
-  // CBasicBlock *block = GetFromBlock();
-  // if(block != NULL) {
-  //   // out << "  [" << (block->GetBlockNum()) << "]";
-  //   out << "  [";
-  //   out.flags(ios::right);
-  //   out.width(3);
-  //   out << (block->GetBlockNum());
-  //   out << "]";
-  // }
-  // else{
-  //   out << "  [---]";
-  // }
+//  CTacInstr::print(out, indent);
 
   return out;
 }
@@ -178,14 +167,6 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
         // << "  (refcnt: " << _refcnt << ")"
         ;
   }
-
-  // CBasicBlock *block = GetFromBlock();
-  // if(block != NULL) {
-  //   out << " [" << (block->GetBlockNum()) << "]";
-  // }
-  // else{
-  //   out << " [no block info]";
-  // }
 
   return out;
 }
@@ -520,6 +501,112 @@ int CCodeBlock_prime::GetParamNum() const
 void CCodeBlock_prime::SetParamNum(int param_num)
 {
 	_param_num = param_num;
+}
+
+
+EOperation OpToggle(EOperation op)
+{
+  switch(op){
+  case opEqual : return opNotEqual;
+  case opNotEqual : return opEqual;
+  case opLessThan : return opBiggerEqual;
+  case opLessEqual : return opBiggerThan;
+  case opBiggerThan : return opLessEqual;
+  case opBiggerEqual : return opLessThan;
+  default : assert(false);
+  }
+}
+
+void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
+{
+  assert(instr != NULL);
+  assert(IsRelOp(instr->GetOperation()));
+  instr->SetOperation(OpToggle(instr->GetOperation()));
+
+  CTacLabel *_lb = _owner->CreateLabel(NULL);
+  CTacLabel_prime *lb = new CTacLabel_prime(_lb, _lb->GetLabel(),_lb->GetRefCnt());
+  CTacInstr_prime *go = new CTacInstr_prime(new CTacInstr(opNop, NULL));
+  go->SetOperation(opGoto);
+
+  CTacInstr_prime *lbl = dynamic_cast<CTacInstr_prime*>(instr->GetDest());
+  assert(lbl != NULL);
+
+  go->SetDest(lbl);
+  instr->SetDest(lb);
+
+  cout << instr <<endl;
+
+
+  CBasicBlock* bb_prev = instr->GetFromBlock();
+  CBasicBlock* bb = lbl->GetFromBlock();
+  CBasicBlock *bb_new = new CBasicBlock();
+  GetBlockTable()->AddBlock(bb_new);
+
+  list<CTacInstr*>::iterator it = find(_ops.begin(), _ops.end(), instr);
+
+  assert(it != _ops.end());
+
+  cout << (*it) << endl;
+
+  it++;
+  CTacInstr_prime *instr_next = dynamic_cast<CTacInstr_prime*>(*it);
+
+  CBasicBlock* bb_next = instr_next->GetFromBlock();
+
+  cout << bb_prev << endl;
+  cout << bb << endl;
+  assert(erase_success(bb_prev->GetNextBlks(), bb) >= 0);
+  assert(erase_success(bb->GetPrevBlks(), bb_prev) >= 0);
+
+  bb_prev->AddNextBlks(bb_new);
+  bb_new->AddPrevBlks(bb_prev);
+
+  assert(bb != NULL);
+
+  bb->AddPrevBlks(bb_new);
+
+  bb_new->AddNextBlks(bb);
+
+
+
+  lb->SetFromBlock(bb_next);
+  go->SetFromBlock(bb_new);
+
+  bb_new->AddInstr(go);
+  (bb_next->GetInstrs()).push_front(lb);
+
+  _ops.insert(it, go);
+  _ops.insert(it, lb);
+}
+
+void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
+{
+  assert(bb!=NULL);
+  CTacInstr *instr = *(bb->GetInstrs().begin());
+  assert(instr != NULL);
+  CTacLabel_prime* lb = dynamic_cast<CTacLabel_prime*>(instr);
+  assert(lb!=NULL);
+  // assert(lb->GetSymbol()!=NULL);
+
+  CTacInstr *_instr_new = new CTacInstr(opNop, instr, NULL, NULL);
+  CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+  instr_new->SetOperation(opGoto);
+
+  assert(erase_success(bb_prev->GetNextBlks(), bb) >= 0);
+  assert(erase_success(bb->GetPrevBlks(), bb_prev) >= 0);
+
+  CBasicBlock *bb_new = new CBasicBlock();
+  GetBlockTable()->AddBlock(bb_new);
+  bb_prev->AddNextBlks(bb_new);
+  bb_new->AddPrevBlks(bb_prev);
+  bb->AddPrevBlks(bb_new);
+  bb_new->AddNextBlks(bb);
+
+  bb_new->AddInstr(instr_new);
+  list<CTacInstr*>::iterator it = find(_ops.begin(), _ops.end(), instr);
+  assert(it != _ops.end());
+  _ops.insert(it, instr_new);
+  instr_new->SetFromBlock(bb_new);
 }
 
 ostream& CBlockTable::print(ostream &out, int indent) const

@@ -22,7 +22,7 @@ bool is_join(CBasicBlock* blk){
     return false;
   }
   else{
-    assert(next((blk->GetPrevBlks()).begin(), 2) == (blk->GetPrevBlks()).end());
+       assert(next((blk->GetPrevBlks()).begin(), 2) == (blk->GetPrevBlks()).end());
     return true;
   }
 }
@@ -35,7 +35,7 @@ bool is_fork(CBasicBlock* blk){
     return false;
   }
   else{
-    assert(next((blk->GetNextBlks()).begin(), 2) == (blk->GetNextBlks()).end());
+       assert(next((blk->GetNextBlks()).begin(), 2) == (blk->GetNextBlks()).end());
     return true;
   }
 }
@@ -161,40 +161,45 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  // // remove critical edge
-  // list<CBasicBlock*>::const_iterator bit = (cbt->GetBlockList()).begin();
-  // while(bit != (cbt->GetBlockList()).end()) {
-  //   CBasicBlock *blk = *bit++;
-  //   assert(blk != NULL);
-  //   list<CBasicBlock*>::const_iterator bit_next = (blk->GetNextBlks()).begin();
-  //   while(bit_next != (blk->GetNextBlks()).end()){
-  //     CBasicBlock *blk_next = *bit_next++;
-  //     if(blk_next != NULL){
-  // 	if(is_fork(blk) && is_join(blk_next)){ // check critical edge
-  // 	  CTacInstr *instr = *(blk->GetInstrs().rbegin());
-  // 	  assert(IsRelOp(instr->GetOperation()));
-  // 	  CTacLabel_prime* lb = dynamic_cast<CTacLabel_prime*>(instr->GetDest());
-  // 	  assert(lb != NULL);
-  // 	  if(lb->GetFromBlock() == blk_next){ // "if then" is critical edge
-  // 	    // create new label lb' & goto instr g for lb
-  // 	    // insert lb', g in proper position in
-  // 	    // create new block blk' which contains lb' and g, put tag on lb' and g
-  // 	    // change instr to point lb'
-  // 	    // connection of blk, blk_next, blk'
-  // 	    // if fail to find proper position... then
-  // 	    // insert gotolb'/ lb1/ gotolb/ lb2
-  // 	    // TODO
-  // 	    // or .. implement toggling
-  // 	    // if(c)goto(lb); a => if(!c)goto(lb'); goto(lb); lb'; a;
-  // 	  }
-  // 	  else{ // "else" is critical edge
-  // 	    // lb => goto(lb); lb
-  // 	    // TODO
-  // 	  }
-  // 	}
-  //     }
-  //   }
-  // }
+  // remove critical edge
+  list<CBasicBlock*>::const_iterator bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    assert(blk != NULL);
+    list<CBasicBlock*>::const_iterator bit_next = (blk->GetNextBlks()).begin();
+    while(bit_next != (blk->GetNextBlks()).end()){
+      CBasicBlock *blk_next = *bit_next++;
+      if(blk_next != NULL){
+  	if(is_fork(blk) && is_join(blk_next)){ // check critical edge
+  	  CTacInstr *instr = *(blk->GetInstrs().rbegin());
+  	  assert(IsRelOp(instr->GetOperation()));
+  	  CTacLabel_prime* lb = dynamic_cast<CTacLabel_prime*>(instr->GetDest());
+  	  assert(lb != NULL);
+  	  if(lb->GetFromBlock() == blk_next){
+  	    CTacInstr_prime *instrp = dynamic_cast<CTacInstr_prime*>(instr);
+  	    cbp->SplitIf(instrp);
+  	  }
+  	  else{
+  	    cbp->SplitElse(blk, blk_next);
+  	  }
+  	}
+      }
+    }
+  }
+
+  // critical edge checking
+  bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    assert(blk != NULL);
+    list<CBasicBlock*>::const_iterator bit_next = (blk->GetNextBlks()).begin();
+    while(bit_next != (blk->GetNextBlks()).end()){
+      CBasicBlock *blk_next = *bit_next++;
+      if(blk_next != NULL){
+  	assert(!is_fork(blk) || !is_join(blk_next));
+      }
+    }
+  }
 
 }
 

@@ -81,6 +81,7 @@ class CTacInstr_prime : public CTacInstr {
     /// @param src1 first source operand
     /// @param src2 second source operand
 
+  // CTacInstr_prime(EOperation op, CTac *dst, CTacAddr *src1, CTacAddr *src2);
     CTacInstr_prime(CTacInstr *instr);
 
     /// @brief destructor
@@ -187,8 +188,10 @@ class CCodeBlock_prime : public CCodeBlock {
     CBlockTable* GetBlockTable() const;
     int GetStackSize() const;
     void SetStackSize(int size);
-		int GetParamNum() const;
-		void SetParamNum(int param_num);
+    int GetParamNum() const;
+    void SetParamNum(int param_num);
+    void SplitIf(CTacInstr_prime* instr);
+    void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
 
     /// @name output
     /// @{
