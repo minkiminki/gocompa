@@ -52,6 +52,19 @@ CTacInstr_prime::~CTacInstr_prime(void)
 ostream& CTacInstr_prime::print(ostream &out, int indent) const
 {
 
+  CBasicBlock *block = GetFromBlock();
+  if(block != NULL) {
+    // out << "  [" << (block->GetBlockNum()) << "]";
+    out << "  [";
+    out.flags(ios::right);
+    out.width(3);
+    out << (block->GetBlockNum());
+    out << "]";
+  }
+  else{
+    out << "  [---]";
+  }
+
   CTacInstr::print(out, indent);
   // string ind(indent, ' ');
 
@@ -82,13 +95,18 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
   //   out << "[CTacInstr: '" << _name << "']";
   // }
 
-  CBasicBlock *block = GetFromBlock();
-  if(block != NULL) {
-    out << "  [" << (block->GetBlockNum()) << "]";
-  }
-  else{
-    out << "  [no block info]";
-  }
+  // CBasicBlock *block = GetFromBlock();
+  // if(block != NULL) {
+  //   // out << "  [" << (block->GetBlockNum()) << "]";
+  //   out << "  [";
+  //   out.flags(ios::right);
+  //   out.width(3);
+  //   out << (block->GetBlockNum());
+  //   out << "]";
+  // }
+  // else{
+  //   out << "  [---]";
+  // }
 
   return out;
 }
@@ -139,6 +157,20 @@ int CTacLabel_prime::GetRefCnt(void) const
 ostream& CTacLabel_prime::print(ostream &out, int indent) const
 {
   if (true || GetRefCnt() > 0) {
+
+    CBasicBlock *block = GetFromBlock();
+    if(block != NULL) {
+      // out << "  [" << (block->GetBlockNum()) << "]";
+      out << "  [";
+      out.flags(ios::right);
+      out.width(3);
+      out << (block->GetBlockNum());
+      out << "]";
+    }
+    else{
+      out << "  [---]";
+    }
+
     string ind(indent, ' ');
 
     out << ind << right << dec << setw(3) << _id << ": "
@@ -147,13 +179,13 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
         ;
   }
 
-  CBasicBlock *block = GetFromBlock();
-  if(block != NULL) {
-    out << " [" << (block->GetBlockNum()) << "]";
-  }
-  else{
-    out << " [no block info]";
-  }
+  // CBasicBlock *block = GetFromBlock();
+  // if(block != NULL) {
+  //   out << " [" << (block->GetBlockNum()) << "]";
+  // }
+  // else{
+  //   out << " [no block info]";
+  // }
 
   return out;
 }
