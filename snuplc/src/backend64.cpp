@@ -645,13 +645,13 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
   assert(src != NULL);
 
   string mnm = "mov";
-  string mod = "q";
+  string mod = "";
 
   // set operator modifier based on the operand size
   switch (OperandSize(src)) {
     case 1: mod = "zbq"; break;
     case 2: mod = "zwq"; break;
-    case 4: mod = "l"; break;
+    case 4: mod = "l"; dst.replace(1, 1, "e"); break;
     case 8: mod = "q"; break;
   }
 
@@ -721,7 +721,6 @@ string CBackendx86_64::Operand(const CTac *op)
 					EmitInstruction("movzwq", operand + ", %rdi");
 					break;
 				case 4:
-					EmitInstruction("xorq", "%rdi, %rdi");
 					EmitInstruction("movl", operand + ", %edi");
 					break;
 				case 8:
@@ -729,7 +728,8 @@ string CBackendx86_64::Operand(const CTac *op)
 			}
 
       operand = "(%rdi)";
-    }
+		}
+
   } else
   if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
     operand = Label(l);
