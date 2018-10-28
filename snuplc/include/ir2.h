@@ -208,8 +208,8 @@ class CCodeBlock_prime : public CCodeBlock {
 
   protected:
     CBlockTable* _blktab;
-		int _size;
-		int _param_num;
+    int _size;
+    int _param_num;
 };
 
 

@@ -45,6 +45,7 @@ string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
 static bool isTailCall = false;
 
+
 unsigned int GetSize_prime (const CType* ct)
 {
 	if(ct->IsPointer())
@@ -60,106 +61,6 @@ int GetAlign_prime (const CType* ct)
 	else
 		return ct->GetAlign();
 }
-
-// size_t ComputeStackOffsets(CSymtab *symtab,
-// 			   int param_ofs,int local_ofs)
-// {
-//   assert(symtab != NULL);
-//   vector<CSymbol*> slist = symtab->GetSymbols();
-
-//   size_t sp_align = 4; // stack pointer alignment
-//   size_t size = 0;
-
-//   for (size_t i=0; i<slist.size(); i++) {
-//     CSymbol *s = slist[i];
-//     const CType *t = s->GetDataType();
-
-//     ESymbolType st = s->GetSymbolType();
-
-//     if (st == stLocal) {
-//       int ssize = t->GetSize();
-//       int align = t->GetAlign();
-
-//       local_ofs -= ssize;
-
-//       if ((align > 1) && (local_ofs % align != 0)) {
-//         // align towards smaller addresses
-//         align = (local_ofs - align +1) / align * align - local_ofs;
-//       } else {
-//         align = 0;
-//       }
-
-//       size += ssize - align;      // align is negative
-//       local_ofs += align;
-
-//       s->SetBaseRegister("%ebp");
-//       s->SetOffset(local_ofs);
-
-//     } else if (st == stParam) {
-//       CSymParam *p = dynamic_cast<CSymParam*>(s);
-//       assert(p != NULL);
-
-//       p->SetBaseRegister("%ebp");
-//       p->SetOffset(param_ofs + p->GetIndex()*4);
-//     }
-//   }
-
-//   size = (size + sp_align-1) / sp_align * sp_align;
-//   return size;
-// }
-
-
-// //------------------------------------------------------------------------------
-// // CBackend
-// //
-// CBackend::CBackend(ostream &out)
-//   : _out(out)
-// {
-// }
-
-// CBackend::~CBackend(void)
-// {
-// }
-
-// bool CBackend::Emit(CModule *m)
-// {
-//   assert(m != NULL);
-//   _m = m;
-
-//   if (!_out.good()) return false;
-
-//   bool res = true;
-
-//   try {
-//     EmitHeader();
-//     EmitCode();
-//     EmitData();
-//     EmitFooter();
-
-//     res = _out.good();
-//   } catch (...) {
-//     res = false;
-//   }
-
-//   return res;
-// }
-
-// void CBackend::EmitHeader(void)
-// {
-// }
-
-// void CBackend::EmitCode(void)
-// {
-// }
-
-// void CBackend::EmitData(void)
-// {
-// }
-
-// void CBackend::EmitFooter(void)
-// {
-// }
-
 
 //------------------------------------------------------------------------------
 // CBackendx86_64
@@ -331,7 +232,7 @@ void CBackendx86_64::EmitEpilogue()
   size_t size = cb->GetStackSize();
 	int param_num = cb->GetParamNum();
 	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
-  
+
   _out << endl;
 	if(isTailCall==false) {
 		_out << Label("exit") << ":" << endl;
@@ -593,7 +494,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     // function call-related operations
 		case opTailCall:
 			{
-				isTailCall = true;
+			  // isTailCall = true; <= minki
 				EmitEpilogue();
         EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
 			}
@@ -845,86 +746,6 @@ int CBackendx86_64::OperandSize(CTac *t) const
 
   return size;
 }
-
-// size_t CBackendx86_64::ComputeStackOffsets(CSymtab *symtab,
-//                                         int param_ofs,int local_ofs)
-// {
-//   assert(symtab != NULL);
-//   vector<CSymbol*> slist = symtab->GetSymbols();
-
-// 	// modified
-//   size_t sp_align = 8; // stack pointer alignment
-//   size_t size = 0;
-
-//   for (size_t i=0; i<slist.size(); i++) {
-//     CSymbol *s = slist[i];
-//     const CType *t = s->GetDataType();
-
-//     ESymbolType st = s->GetSymbolType();
-
-//     if (st == stLocal) {
-//       int ssize = t->GetSize();
-//       int align = t->GetAlign();
-
-//       local_ofs -= ssize;
-
-//       if ((align > 1) && (local_ofs % align != 0)) {
-//         // align towards smaller addresses
-//         align = (local_ofs - align +1) / align * align - local_ofs;
-//       } else {
-//         align = 0;
-//       }
-
-//       size += ssize - align;      // align is negative
-//       local_ofs += align;
-
-//       s->SetBaseRegister("%rbp");
-//       s->SetOffset(local_ofs);
-
-//     } else if (st == stParam) {
-//       CSymParam *p = dynamic_cast<CSymParam*>(s);
-//       assert(p != NULL);
-
-// 			if(p->GetIndex() >= 6) {
-// 				p->SetBaseRegister("%rbp");
-// 				p->SetOffset(param_ofs + p->GetIndex()*4);
-// 			} else {
-// 				p->SetBaseRegister(regs[p->GetIndex()]);
-// 				p->SetOffset(0);
-// 			}
-//     }
-//   }
-
-//   size = (size + sp_align-1) / sp_align * sp_align;
-
-//   // Note: no checks regarding stack overflow are performed
-//   // Big arrays or lots of temporaries might cause an overflow
-//   // Some rudementary size checking on arrays is done in CTypeManager::GetArray
-//   // We should make all sizes 64-bit (in type.h, also 'size'
-//   // here) and check for 3GB overflows on 32-bit Linuxes,
-//   // bu then again this is a semester project, not a production-grade compiler.
-
-//   // dump
-//   _out << _ind << "# stack offsets:" << endl;
-//   for (size_t i=0; i<slist.size(); i++) {
-//     CSymbol *s = slist[i];
-//     ESymbolType st = s->GetSymbolType();
-
-//     if ((st == stLocal) || (st == stParam)) {
-//       ostringstream loc;
-//       loc << right << setw(4) << s->GetOffset()
-//         << "(" << s->GetBaseRegister() << ")";
-//       _out << _ind << "#   "
-//         << left << setw(10) << loc.str() << "  "
-//         << right << setw(2) << s->GetDataType()->GetSize() << "  "
-//         << s
-//         << endl;
-//     }
-//   }
-//   _out << endl;
-
-//   return size;
-// }
 
 void CBackendx86_64::StackDump(CSymtab *symtab)
 {

@@ -204,11 +204,11 @@ void basic_block_analysis_block(CCodeBlock *cb) {
 }
 
 void basic_block_analysis_scope(CScope *m) {
-	basic_block_analysis_block(m->GetCodeBlock());
+  basic_block_analysis_block(m->GetCodeBlock());
 
-	vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
-	while (sit != m->GetSubscopes().end()) {
-		basic_block_analysis_scope(*sit++);
-	}
-	return;
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    basic_block_analysis_scope(*sit++);
+  }
+  return;
 }
