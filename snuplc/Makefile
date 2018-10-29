@@ -25,6 +25,7 @@ SRC=ir.cpp \
 		opt_ue.cpp \
 		opt_ra.cpp \
 		opt.cpp \
+		symbolinfo.cpp \
 		backend_default.cpp \
 		backend.cpp \
 		backend64.cpp

@@ -141,7 +141,7 @@ class CSymbol {
 		//modified
 		// @brief to get whether this symbol stored in register
 		// @return true: stored in reg, false: not
-		bool isInReg(void);
+		bool isInReg(void) const;
 
   private:
     /// @name symbol handling
