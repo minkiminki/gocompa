@@ -37,7 +37,9 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
 				CSymParam *p = dynamic_cast<CSymParam*>(s);
 				assert(p != NULL);
 
-				p->SetBaseRegister("%rbp");
+				p->SetBaseRegister("");
+
+				// p->SetBaseRegister("%rbp");
 				p->SetOffset(param_ofs - (p->GetIndex()+1)*8);
 			}
     }
@@ -78,14 +80,16 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
       size += ssize - align;      // align is negative
       local_ofs += align;
 
-      s->SetBaseRegister("%rbp");
+      s->SetBaseRegister("");
+      // s->SetBaseRegister("%rbp");
       s->SetOffset(local_ofs);
 		} else if (st == stParam) {
 			if(param_num > 6){
 				CSymParam *p = dynamic_cast<CSymParam*>(s);
 				assert(p != NULL);
 
-				p->SetBaseRegister("%rbp");
+				p->SetBaseRegister("");
+				// p->SetBaseRegister("%rbp");
 				p->SetOffset(param_ofs - (p->GetIndex()-5)*8);
 			}
     }

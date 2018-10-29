@@ -354,7 +354,10 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
       int dim = a->GetNDim();
 
       ostringstream dst;
-      dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+      assert(!s->isInReg());
+      //      dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+      dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
+
       ofs += 4;
 
       ostringstream comment;
@@ -367,7 +370,9 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
         assert(a != NULL);
 
         ostringstream dst;
-        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+	assert(!s->isInReg());
+	dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
+	//        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
         ofs += 4;
 
         ostringstream comment;
@@ -629,9 +634,15 @@ string CBackendx86_64::Operand(const CTac *op)
       case stLocal:
       case stParam:
         {
-          ostringstream o;
-          o << s->GetOffset() << "(" << s->GetBaseRegister() << ")";
-          operand = o.str();
+	  ostringstream o;
+	  if(s->isInReg()){
+	    o << s->GetBaseRegister();
+	  }
+	  else{
+	    o << s->GetOffset() << "(" << "%rbp" << ")";
+	    // o << s->GetOffset() << "(" << s->GetBaseRegister() << ")";
+	  }
+	  operand = o.str();
         }
         break;
     }
@@ -760,13 +771,27 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 
     if ((st == stLocal) || (st == stParam)) {
       ostringstream loc;
-      loc << right << setw(4) << s->GetOffset()
-        << "(" << s->GetBaseRegister() << ")";
-      _out << _ind << "#   "
-        << left << setw(10) << loc.str() << "  "
-        << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
-        << s
-        << endl;
+      if(s->isInReg()){
+	loc << right << setw(4) << s->GetBaseRegister();
+	    // << "(" << "" << ")";
+	_out << _ind << "#   "
+	     << left << setw(10) << loc.str() << "  "
+	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
+	     << s
+	     << endl;
+
+      }
+      else{
+	loc << right << setw(4) << s->GetOffset()
+	    << "(" << "%rbp" << ")";
+	_out << _ind << "#   "
+	     << left << setw(10) << loc.str() << "  "
+	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
+	     << s
+	     << endl;
+
+      }
+
     }
   }
   _out << endl;
