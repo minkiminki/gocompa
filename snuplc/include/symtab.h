@@ -41,6 +41,24 @@
 #include "type.h"
 using namespace std;
 
+
+enum ERegister {
+  rgRAX,
+  rgRBX,
+  rgRCX,
+  rgRDX,
+  rgRSI,
+  rgRDI,
+  rgR8,
+  rgR9,
+  rgR10,
+  rgR11,
+  rgR12,
+  rgR13,
+  rgR14,
+  rgR15,
+};
+
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol types
 ///
@@ -332,6 +350,37 @@ class CSymProc : public CSymbol {
 
   private:
     vector<CSymParam*> _param;      ///< parameter list
+};
+
+///
+/// class representing register
+///
+class CSymRegister : public CSymbol {
+  public:
+    /// @name constructor/destructor
+    /// @{
+
+    /// @brief constructor
+    ///
+    /// @param name symbol name (identifier)
+    /// @param type symbol type
+    CSymRegister(const CType *type);
+    CSymRegister(ERegister rg, const CType *type);
+  bool IsFixed();
+  bool IsAssigned();
+  void SetRegister(ERegister rg);
+  ERegister GetRegister(void);
+
+    /// @}
+
+    /// @brief print the symbol to an output stream
+    /// @param out output stream
+    /// @param indent indentation
+    virtual ostream&  print(ostream &out, int indent=0) const;
+
+  private:
+    bool _fixed;
+    ERegister _rg;
 };
 
 

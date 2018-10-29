@@ -574,6 +574,17 @@ void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
   instr_new->SetFromBlock(bb_new);
 }
 
+list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>>&  CCodeBlock_prime::GetPhis()
+{
+  return _phis;
+}
+
+void CCodeBlock_prime::AddPhi(CSymbol* dest, CSymbol* src1, CSymbol* src2)
+{
+  ADMIT;
+}
+
+
 ostream& CBlockTable::print(ostream &out, int indent) const
 {
   string ind(indent, ' ');

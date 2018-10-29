@@ -93,6 +93,9 @@ class CTacInstr_prime : public CTacInstr {
     CBasicBlock* GetFromBlock(void) const;
     void SetFromBlock(CBasicBlock* block);
 
+  void SetRegister(CSymRegister *rg);
+  CSymRegister *GetRegister();
+
     /// @}
 
     /// @name output
@@ -108,6 +111,7 @@ class CTacInstr_prime : public CTacInstr {
   protected:
     CBasicBlock *_block;
     dynamic_bitset<> liveness;
+  CSymRegister *_rg;
 };
 
 
@@ -196,6 +200,9 @@ class CCodeBlock_prime : public CCodeBlock {
     void SplitIf(CTacInstr_prime* instr);
     void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
 
+  list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>>& GetPhis();
+  void AddPhi(CSymbol* dest, CSymbol* src1, CSymbol* src2);
+
     /// @name output
     /// @{
 
@@ -210,6 +217,7 @@ class CCodeBlock_prime : public CCodeBlock {
     CBlockTable* _blktab;
     int _size;
     int _param_num;
+  list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>> _phis;
 };
 
 
