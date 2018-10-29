@@ -36,6 +36,13 @@ public:
   void AddPrevBlks(CBasicBlock *prev);
   void AddNextBlks(CBasicBlock *next);
 
+  list<CBasicBlock*>& GetPreDoms(void);
+  list<CBasicBlock*>& GetDoms(void);
+  void AddPreDoms(CBasicBlock *prev);
+  void AddDoms(CBasicBlock *next);
+  list<CBasicBlock*>& GetDomFront(void);
+  void AddDomFront(CBasicBlock *front);
+
   list<CTacInstr*>& GetInstrs(void);
   void AddInstr(CTacInstr* instr);
   void SetBlockNum(int blocknum);
@@ -48,6 +55,9 @@ protected:
   list<CBasicBlock*> _nextblks;
   list<CTacInstr*> _instrs;
   int _blocknum;
+  list<CBasicBlock*> _doms;
+  list<CBasicBlock*> _predoms;
+  list<CBasicBlock*> _domfrontier;
 };
 
 class CBlockTable : public CTac {

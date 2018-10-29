@@ -236,6 +236,16 @@ list<CBasicBlock*>& CBasicBlock::GetNextBlks(void)
   return _nextblks;
 }
 
+list<CBasicBlock*>& CBasicBlock::GetPreDoms(void)
+{
+  return _predoms;
+}
+
+list<CBasicBlock*>& CBasicBlock::GetDoms(void)
+{
+  return _doms;
+}
+
 void CBasicBlock::AddInstr(CTacInstr *instr)
 {
   assert(instr != NULL);
@@ -254,6 +264,23 @@ void CBasicBlock::AddPrevBlks(CBasicBlock *prev)
 void CBasicBlock::AddNextBlks(CBasicBlock *next)
 {
   nodup_insert(_nextblks, next);
+  //  assert(next != NULL);
+  // _nextblks.push_back(next);
+  return;
+}
+
+
+void CBasicBlock::AddPreDoms(CBasicBlock *prev)
+{
+  nodup_insert(_predoms, prev);
+  // //  assert(prev != NULL);
+  // _prevblks.push_back(prev);
+  return;
+}
+
+void CBasicBlock::AddDoms(CBasicBlock *next)
+{
+  nodup_insert(_doms, next);
   //  assert(next != NULL);
   // _nextblks.push_back(next);
   return;
