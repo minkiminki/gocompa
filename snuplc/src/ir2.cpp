@@ -8,29 +8,23 @@
 using namespace std;
 
 
-template<typename T>
-int erase_success(list<T>& l, T key){
-  typename list<T>::iterator findit = find(l.begin(), l.end(), key);
-  if(findit != l.end()){
-    l.erase(findit);
-    return 0;
-  }
-  else{
-    return -1;
-  }
-}
 
 template<typename T>
-int nodup_insert(list<T>& l, T key){
-  typename list<T>::iterator findit = find(l.begin(), l.end(), key);
-  if(findit != l.end()){
-    return 1;
+int list_join(list<T>& l1, list<T>& l2){
+  int success = 0;
+  typename list<T>::iterator it = l1.begin();
+  while(it != l1.end()){
+    typename list<T>::iterator it_before = it++;
+    T key = *(it_before);
+    typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
+    if(findit != l2.end()){
+      l1.erase(it_before);
+      success = 1;
+    }
   }
-  else{
-    l.push_back(key);
-    return 0;
-  }
+  return success;
 }
+
 
 //------------------------------------------------------------------------------
 // CTacInstr
@@ -286,6 +280,17 @@ void CBasicBlock::AddDoms(CBasicBlock *next)
   return;
 }
 
+void CBasicBlock::SetDoms(list<CBasicBlock*> doms)
+{
+  _doms = doms;
+}
+
+
+int CBasicBlock::DomsJoin(list<CBasicBlock*>& doms)
+{
+  return list_join(_doms, doms);
+}
+
 list<CTacInstr*>& CBasicBlock::GetInstrs(void)
 {
   return _instrs;
@@ -330,7 +335,20 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
       out << " " << (blk->GetBlockNum());
     }
   }
+  // out << ")";
+  out << " |";
+  it = _doms.begin();
+  while (it != _doms.end()){
+    CBasicBlock* blk = *it++;
+    if(blk == NULL){
+      out << " OUT";
+    }
+    else{
+      out << " " << (blk->GetBlockNum());
+    }
+  }
   out << ")";
+
   return out;
 }
 
@@ -438,6 +456,16 @@ void CBlockTable::AddFinBlock(CBasicBlock* finblock)
 {
   nodup_insert(_finblocks, finblock);
   return;
+}
+
+list<CBasicBlock*>& CBlockTable::GetFinPreDoms(void)
+{
+  return _finpredoms;
+}
+
+void CBlockTable::AddFinPreDom(CBasicBlock* block)
+{
+  nodup_insert(_finpredoms, block);
 }
 
 CBasicBlock* CBlockTable::GetInitBlock(void) const

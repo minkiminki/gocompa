@@ -20,6 +20,30 @@ using namespace boost;
 unsigned int GetSize_prime(const CType* ct);
 int GetAlign_prime (const CType* ct);
 
+template<typename T>
+int erase_success(list<T>& l, T key){
+  typename list<T>::iterator findit = find(l.begin(), l.end(), key);
+  if(findit != l.end()){
+    l.erase(findit);
+    return 0;
+  }
+  else{
+    return -1;
+  }
+}
+
+template<typename T>
+int nodup_insert(list<T>& l, T key){
+  typename list<T>::iterator findit = find(l.begin(), l.end(), key);
+  if(findit != l.end()){
+    return 1;
+  }
+  else{
+    l.push_back(key);
+    return 0;
+  }
+}
+
 //------------------------------------------------------------------------------
 /// @brief instruction class
 ///
@@ -40,6 +64,8 @@ public:
   list<CBasicBlock*>& GetDoms(void);
   void AddPreDoms(CBasicBlock *prev);
   void AddDoms(CBasicBlock *next);
+  void SetDoms(list<CBasicBlock*> doms);
+  int DomsJoin(list<CBasicBlock*>& doms);
   list<CBasicBlock*>& GetDomFront(void);
   void AddDomFront(CBasicBlock *front);
 
@@ -68,6 +94,8 @@ public:
   void SetInitBlock(CBasicBlock* initblock);
   CBasicBlock* GetInitBlock(void) const;
   list<CBasicBlock*>& GetFinBlocks(void);
+  list<CBasicBlock*>& GetFinPreDoms(void);
+  void AddFinPreDom(CBasicBlock* block);
   void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
   void RemoveBlock(CBasicBlock *block);
@@ -80,6 +108,7 @@ protected:
   list<CBasicBlock*> _blocklist;
   CBasicBlock* _initblock;
   list<CBasicBlock*> _finblocks;
+  list<CBasicBlock*> _finpredoms;
   int maxblock;
 };
 

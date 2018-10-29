@@ -201,6 +201,82 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
+  // critical edge checking
+  bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    assert(blk != NULL);
+    list<CBasicBlock*>::const_iterator bit_next = (blk->GetNextBlks()).begin();
+    while(bit_next != (blk->GetNextBlks()).end()){
+      CBasicBlock *blk_next = *bit_next++;
+      if(blk_next != NULL){
+  	assert(!is_fork(blk) || !is_join(blk_next));
+      }
+    }
+  }
+
+  // dominator relation
+
+  list<CBasicBlock*> blks = cbt->GetBlockList();
+  blks.push_back(NULL);
+
+  bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    blk->SetDoms(blks);
+    // blk->AddDoms(NULL);
+    // list<CBasicBlock*>::const_iterator bit2 = (cbt->GetBlockList()).begin();
+    // while(bit2 != (cbt->GetBlockList()).end()){
+    //   CBasicBlock *blk2 = *bit2++;
+    //   blk->AddDom(blk2);
+    // }
+  }
+
+
+  success = true;
+  while (success){
+    success = false;
+    bit = (cbt->GetBlockList()).begin();
+    while(bit != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *bit++;
+      assert(blk != NULL);
+      list<CBasicBlock*>::const_iterator bit2 = blk->GetPrevBlks().begin();
+      assert(bit2 != blk->GetPrevBlks().end());
+
+      // blk->SetDoms((*bit2++)->GetDoms());
+
+
+      assert(erase_success(blk->GetDoms(), blk) >= 0);
+      while(bit2 != blk->GetPrevBlks().end()){
+	CBasicBlock *blk2 = *bit2++;
+	if(blk2 != NULL){
+	  if(blk->DomsJoin(blk2->GetDoms()) > 0)
+	    success = true;
+	}
+      }
+      nodup_insert(blk->GetDoms(), blk);
+    }
+  }
+
+  // list<CBasicBlock*> final_pre_doms;
+
+  bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    list<CBasicBlock*>::const_iterator bit2 = blk->GetDoms().begin();
+    while(bit2 != blk->GetDoms().end()){
+      CBasicBlock *blk2 = *bit2++;
+      if(blk2 == NULL){
+	cbt->AddFinPreDom(blk);
+	// nodup_insert(final_pre_doms, blk);
+      }
+      else{
+	blk2->AddPreDoms(blk);
+      }
+    }
+  }
+
+
 }
 
 void basic_block_analysis_scope(CScope *m) {

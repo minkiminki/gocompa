@@ -499,7 +499,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     // function call-related operations
 		case opTailCall:
 			{
-			  // isTailCall = true; <= minki
+			  isTailCall = true;
 				EmitEpilogue();
         EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
 			}
