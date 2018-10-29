@@ -95,8 +95,6 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "[CTacInstr: '" << _name << "']";
   }
 
-//  CTacInstr::print(out, indent);
-
   return out;
 }
 
@@ -109,19 +107,6 @@ CTacLabel_prime::CTacLabel_prime(CTacInstr *instr, const string label, int refcn
   : CTacInstr_prime(instr), _label(label), _refcnt(refcnt)
 {
 }
-
-/*
-CTacLabel_prime::CTacLabel_prime(CTacInstr *instr)
-  : CTacInstr_prime(instr)
-{
-  CTacLabel *lbl = dynamic_cast<CTacLabel*>(instr);
-  assert(lbl != NULL);
-  _label = "";
-  //  const string a = "";
-  //  _label = lbl->GetLabel();
-  _refcnt = lbl->GetRefCnt();
-}
-*/
 
 CTacLabel_prime::~CTacLabel_prime(void)
 {
@@ -295,14 +280,6 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
 
   out << "(" << GetBlockNum() << " -";
 
-  // out << "\n[[\n";
-  // list<CTacInstr*>::const_iterator iit = _instrs.begin();
-  // while (iit != _instrs.end()) {
-  //   (*iit++)->print(out, indent+2);
-  //   out << endl;
-  // }
-  // out << "]]\n";
-
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();
   while (it != _prevblks.end()){
     CBasicBlock* blk = *it++;
@@ -397,9 +374,6 @@ void CBlockTable::RemoveBlock(CBasicBlock *blk)
 
   /* 1 - remove from list */
   assert(erase_success(_blocklist, blk) >= 0);
-  // list<CBasicBlock*>::iterator it = find(_blocklist.begin(), _blocklist.end(), blk);
-  // assert(it != _blocklist.end());
-  // _blocklist.erase(it);
 
   /* 2 - remove from nextblock */
   list<CBasicBlock*>::iterator it = (blk->GetNextBlks()).begin();
@@ -436,14 +410,6 @@ void CBlockTable::SetInitBlock(CBasicBlock* initblock)
 void CBlockTable::AddFinBlock(CBasicBlock* finblock)
 {
   nodup_insert(_finblocks, finblock);
-  // assert(finblock != NULL);
-  // _finblocks.push_back(finblock);
-
-  // assert(finblock != NULL);
-  // list<CBasicBlock*>::iterator it = find(_finblocks.begin(), _finblocks.end(), finblock);
-  // if (it == _finblocks.end()) {
-  //   _finblocks.push_back(finblock);
-  // }
   return;
 }
 
@@ -534,9 +500,6 @@ void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
   go->SetDest(lbl);
   instr->SetDest(lb);
 
-  cout << instr <<endl;
-
-
   CBasicBlock* bb_prev = instr->GetFromBlock();
   CBasicBlock* bb = lbl->GetFromBlock();
   CBasicBlock *bb_new = new CBasicBlock();
@@ -546,15 +509,12 @@ void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
 
   assert(it != _ops.end());
 
-  cout << (*it) << endl;
 
   it++;
   CTacInstr_prime *instr_next = dynamic_cast<CTacInstr_prime*>(*it);
 
   CBasicBlock* bb_next = instr_next->GetFromBlock();
 
-  cout << bb_prev << endl;
-  cout << bb << endl;
   assert(erase_success(bb_prev->GetNextBlks(), bb) >= 0);
   assert(erase_success(bb->GetPrevBlks(), bb_prev) >= 0);
 
@@ -581,6 +541,11 @@ void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
 
 void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
 {
+  printf("CHECK IT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!\n");
+  printf("CHECK IT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!\n");
+  printf("CHECK IT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!\n");
+  printf("CHECK IT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!\n");
+  printf("CHECK IT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!!\n");
   assert(bb!=NULL);
   CTacInstr *instr = *(bb->GetInstrs().begin());
   assert(instr != NULL);
