@@ -217,8 +217,7 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  // dominator relation
-
+  // dominance relation
   list<CBasicBlock*> blks = cbt->GetBlockList();
   blks.push_back(NULL);
 
@@ -257,24 +256,25 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
+  // dominance tree
   bit = (cbt->GetBlockList()).begin();
   while(bit != (cbt->GetBlockList()).end()) {
     CBasicBlock *blk = *bit++;
     list<CBasicBlock*>::const_iterator bit2 = blk->GetPreDoms().begin();
     while(bit2 != blk->GetPreDoms().end()){
       CBasicBlock *blk2 = *bit2++;
-      if(blk2 != NULL){
+      if((blk2 != NULL) && (blk2 != blk)){
 	blk2->AddDoms(blk);
       }
-      // if(blk2 == NULL){
-      // 	cbt->AddFinDom(blk);
-      // }
-      // else{
-      // 	blk2->AddDoms(blk);
-      // }
     }
   }
 
+  // dominance frontier
+  bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    blk->ComputeDF();
+  }
 
 }
 

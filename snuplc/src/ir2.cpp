@@ -211,6 +211,7 @@ ostream& CCodeBlock_prime::print(ostream &out, int indent) const
 }
 
 CBasicBlock::CBasicBlock()
+  : dfcomputed(false)
 {
 }
 
@@ -298,6 +299,44 @@ int CBasicBlock::PreDomsJoin(list<CBasicBlock*>& predoms)
   return list_join(_predoms, predoms);
 }
 
+list<CBasicBlock*>& CBasicBlock::ComputeDF(void)
+{
+  if(dfcomputed) return _domfrontier;
+
+  list<CBasicBlock*>::const_iterator it = _nextblks.begin();
+  while (it != _nextblks.end()){
+    CBasicBlock* blk = *it++;
+    if(blk==NULL) continue;
+
+    list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk);
+    if(fit == _doms.end()){
+      nodup_insert(_domfrontier, blk);
+    }
+  }
+
+  it = _doms.begin();
+  while (it != _doms.end()){
+    CBasicBlock* blk = *it++;
+    assert(blk!=NULL);
+
+    list<CBasicBlock*>& df = blk->ComputeDF();
+
+    list<CBasicBlock*>::iterator it2 = df.begin();
+    while(it2 != df.end()){
+      CBasicBlock* blk2 = *it2++;
+      assert(blk2 != NULL);
+
+      list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk);
+      if(fit == _doms.end()){
+	nodup_insert(_domfrontier, blk2);
+      }
+    }
+  }
+
+  dfcomputed = true;
+  return _domfrontier;
+}
+
 list<CTacInstr*>& CBasicBlock::GetInstrs(void)
 {
   return _instrs;
@@ -354,6 +393,18 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
       out << " " << (blk->GetBlockNum());
     }
   }
+  out << " ||";
+  it = _domfrontier.begin();
+  while (it != _domfrontier.end()){
+    CBasicBlock* blk = *it++;
+    if(blk == NULL){
+      out << " OUT";
+    }
+    else{
+      out << " " << (blk->GetBlockNum());
+    }
+  }
+
   out << ")";
 
   return out;

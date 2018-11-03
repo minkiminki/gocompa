@@ -75,6 +75,7 @@ public:
   void AddInstr(CTacInstr* instr);
   void SetBlockNum(int blocknum);
   int GetBlockNum(void) const;
+  list<CBasicBlock*>& ComputeDF(void);
 
   virtual ostream&  print(ostream &out, int indent=0) const;
 
@@ -86,6 +87,7 @@ protected:
   list<CBasicBlock*> _doms;
   list<CBasicBlock*> _predoms;
   list<CBasicBlock*> _domfrontier;
+  bool dfcomputed;
 };
 
 class CBlockTable : public CTac {
