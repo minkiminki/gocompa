@@ -240,6 +240,7 @@ class CCodeBlock_prime : public CCodeBlock {
     void SetStackSize(int size);
     int GetParamNum() const;
     void SetParamNum(int param_num);
+    void AddInitialLabel(void);
     void SplitIf(CTacInstr_prime* instr);
     void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
 

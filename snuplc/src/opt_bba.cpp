@@ -44,6 +44,8 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
 
+  cbp->AddInitialLabel();
+
   CBlockTable *cbt = cbp->GetBlockTable();
   assert(cbt != NULL);
 

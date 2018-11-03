@@ -533,7 +533,7 @@ int CCodeBlock_prime::GetParamNum() const
 
 void CCodeBlock_prime::SetParamNum(int param_num)
 {
-	_param_num = param_num;
+  _param_num = param_num;
 }
 
 
@@ -548,6 +548,13 @@ EOperation OpToggle(EOperation op)
   case opBiggerEqual : return opLessThan;
   default : assert(false);
   }
+}
+
+void CCodeBlock_prime::AddInitialLabel(void)
+{
+  CTacLabel *_lb = _owner->CreateLabel("initial");
+  CTacLabel_prime *lb = new CTacLabel_prime(_lb, _lb->GetLabel(),_lb->GetRefCnt());
+  _ops.push_front(lb);
 }
 
 void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
