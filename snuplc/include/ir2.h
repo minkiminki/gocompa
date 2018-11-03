@@ -65,7 +65,9 @@ public:
   void AddPreDoms(CBasicBlock *prev);
   void AddDoms(CBasicBlock *next);
   void SetDoms(list<CBasicBlock*> doms);
+  void SetPreDoms(list<CBasicBlock*> predoms);
   int DomsJoin(list<CBasicBlock*>& doms);
+  int PreDomsJoin(list<CBasicBlock*>& predoms);
   list<CBasicBlock*>& GetDomFront(void);
   void AddDomFront(CBasicBlock *front);
 
@@ -95,6 +97,7 @@ public:
   CBasicBlock* GetInitBlock(void) const;
   list<CBasicBlock*>& GetFinBlocks(void);
   list<CBasicBlock*>& GetFinPreDoms(void);
+  void AddFinDom(CBasicBlock* block);
   void AddFinPreDom(CBasicBlock* block);
   void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
@@ -109,6 +112,7 @@ protected:
   CBasicBlock* _initblock;
   list<CBasicBlock*> _finblocks;
   list<CBasicBlock*> _finpredoms;
+  list<CBasicBlock*> _findoms;
   int maxblock;
 };
 

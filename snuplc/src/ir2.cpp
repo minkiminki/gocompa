@@ -8,7 +8,6 @@
 using namespace std;
 
 
-
 template<typename T>
 int list_join(list<T>& l1, list<T>& l2){
   int success = 0;
@@ -17,14 +16,13 @@ int list_join(list<T>& l1, list<T>& l2){
     typename list<T>::iterator it_before = it++;
     T key = *(it_before);
     typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
-    if(findit != l2.end()){
+    if(findit == l2.end()){
       l1.erase(it_before);
       success = 1;
     }
   }
   return success;
 }
-
 
 //------------------------------------------------------------------------------
 // CTacInstr
@@ -285,10 +283,19 @@ void CBasicBlock::SetDoms(list<CBasicBlock*> doms)
   _doms = doms;
 }
 
+void CBasicBlock::SetPreDoms(list<CBasicBlock*> predoms)
+{
+  _predoms = predoms;
+}
 
 int CBasicBlock::DomsJoin(list<CBasicBlock*>& doms)
 {
   return list_join(_doms, doms);
+}
+
+int CBasicBlock::PreDomsJoin(list<CBasicBlock*>& predoms)
+{
+  return list_join(_predoms, predoms);
 }
 
 list<CTacInstr*>& CBasicBlock::GetInstrs(void)
@@ -466,6 +473,11 @@ list<CBasicBlock*>& CBlockTable::GetFinPreDoms(void)
 void CBlockTable::AddFinPreDom(CBasicBlock* block)
 {
   nodup_insert(_finpredoms, block);
+}
+
+void CBlockTable::AddFinDom(CBasicBlock* block)
+{
+  nodup_insert(_findoms, block);
 }
 
 CBasicBlock* CBlockTable::GetInitBlock(void) const
