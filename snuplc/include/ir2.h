@@ -44,6 +44,18 @@ int nodup_insert(list<T>& l, T key){
   }
 }
 
+template<typename T>
+T* list_pop(list<T>& l){
+  if(l.empty()){
+    return NULL;
+  }
+  else{
+    T elm = l.front();
+    l.pop_front();
+    return l;
+  }
+}
+
 //------------------------------------------------------------------------------
 /// @brief instruction class
 ///
@@ -70,12 +82,17 @@ public:
   int PreDomsJoin(list<CBasicBlock*>& predoms);
   list<CBasicBlock*>& GetDomFront(void);
   void AddDomFront(CBasicBlock *front);
+  void ClearTempInfo(void);
+  list<CTacInstr*>& GetPhis();
+  void AddPhi(list<CBasicBlock*>& worklist, CSymbol* s);
+  void ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s);
 
   list<CTacInstr*>& GetInstrs(void);
   void AddInstr(CTacInstr* instr);
   void SetBlockNum(int blocknum);
   int GetBlockNum(void) const;
   list<CBasicBlock*>& ComputeDF(void);
+  bool CheckAssign(CSymbol* s) const;
 
   virtual ostream&  print(ostream &out, int indent=0) const;
 
@@ -87,7 +104,8 @@ protected:
   list<CBasicBlock*> _doms;
   list<CBasicBlock*> _predoms;
   list<CBasicBlock*> _domfrontier;
-  bool dfcomputed;
+  int tempinfo;
+  list<CTacInstr*> _phis;
 };
 
 class CBlockTable : public CTac {
@@ -106,6 +124,7 @@ public:
   void RemoveBlock(CBasicBlock *block);
   void BlockRenumber(void);
   void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
+  void ClearTempInfos(void);
   virtual ostream&  print(ostream &out, int indent=0) const;
 
 
@@ -156,7 +175,7 @@ class CTacInstr_prime : public CTacInstr {
   protected:
     CBasicBlock *_block;
     dynamic_bitset<> liveness;
-  CSymRegister *_rg;
+    CSymRegister *_rg;
 };
 
 
@@ -246,9 +265,6 @@ class CCodeBlock_prime : public CCodeBlock {
     void SplitIf(CTacInstr_prime* instr);
     void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
 
-  list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>>& GetPhis();
-  void AddPhi(CSymbol* dest, CSymbol* src1, CSymbol* src2);
-
     /// @name output
     /// @{
 
@@ -263,7 +279,7 @@ class CCodeBlock_prime : public CCodeBlock {
     CBlockTable* _blktab;
     int _size;
     int _param_num;
-  list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>> _phis;
+
 };
 
 

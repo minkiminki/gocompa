@@ -211,7 +211,7 @@ ostream& CCodeBlock_prime::print(ostream &out, int indent) const
 }
 
 CBasicBlock::CBasicBlock()
-  : dfcomputed(false)
+  : tempinfo(0)
 {
 }
 
@@ -294,6 +294,11 @@ int CBasicBlock::DomsJoin(list<CBasicBlock*>& doms)
   return list_join(_doms, doms);
 }
 
+void CBasicBlock::ClearTempInfo()
+{
+  tempinfo = 0;
+}
+
 int CBasicBlock::PreDomsJoin(list<CBasicBlock*>& predoms)
 {
   return list_join(_predoms, predoms);
@@ -301,7 +306,7 @@ int CBasicBlock::PreDomsJoin(list<CBasicBlock*>& predoms)
 
 list<CBasicBlock*>& CBasicBlock::ComputeDF(void)
 {
-  if(dfcomputed) return _domfrontier;
+  if(tempinfo > 0) return _domfrontier;
 
   list<CBasicBlock*>::const_iterator it = _nextblks.begin();
   while (it != _nextblks.end()){
@@ -333,9 +338,57 @@ list<CBasicBlock*>& CBasicBlock::ComputeDF(void)
     }
   }
 
-  dfcomputed = true;
+  tempinfo = 0;
   return _domfrontier;
 }
+
+list<CTacInstr*>& CBasicBlock::GetPhis(void)
+{
+  return _phis;
+}
+
+void CBasicBlock::AddPhi(list<CBasicBlock*>& worklist, CSymbol* s)
+{
+  if(tempinfo >= 2) return;
+  CTacName* ndst = new CTacName(s);
+  CTacName* nsrc1 = new CTacName(s);
+  CTacName* nsrc2 = new CTacName(s);
+
+  CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
+  CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+  instr_new->SetOperation(opPhi);
+
+  _phis.push_front(instr_new);
+  instr_new->SetFromBlock(this);
+
+  if(tempinfo == 0){
+    nodup_insert(worklist, this);
+  }
+  tempinfo = 2;
+}
+
+
+void CBasicBlock::ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s)
+{
+  list<CBasicBlock*>::const_iterator bit = _domfrontier.begin();
+  while (bit != _domfrontier.end()) {
+    CBasicBlock* blk = *bit++;
+    blk->AddPhi(worklist, s);
+  }
+}
+
+// void CBasicBlock::AddPhi(const CSymbol* dst, const CSymbol* src1, const CSymbol* src2)
+// {
+//   CTacName* ndst = new CTacName(dst);
+//   CTacName* nsrc1 = new CTacName(src1);
+//   CTacName* nsrc2 = new CTacName(src2);
+
+//   CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
+//   CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+//   instr_new->SetOperation(opPhi);
+
+//   _phis.push_front(instr_new);
+// }
 
 list<CTacInstr*>& CBasicBlock::GetInstrs(void)
 {
@@ -352,11 +405,40 @@ int CBasicBlock::GetBlockNum(void) const
   return _blocknum;
 }
 
+bool CBasicBlock::CheckAssign(CSymbol* s) const
+{
+
+  list<CTacInstr*>::const_iterator it = _instrs.begin();
+  while (it != _instrs.end()){
+    CTacInstr* instr = *it++;
+    assert(instr != NULL);
+    if(instr->GetOperation() == opAssign){
+      CTacName* n = dynamic_cast<CTacName*>(instr->GetDest());
+      assert(n != NULL);
+      if(n->GetSymbol() == s){
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
 ostream& CBasicBlock::print(ostream &out, int indent) const
 {
   string ind(indent, ' ');
 
   out << "(" << GetBlockNum() << " -";
+
+  {
+    out << "phis : --------------------------- " << endl;
+    list<CTacInstr*>::const_iterator pit = _phis.begin();
+    while (pit != _phis.end()){
+      CTacInstr* phi = *pit++;
+      assert(phi != NULL);
+      cout << phi << endl;
+    }
+    out << "---------------------------------- " << endl;
+  }
 
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();
   while (it != _prevblks.end()){
@@ -552,6 +634,16 @@ void CBlockTable::BlockRenumber(void)
   }
 }
 
+void CBlockTable::ClearTempInfos(void)
+{
+  list<CBasicBlock*>::const_iterator it = _blocklist.begin();
+  while(it != _blocklist.end()){
+    CBasicBlock* cb = *it++;
+    assert(cb != NULL);
+    cb->ClearTempInfo();
+  }
+}
+
 CBasicBlock* CTacInstr_prime::GetFromBlock(void) const
 {
   return _block;
@@ -586,7 +678,6 @@ void CCodeBlock_prime::SetParamNum(int param_num)
 {
   _param_num = param_num;
 }
-
 
 EOperation OpToggle(EOperation op)
 {
@@ -698,17 +789,6 @@ void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
   _ops.insert(it, instr_new);
   instr_new->SetFromBlock(bb_new);
 }
-
-list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>>&  CCodeBlock_prime::GetPhis()
-{
-  return _phis;
-}
-
-void CCodeBlock_prime::AddPhi(CSymbol* dest, CSymbol* src1, CSymbol* src2)
-{
-  ADMIT;
-}
-
 
 ostream& CBlockTable::print(ostream &out, int indent) const
 {
