@@ -367,7 +367,6 @@ void CBasicBlock::AddPhi(list<CBasicBlock*>& worklist, CSymbol* s)
   tempinfo = 2;
 }
 
-
 void CBasicBlock::ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s)
 {
   list<CBasicBlock*>::const_iterator bit = _domfrontier.begin();
@@ -375,6 +374,11 @@ void CBasicBlock::ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s)
     CBasicBlock* blk = *bit++;
     blk->AddPhi(worklist, s);
   }
+}
+
+void CBasicBlock::SetTempInfo(int temp)
+{
+  tempinfo = temp;
 }
 
 // void CBasicBlock::AddPhi(const CSymbol* dst, const CSymbol* src1, const CSymbol* src2)
@@ -405,22 +409,24 @@ int CBasicBlock::GetBlockNum(void) const
   return _blocknum;
 }
 
-bool CBasicBlock::CheckAssign(CSymbol* s) const
+CTacInstr* CBasicBlock::CheckAssign(CSymbol* s) const
 {
 
-  list<CTacInstr*>::const_iterator it = _instrs.begin();
-  while (it != _instrs.end()){
+  list<CTacInstr*>::const_reverse_iterator it = _instrs.rbegin();
+  while (it != _instrs.rend()){
     CTacInstr* instr = *it++;
     assert(instr != NULL);
     if(instr->GetOperation() == opAssign){
       CTacName* n = dynamic_cast<CTacName*>(instr->GetDest());
       assert(n != NULL);
       if(n->GetSymbol() == s){
-	return true;
+	if(dynamic_cast<CTacReference*>(n) == NULL){
+	  return instr;
+	}
       }
     }
   }
-  return false;
+  return NULL;
 }
 
 ostream& CBasicBlock::print(ostream &out, int indent) const
@@ -430,14 +436,14 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
   out << "(" << GetBlockNum() << " -";
 
   {
-    out << "phis : --------------------------- " << endl;
+    out << " phis : --------------------------- " << endl;
     list<CTacInstr*>::const_iterator pit = _phis.begin();
     while (pit != _phis.end()){
       CTacInstr* phi = *pit++;
       assert(phi != NULL);
-      cout << phi << endl;
+      out << phi << endl;
     }
-    out << "---------------------------------- " << endl;
+    out << "-------------phis :--------------------- " << endl;
   }
 
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();

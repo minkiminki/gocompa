@@ -12,6 +12,9 @@
 using namespace boost;
 
 #define ADMIT (assert(false));
+#define _P1 (printf("------------------------pass first  point---------------------\n1111111111111111111111111111111111111111111111111111111111111\n"));
+#define _P2 (printf("------------------------pass second point---------------------\n2222222222222222222222222222222222222222222222222222222222222\n"));
+
 
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))
@@ -45,14 +48,14 @@ int nodup_insert(list<T>& l, T key){
 }
 
 template<typename T>
-T* list_pop(list<T>& l){
+int list_pop(list<T>& l, T* ret){
   if(l.empty()){
-    return NULL;
+    return -1;
   }
   else{
-    T elm = l.front();
+    *ret = l.front();
     l.pop_front();
-    return l;
+    return 1;
   }
 }
 
@@ -86,13 +89,14 @@ public:
   list<CTacInstr*>& GetPhis();
   void AddPhi(list<CBasicBlock*>& worklist, CSymbol* s);
   void ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s);
+  void SetTempInfo(int temp);
 
   list<CTacInstr*>& GetInstrs(void);
   void AddInstr(CTacInstr* instr);
   void SetBlockNum(int blocknum);
   int GetBlockNum(void) const;
   list<CBasicBlock*>& ComputeDF(void);
-  bool CheckAssign(CSymbol* s) const;
+  CTacInstr* CheckAssign(CSymbol* s) const;
 
   virtual ostream&  print(ostream &out, int indent=0) const;
 
