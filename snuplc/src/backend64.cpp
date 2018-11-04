@@ -167,7 +167,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
   // cb->SetStackSize(ComputeStackOffsets(st, 8, -12));
 
   size_t size = cb->GetStackSize();
-	int param_num = cb->GetParamNum();
+  int param_num = cb->GetParamNum();
 
   StackDump(st);
 

@@ -347,6 +347,17 @@ list<CTacInstr*>& CBasicBlock::GetPhis(void)
   return _phis;
 }
 
+list<pair<const CSymbol*, const CSymbol*>>& CBasicBlock::GetBackPhis()
+{
+  return _backphis;
+}
+
+void CBasicBlock::AddBackPhi(const CSymbol* dst, const CSymbol* src)
+{
+  _P1;
+  _backphis.push_front(pair<const CSymbol*, const CSymbol*>(dst, src));
+}
+
 void CBasicBlock::AddPhi(list<CBasicBlock*>& worklist, CSymbol* s)
 {
   if(tempinfo >= 2) return;
@@ -800,6 +811,40 @@ void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
   _ops.insert(it, instr_new);
   instr_new->SetFromBlock(bb_new);
 }
+
+void CCodeBlock_prime::SSA_out()
+{
+  list<CBasicBlock*>::const_iterator bit = _blktab->GetBlockList().begin();
+  while (bit != _blktab->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
+    assert(blk!=NULL);
+    assert(blk->GetInstrs().rbegin() != blk->GetInstrs().rend());
+    CTacInstr *instr = *(blk->GetInstrs().rbegin());
+    assert(instr != NULL);
+    list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
+    assert(fit != _ops.end());
+    if(instr->GetOperation() != opGoto){
+      fit = next(fit);
+    }
+
+    list<pair<const CSymbol*, const CSymbol*>>::const_iterator pit = blk->GetBackPhis().begin();
+    while(pit != blk->GetBackPhis().end()){
+      printf("sssssssssssssssssss\n");
+      pair<const CSymbol*, const CSymbol*> spair = *pit++;
+
+      CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
+					    new CTacTemp(spair.second), NULL);
+      CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+      instr_new->SetOperation(opAssign);
+      instr_new->SetFromBlock(blk);
+
+      (blk->GetInstrs()).push_back(instr_new); // TODO : fix it
+      _ops.insert(fit, instr_new);
+      // (cbp->GetInstr()).insert(const_cast<CTacInstr*>(fit), instr_new);
+    }
+  }
+}
+
 
 ostream& CBlockTable::print(ostream &out, int indent) const
 {

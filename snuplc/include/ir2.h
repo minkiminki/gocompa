@@ -87,6 +87,8 @@ public:
   void AddDomFront(CBasicBlock *front);
   void ClearTempInfo(void);
   list<CTacInstr*>& GetPhis();
+  list<pair<const CSymbol*, const CSymbol*>>& GetBackPhis();
+  void AddBackPhi(const CSymbol* dst, const CSymbol* src);
   void AddPhi(list<CBasicBlock*>& worklist, CSymbol* s);
   void ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s);
   void SetTempInfo(int temp);
@@ -111,6 +113,7 @@ protected:
   list<CBasicBlock*> _domfrontier;
   int tempinfo;
   list<CTacInstr*> _phis;
+  list<pair<const CSymbol*, const CSymbol*>> _backphis;
 };
 
 class CBlockTable : public CTac {
@@ -269,6 +272,7 @@ class CCodeBlock_prime : public CCodeBlock {
     void AddInitialLabel(void);
     void SplitIf(CTacInstr_prime* instr);
     void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
+    void SSA_out();
 
     /// @name output
     /// @{

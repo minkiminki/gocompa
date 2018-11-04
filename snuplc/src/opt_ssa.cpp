@@ -156,16 +156,18 @@ void ssa_in_block(CScope* m, CCodeBlock *cb) {
 	    assert(newassigned.find(n->GetSymbol()) != newassigned.end());
 
 	    if(blk_next->GetTempInfo() == 2){
-	      n = dynamic_cast<CTacName*>(phi->GetSrc(1));
-	      assert(n != NULL);
-	      n->SetSymbol(lastassigned[blk]);
+	      CTacName* n2 = dynamic_cast<CTacName*>(phi->GetSrc(1));
+	      assert(n2 != NULL);
+	      n2->SetSymbol(lastassigned[blk]);
 	      blk_next->SetTempInfo(3);
+	      blk->AddBackPhi(n->GetSymbol(), lastassigned[blk]);
 	    }
 	    else if(blk_next->GetTempInfo() == 3){
-	      n = dynamic_cast<CTacName*>(phi->GetSrc(2));
-	      assert(n != NULL);
-	      n->SetSymbol(lastassigned[blk]);
+	      CTacName* n2 = dynamic_cast<CTacName*>(phi->GetSrc(2));
+	      assert(n2 != NULL);
+	      n2->SetSymbol(lastassigned[blk]);
 	      blk_next->SetTempInfo(4);
+	      blk->AddBackPhi(n->GetSymbol(), lastassigned[blk]);
 	    }
 	    else{
 	      assert(blk_next->GetTempInfo() == 4);
@@ -257,22 +259,50 @@ void ssa_in_scope(CScope *m){
 // ********************************************************************** /
 // ********************************************************************** /
 // Translate out SSA
-void ssa_out_block(CCodeBlock *cb) {
-  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
-  assert(cbp != NULL);
+// void ssa_out_block(CCodeBlock *cb) {
+//   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+//   assert(cbp != NULL);
 
-  CBlockTable *cbt = cbp->GetBlockTable();
-  assert(cbt != NULL);
+//   CBlockTable *cbt = cbp->GetBlockTable();
+//   assert(cbt != NULL);
 
-  ADMIT;
-}
+//   list<CBasicBlock*>::const_iterator bit = cbt->GetBlockList().begin();
+//   while (bit != cbt->GetBlockList().end()) {
+//     CBasicBlock* blk = *bit++;
+//     assert(blk!=NULL);
+//     assert(blk->GetInstrs().rbegin() != blk->GetInstrs().rend());
+//     CTacInstr *instr = *(blk->GetInstrs().rbegin());
+//     assert(instr != NULL);
+//     list<CTacInstr*>::iterator fit = find(cbp->GetInstr().begin(), cbp->GetInstr().end(), instr);
+//     assert(fit != cbp->GetInstr().end());
+
+//     list<pair<const CSymbol*, const CSymbol*>>::const_iterator pit = blk->GetBackPhis().begin();
+//     while(pit != blk->GetBackPhis().end()){
+//       pair<const CSymbol*, const CSymbol*> spair = *pit++;
+
+//       CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
+// 					    new CTacTemp(spair.second), NULL);
+//       CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+//       instr_new->SetOperation(opAssign);
+//       instr_new->SetFromBlock(blk);
+
+//       (blk->GetInstrs()).push_back(instr_new);
+//       (cbp->GetInstr()).insert(fit, instr_new);
+//       // (cbp->GetInstr()).insert(const_cast<CTacInstr*>(fit), instr_new);
+//     }
+//   }
+
+// }
 
 void ssa_out_scope(CScope *m){
-  ssa_out_block(m->GetCodeBlock());
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(m->GetCodeBlock());
+  assert(cbp != NULL);
+  cbp->SSA_out();
+  // ssa_out_block(m->GetCodeBlock());
 
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
-    ssa_in_scope(*sit++);
+    ssa_out_scope(*sit++);
   }
   return;
 }
