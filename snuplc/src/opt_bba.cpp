@@ -270,6 +270,7 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   }
 
   // dominance frontier
+  cbt->ClearTempInfos();
   bit = (cbt->GetBlockList()).begin();
   while(bit != (cbt->GetBlockList()).end()) {
     CBasicBlock *blk = *bit++;

@@ -324,21 +324,21 @@ list<CBasicBlock*>& CBasicBlock::ComputeDF(void)
     CBasicBlock* blk = *it++;
     assert(blk!=NULL);
 
-    list<CBasicBlock*>& df = blk->ComputeDF();
+    list<CBasicBlock*> df = blk->ComputeDF();
 
     list<CBasicBlock*>::iterator it2 = df.begin();
     while(it2 != df.end()){
       CBasicBlock* blk2 = *it2++;
       assert(blk2 != NULL);
 
-      list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk);
+      list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk2);
       if(fit == _doms.end()){
 	nodup_insert(_domfrontier, blk2);
       }
     }
   }
 
-  tempinfo = 0;
+  tempinfo = 1;
   return _domfrontier;
 }
 
@@ -354,7 +354,6 @@ list<pair<const CSymbol*, const CSymbol*>>& CBasicBlock::GetBackPhis()
 
 void CBasicBlock::AddBackPhi(const CSymbol* dst, const CSymbol* src)
 {
-  _P1;
   _backphis.push_front(pair<const CSymbol*, const CSymbol*>(dst, src));
 }
 
@@ -829,7 +828,6 @@ void CCodeBlock_prime::SSA_out()
 
     list<pair<const CSymbol*, const CSymbol*>>::const_iterator pit = blk->GetBackPhis().begin();
     while(pit != blk->GetBackPhis().end()){
-      printf("sssssssssssssssssss\n");
       pair<const CSymbol*, const CSymbol*> spair = *pit++;
 
       CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
