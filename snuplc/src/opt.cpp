@@ -12,6 +12,7 @@ void full_optimize(int arch, CScope *m) {
   tail_call_optimization_scope(arch, m);
   unused_elimination_scope(m);
   ssa_in_scope(m);
+  unused_elimination_scope(m); // TODO : separate renumber
   // ssa_out_scope(m);
   return;
 }

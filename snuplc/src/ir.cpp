@@ -174,6 +174,11 @@ const CSymbol* CTacName::GetSymbol(void) const
   return _symbol;
 }
 
+void CTacName::SetSymbol(const CSymbol* s)
+{
+  _symbol = s;
+}
+
 //------------------------------------------------------------------------------
 // CTacConst
 //

@@ -381,6 +381,11 @@ void CBasicBlock::SetTempInfo(int temp)
   tempinfo = temp;
 }
 
+int CBasicBlock::GetTempInfo()
+{
+  return tempinfo;
+}
+
 // void CBasicBlock::AddPhi(const CSymbol* dst, const CSymbol* src1, const CSymbol* src2)
 // {
 //   CTacName* ndst = new CTacName(dst);

@@ -90,6 +90,7 @@ public:
   void AddPhi(list<CBasicBlock*>& worklist, CSymbol* s);
   void ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s);
   void SetTempInfo(int temp);
+  int GetTempInfo(void);
 
   list<CTacInstr*>& GetInstrs(void);
   void AddInstr(CTacInstr* instr);

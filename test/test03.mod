@@ -10,7 +10,6 @@ module test03;
 
 var a : boolean;
     b : boolean;
-b1 : integer;
     c : boolean;
 
 begin
