@@ -396,19 +396,6 @@ int CBasicBlock::GetTempInfo()
   return tempinfo;
 }
 
-// void CBasicBlock::AddPhi(const CSymbol* dst, const CSymbol* src1, const CSymbol* src2)
-// {
-//   CTacName* ndst = new CTacName(dst);
-//   CTacName* nsrc1 = new CTacName(src1);
-//   CTacName* nsrc2 = new CTacName(src2);
-
-//   CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
-//   CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
-//   instr_new->SetOperation(opPhi);
-
-//   _phis.push_front(instr_new);
-// }
-
 list<CTacInstr*>& CBasicBlock::GetInstrs(void)
 {
   return _instrs;
@@ -449,17 +436,6 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
   string ind(indent, ' ');
 
   out << "(" << GetBlockNum() << " -";
-
-  {
-    out << " phis : --------------------------- " << endl;
-    list<CTacInstr*>::const_iterator pit = _phis.begin();
-    while (pit != _phis.end()){
-      CTacInstr* phi = *pit++;
-      assert(phi != NULL);
-      out << phi << endl;
-    }
-    out << "-------------phis :--------------------- " << endl;
-  }
 
   list<CBasicBlock*>::const_iterator it = _prevblks.begin();
   while (it != _prevblks.end()){
@@ -764,8 +740,6 @@ void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
 
   bb_new->AddNextBlks(bb);
 
-
-
   lb->SetFromBlock(bb_next);
   go->SetFromBlock(bb_new);
 
@@ -817,13 +791,18 @@ void CCodeBlock_prime::SSA_out()
   while (bit != _blktab->GetBlockList().end()) {
     CBasicBlock* blk = *bit++;
     assert(blk!=NULL);
+
     assert(blk->GetInstrs().rbegin() != blk->GetInstrs().rend());
     CTacInstr *instr = *(blk->GetInstrs().rbegin());
     assert(instr != NULL);
     list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
     assert(fit != _ops.end());
+
+    list<CTacInstr*>::iterator instrend = blk->GetInstrs().end();
+
     if(instr->GetOperation() != opGoto){
       fit = next(fit);
+      instrend = --instrend;
     }
 
     list<pair<const CSymbol*, const CSymbol*>>::const_iterator pit = blk->GetBackPhis().begin();
@@ -836,7 +815,8 @@ void CCodeBlock_prime::SSA_out()
       instr_new->SetOperation(opAssign);
       instr_new->SetFromBlock(blk);
 
-      (blk->GetInstrs()).push_back(instr_new); // TODO : fix it
+      (blk->GetInstrs()).insert(instrend, instr_new);
+      // (blk->GetInstrs()).push_back(instr_new); // TODO : fix it
       _ops.insert(fit, instr_new);
       // (cbp->GetInstr()).insert(const_cast<CTacInstr*>(fit), instr_new);
     }
