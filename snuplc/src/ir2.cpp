@@ -8,7 +8,6 @@
 using namespace std;
 
 
-
 template<typename T>
 int list_join(list<T>& l1, list<T>& l2){
   int success = 0;
@@ -17,14 +16,13 @@ int list_join(list<T>& l1, list<T>& l2){
     typename list<T>::iterator it_before = it++;
     T key = *(it_before);
     typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
-    if(findit != l2.end()){
+    if(findit == l2.end()){
       l1.erase(it_before);
       success = 1;
     }
   }
   return success;
 }
-
 
 //------------------------------------------------------------------------------
 // CTacInstr
@@ -213,6 +211,7 @@ ostream& CCodeBlock_prime::print(ostream &out, int indent) const
 }
 
 CBasicBlock::CBasicBlock()
+  : tempinfo(0)
 {
 }
 
@@ -285,10 +284,116 @@ void CBasicBlock::SetDoms(list<CBasicBlock*> doms)
   _doms = doms;
 }
 
+void CBasicBlock::SetPreDoms(list<CBasicBlock*> predoms)
+{
+  _predoms = predoms;
+}
 
 int CBasicBlock::DomsJoin(list<CBasicBlock*>& doms)
 {
   return list_join(_doms, doms);
+}
+
+void CBasicBlock::ClearTempInfo()
+{
+  tempinfo = 0;
+}
+
+int CBasicBlock::PreDomsJoin(list<CBasicBlock*>& predoms)
+{
+  return list_join(_predoms, predoms);
+}
+
+list<CBasicBlock*>& CBasicBlock::ComputeDF(void)
+{
+  if(tempinfo > 0) return _domfrontier;
+
+  list<CBasicBlock*>::const_iterator it = _nextblks.begin();
+  while (it != _nextblks.end()){
+    CBasicBlock* blk = *it++;
+    if(blk==NULL) continue;
+
+    list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk);
+    if(fit == _doms.end()){
+      nodup_insert(_domfrontier, blk);
+    }
+  }
+
+  it = _doms.begin();
+  while (it != _doms.end()){
+    CBasicBlock* blk = *it++;
+    assert(blk!=NULL);
+
+    list<CBasicBlock*> df = blk->ComputeDF();
+
+    list<CBasicBlock*>::iterator it2 = df.begin();
+    while(it2 != df.end()){
+      CBasicBlock* blk2 = *it2++;
+      assert(blk2 != NULL);
+
+      list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk2);
+      if(fit == _doms.end()){
+	nodup_insert(_domfrontier, blk2);
+      }
+    }
+  }
+
+  tempinfo = 1;
+  return _domfrontier;
+}
+
+list<CTacInstr*>& CBasicBlock::GetPhis(void)
+{
+  return _phis;
+}
+
+list<pair<const CSymbol*, const CSymbol*>>& CBasicBlock::GetBackPhis()
+{
+  return _backphis;
+}
+
+void CBasicBlock::AddBackPhi(const CSymbol* dst, const CSymbol* src)
+{
+  _backphis.push_front(pair<const CSymbol*, const CSymbol*>(dst, src));
+}
+
+void CBasicBlock::AddPhi(list<CBasicBlock*>& worklist, CSymbol* s)
+{
+  if(tempinfo >= 2) return;
+  CTacName* ndst = new CTacName(s);
+  CTacName* nsrc1 = new CTacName(s);
+  CTacName* nsrc2 = new CTacName(s);
+
+  CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
+  CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+  instr_new->SetOperation(opPhi);
+
+  _phis.push_front(instr_new);
+  instr_new->SetFromBlock(this);
+
+  if(tempinfo == 0){
+    nodup_insert(worklist, this);
+  }
+  tempinfo = 2;
+}
+
+void CBasicBlock::ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s)
+{
+  list<CBasicBlock*>::const_iterator bit = _domfrontier.begin();
+  while (bit != _domfrontier.end()) {
+    CBasicBlock* blk = *bit++;
+    blk->AddPhi(worklist, s);
+  }
+}
+
+void CBasicBlock::SetTempInfo(int temp)
+{
+  tempinfo = temp;
+}
+
+int CBasicBlock::GetTempInfo()
+{
+  return tempinfo;
 }
 
 list<CTacInstr*>& CBasicBlock::GetInstrs(void)
@@ -304,6 +409,26 @@ void CBasicBlock::SetBlockNum(int blocknum)
 int CBasicBlock::GetBlockNum(void) const
 {
   return _blocknum;
+}
+
+CTacInstr* CBasicBlock::CheckAssign(CSymbol* s) const
+{
+
+  list<CTacInstr*>::const_reverse_iterator it = _instrs.rbegin();
+  while (it != _instrs.rend()){
+    CTacInstr* instr = *it++;
+    assert(instr != NULL);
+    if(instr->GetOperation() == opAssign){
+      CTacName* n = dynamic_cast<CTacName*>(instr->GetDest());
+      assert(n != NULL);
+      if(n->GetSymbol() == s){
+	if(dynamic_cast<CTacReference*>(n) == NULL){
+	  return instr;
+	}
+      }
+    }
+  }
+  return NULL;
 }
 
 ostream& CBasicBlock::print(ostream &out, int indent) const
@@ -347,6 +472,18 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
       out << " " << (blk->GetBlockNum());
     }
   }
+  out << " ||";
+  it = _domfrontier.begin();
+  while (it != _domfrontier.end()){
+    CBasicBlock* blk = *it++;
+    if(blk == NULL){
+      out << " OUT";
+    }
+    else{
+      out << " " << (blk->GetBlockNum());
+    }
+  }
+
   out << ")";
 
   return out;
@@ -468,6 +605,11 @@ void CBlockTable::AddFinPreDom(CBasicBlock* block)
   nodup_insert(_finpredoms, block);
 }
 
+void CBlockTable::AddFinDom(CBasicBlock* block)
+{
+  nodup_insert(_findoms, block);
+}
+
 CBasicBlock* CBlockTable::GetInitBlock(void) const
 {
   return _initblock;
@@ -486,6 +628,16 @@ void CBlockTable::BlockRenumber(void)
     CBasicBlock* cb = *it++;
     assert(cb != NULL);
     cb->SetBlockNum(++maxblock);
+  }
+}
+
+void CBlockTable::ClearTempInfos(void)
+{
+  list<CBasicBlock*>::const_iterator it = _blocklist.begin();
+  while(it != _blocklist.end()){
+    CBasicBlock* cb = *it++;
+    assert(cb != NULL);
+    cb->ClearTempInfo();
   }
 }
 
@@ -521,9 +673,8 @@ int CCodeBlock_prime::GetParamNum() const
 
 void CCodeBlock_prime::SetParamNum(int param_num)
 {
-	_param_num = param_num;
+  _param_num = param_num;
 }
-
 
 EOperation OpToggle(EOperation op)
 {
@@ -536,6 +687,13 @@ EOperation OpToggle(EOperation op)
   case opBiggerEqual : return opLessThan;
   default : assert(false);
   }
+}
+
+void CCodeBlock_prime::AddInitialLabel(void)
+{
+  CTacLabel *_lb = _owner->CreateLabel("initial");
+  CTacLabel_prime *lb = new CTacLabel_prime(_lb, _lb->GetLabel(),_lb->GetRefCnt());
+  _ops.push_front(lb);
 }
 
 void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
@@ -582,8 +740,6 @@ void CCodeBlock_prime::SplitIf(CTacInstr_prime* instr)
 
   bb_new->AddNextBlks(bb);
 
-
-
   lb->SetFromBlock(bb_next);
   go->SetFromBlock(bb_new);
 
@@ -629,14 +785,42 @@ void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
   instr_new->SetFromBlock(bb_new);
 }
 
-list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>>&  CCodeBlock_prime::GetPhis()
+void CCodeBlock_prime::SSA_out()
 {
-  return _phis;
-}
+  list<CBasicBlock*>::const_iterator bit = _blktab->GetBlockList().begin();
+  while (bit != _blktab->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
+    assert(blk!=NULL);
 
-void CCodeBlock_prime::AddPhi(CSymbol* dest, CSymbol* src1, CSymbol* src2)
-{
-  ADMIT;
+    assert(blk->GetInstrs().rbegin() != blk->GetInstrs().rend());
+    CTacInstr *instr = *(blk->GetInstrs().rbegin());
+    assert(instr != NULL);
+    list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
+    assert(fit != _ops.end());
+
+    list<CTacInstr*>::iterator instrend = blk->GetInstrs().end();
+
+    if(instr->GetOperation() != opGoto){
+      fit = next(fit);
+      instrend = --instrend;
+    }
+
+    list<pair<const CSymbol*, const CSymbol*>>::const_iterator pit = blk->GetBackPhis().begin();
+    while(pit != blk->GetBackPhis().end()){
+      pair<const CSymbol*, const CSymbol*> spair = *pit++;
+
+      CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
+					    new CTacTemp(spair.second), NULL);
+      CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+      instr_new->SetOperation(opAssign);
+      instr_new->SetFromBlock(blk);
+
+      (blk->GetInstrs()).insert(instrend, instr_new);
+      // (blk->GetInstrs()).push_back(instr_new); // TODO : fix it
+      _ops.insert(fit, instr_new);
+      // (cbp->GetInstr()).insert(const_cast<CTacInstr*>(fit), instr_new);
+    }
+  }
 }
 
 

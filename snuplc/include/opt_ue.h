@@ -9,6 +9,7 @@
 #include "symtab.h"
 
 
+void instruction_renumber_scope(CScope *m);
 void unused_elimination_scope(CScope *m);
 
 #endif // __SnuPL_OPT_UE_H__

@@ -44,6 +44,8 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
 
+  cbp->AddInitialLabel();
+
   CBlockTable *cbt = cbp->GetBlockTable();
   assert(cbt != NULL);
 
@@ -68,8 +70,8 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       CBasicBlock* blk_new = new CBasicBlock();
       blk_new->SetBlockNum(cbt->AddBlock(blk_new));
       if(cascade){
-				blk_new->AddPrevBlks(blk);
-				blk->AddNextBlks(blk_new);
+	blk_new->AddPrevBlks(blk);
+	blk->AddNextBlks(blk_new);
       }
       blk = blk_new;
       instr->SetFromBlock(blk);
@@ -78,13 +80,13 @@ void basic_block_analysis_block(CCodeBlock *cb) {
       is_first = false;
     }
     else if(cascade){
-			if(is_first){
-				CBasicBlock* blk_new = new CBasicBlock();
-				blk_new->SetBlockNum(cbt->AddBlock(blk_new));
-				blk_new->AddPrevBlks(blk);
-				blk->AddNextBlks(blk_new);
-				blk = blk_new;
-			}
+      if(is_first){
+	CBasicBlock* blk_new = new CBasicBlock();
+	blk_new->SetBlockNum(cbt->AddBlock(blk_new));
+	blk_new->AddPrevBlks(blk);
+	blk->AddNextBlks(blk_new);
+	blk = blk_new;
+      }
       assert(blk != NULL);
       instr->SetFromBlock(blk);
       blk->AddInstr(instr);
@@ -215,23 +217,18 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  // dominator relation
-
+  // dominance relation
   list<CBasicBlock*> blks = cbt->GetBlockList();
   blks.push_back(NULL);
+
+  list<CBasicBlock*> root_pdoms;
+  root_pdoms.push_back(NULL);
 
   bit = (cbt->GetBlockList()).begin();
   while(bit != (cbt->GetBlockList()).end()) {
     CBasicBlock *blk = *bit++;
-    blk->SetDoms(blks);
-    // blk->AddDoms(NULL);
-    // list<CBasicBlock*>::const_iterator bit2 = (cbt->GetBlockList()).begin();
-    // while(bit2 != (cbt->GetBlockList()).end()){
-    //   CBasicBlock *blk2 = *bit2++;
-    //   blk->AddDom(blk2);
-    // }
+    blk->SetPreDoms(blks);
   }
-
 
   success = true;
   while (success){
@@ -240,42 +237,45 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     while(bit != (cbt->GetBlockList()).end()) {
       CBasicBlock *blk = *bit++;
       assert(blk != NULL);
+
       list<CBasicBlock*>::const_iterator bit2 = blk->GetPrevBlks().begin();
       assert(bit2 != blk->GetPrevBlks().end());
-
-      // blk->SetDoms((*bit2++)->GetDoms());
-
-
-      assert(erase_success(blk->GetDoms(), blk) >= 0);
+      assert(erase_success(blk->GetPreDoms(), blk) >= 0);
       while(bit2 != blk->GetPrevBlks().end()){
 	CBasicBlock *blk2 = *bit2++;
 	if(blk2 != NULL){
-	  if(blk->DomsJoin(blk2->GetDoms()) > 0)
+	  if(blk->PreDomsJoin(blk2->GetPreDoms()) > 0)
+	    success = true;
+	}
+	else{
+	  if(blk->PreDomsJoin(root_pdoms) > 0)
 	    success = true;
 	}
       }
-      nodup_insert(blk->GetDoms(), blk);
+      nodup_insert(blk->GetPreDoms(), blk);
     }
   }
 
-  // list<CBasicBlock*> final_pre_doms;
-
+  // dominance tree
   bit = (cbt->GetBlockList()).begin();
   while(bit != (cbt->GetBlockList()).end()) {
     CBasicBlock *blk = *bit++;
-    list<CBasicBlock*>::const_iterator bit2 = blk->GetDoms().begin();
-    while(bit2 != blk->GetDoms().end()){
+    list<CBasicBlock*>::const_iterator bit2 = blk->GetPreDoms().begin();
+    while(bit2 != blk->GetPreDoms().end()){
       CBasicBlock *blk2 = *bit2++;
-      if(blk2 == NULL){
-	cbt->AddFinPreDom(blk);
-	// nodup_insert(final_pre_doms, blk);
-      }
-      else{
-	blk2->AddPreDoms(blk);
+      if((blk2 != NULL) && (blk2 != blk)){
+	blk2->AddDoms(blk);
       }
     }
   }
 
+  // dominance frontier
+  cbt->ClearTempInfos();
+  bit = (cbt->GetBlockList()).begin();
+  while(bit != (cbt->GetBlockList()).end()) {
+    CBasicBlock *blk = *bit++;
+    blk->ComputeDF();
+  }
 
 }
 

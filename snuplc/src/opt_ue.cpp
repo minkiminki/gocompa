@@ -9,6 +9,20 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// instruction renumbering
+void instruction_renumber_scope(CScope *m) {
+  m->GetCodeBlock()->InstrRenumber();
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    instruction_renumber_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // eliminate unused instr & block
 void unused_elimination_block(CCodeBlock *cb) {
   const list<CTacInstr*> ops = cb->GetInstr();
@@ -31,8 +45,6 @@ void unused_elimination_block(CCodeBlock *cb) {
       assert(cb->RemoveInstr(instr) >= 0);
     }
   }
-  cb->InstrRenumber();
-
 }
 
 void unused_elimination_scope(CScope *m) {

@@ -12,6 +12,9 @@
 using namespace boost;
 
 #define ADMIT (assert(false));
+#define _P1 (printf("------------------------pass first  point---------------------\n1111111111111111111111111111111111111111111111111111111111111\n"));
+#define _P2 (printf("------------------------pass second point---------------------\n2222222222222222222222222222222222222222222222222222222222222\n"));
+
 
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))
@@ -44,6 +47,18 @@ int nodup_insert(list<T>& l, T key){
   }
 }
 
+template<typename T>
+int list_pop(list<T>& l, T* ret){
+  if(l.empty()){
+    return -1;
+  }
+  else{
+    *ret = l.front();
+    l.pop_front();
+    return 1;
+  }
+}
+
 //------------------------------------------------------------------------------
 /// @brief instruction class
 ///
@@ -65,14 +80,26 @@ public:
   void AddPreDoms(CBasicBlock *prev);
   void AddDoms(CBasicBlock *next);
   void SetDoms(list<CBasicBlock*> doms);
+  void SetPreDoms(list<CBasicBlock*> predoms);
   int DomsJoin(list<CBasicBlock*>& doms);
+  int PreDomsJoin(list<CBasicBlock*>& predoms);
   list<CBasicBlock*>& GetDomFront(void);
   void AddDomFront(CBasicBlock *front);
+  void ClearTempInfo(void);
+  list<CTacInstr*>& GetPhis();
+  list<pair<const CSymbol*, const CSymbol*>>& GetBackPhis();
+  void AddBackPhi(const CSymbol* dst, const CSymbol* src);
+  void AddPhi(list<CBasicBlock*>& worklist, CSymbol* s);
+  void ComputePhi(list<CBasicBlock*>& worklist, CSymbol* s);
+  void SetTempInfo(int temp);
+  int GetTempInfo(void);
 
   list<CTacInstr*>& GetInstrs(void);
   void AddInstr(CTacInstr* instr);
   void SetBlockNum(int blocknum);
   int GetBlockNum(void) const;
+  list<CBasicBlock*>& ComputeDF(void);
+  CTacInstr* CheckAssign(CSymbol* s) const;
 
   virtual ostream&  print(ostream &out, int indent=0) const;
 
@@ -84,6 +111,9 @@ protected:
   list<CBasicBlock*> _doms;
   list<CBasicBlock*> _predoms;
   list<CBasicBlock*> _domfrontier;
+  int tempinfo;
+  list<CTacInstr*> _phis;
+  list<pair<const CSymbol*, const CSymbol*>> _backphis;
 };
 
 class CBlockTable : public CTac {
@@ -95,12 +125,14 @@ public:
   CBasicBlock* GetInitBlock(void) const;
   list<CBasicBlock*>& GetFinBlocks(void);
   list<CBasicBlock*>& GetFinPreDoms(void);
+  void AddFinDom(CBasicBlock* block);
   void AddFinPreDom(CBasicBlock* block);
   void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
   void RemoveBlock(CBasicBlock *block);
   void BlockRenumber(void);
   void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
+  void ClearTempInfos(void);
   virtual ostream&  print(ostream &out, int indent=0) const;
 
 
@@ -109,6 +141,7 @@ protected:
   CBasicBlock* _initblock;
   list<CBasicBlock*> _finblocks;
   list<CBasicBlock*> _finpredoms;
+  list<CBasicBlock*> _findoms;
   int maxblock;
 };
 
@@ -150,7 +183,7 @@ class CTacInstr_prime : public CTacInstr {
   protected:
     CBasicBlock *_block;
     dynamic_bitset<> liveness;
-  CSymRegister *_rg;
+    CSymRegister *_rg;
 };
 
 
@@ -236,11 +269,10 @@ class CCodeBlock_prime : public CCodeBlock {
     void SetStackSize(int size);
     int GetParamNum() const;
     void SetParamNum(int param_num);
+    void AddInitialLabel(void);
     void SplitIf(CTacInstr_prime* instr);
     void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
-
-  list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>>& GetPhis();
-  void AddPhi(CSymbol* dest, CSymbol* src1, CSymbol* src2);
+    void SSA_out();
 
     /// @name output
     /// @{
@@ -256,7 +288,7 @@ class CCodeBlock_prime : public CCodeBlock {
     CBlockTable* _blktab;
     int _size;
     int _param_num;
-  list<pair<CSymbol*, pair<CSymbol*, CSymbol*>>> _phis;
+
 };
 
 

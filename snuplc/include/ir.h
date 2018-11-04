@@ -198,6 +198,7 @@ class CTacName : public CTacAddr {
 
     /// @brief return the symbol
     const CSymbol* GetSymbol(void) const;
+    void SetSymbol(const CSymbol* s);
 
     /// @}
 

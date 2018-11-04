@@ -11,6 +11,7 @@
 #include "opt_tco.h"
 #include "opt_ue.h"
 #include "opt_ra.h"
+#include "opt_ssa.h"
 #include "symtab.h"
 
 
