@@ -572,7 +572,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 	EmitInstruction("movl", "(%rax), %eax", cmt.str());
 	EmitInstruction("leal", "4(,%eax,4), %eax");
 	EmitInstruction("testl", "$4, %eax");
-	EmitInstruction("jnz", s);
+	EmitInstruction("jz", s);
 	EmitInstruction("addl", "$4, %eax");
 	_out << s << ":" << endl;
 
