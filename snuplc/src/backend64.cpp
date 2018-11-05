@@ -558,7 +558,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       {
 	Load(i->GetSrc(1), "%rax");
 	Load(i->GetSrc(2), "%rbx");
-	EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
+	EmitInstruction("movl", "(%rax, %rbx, 4), %eax", cmt.str());
 	Store(i->GetDest(), 'a');
       }
 
@@ -567,10 +567,10 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 	string s = ".done_" + to_string(tmp_label_count++);
 	Load(i->GetSrc(1), "%rax");
 
-	EmitInstruction("movl", "(%rax), %eax");
+	EmitInstruction("movl", "(%rax), %eax", cmt.str());
 	EmitInstruction("leal", "4(,%eax,4), %eax");
 	EmitInstruction("testl", "$4, %eax");
-	EmitInstruction("jnz", s, cmt.str());
+	EmitInstruction("jnz", s);
 	EmitInstruction("addl", "$4, %eax");
 	_out << s << ":" << endl;
 
