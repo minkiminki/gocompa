@@ -21,7 +21,7 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 
   list<CBasicBlock*>::const_iterator it = (cbt->GetFinBlocks()).begin();
   while (it != (cbt->GetFinBlocks()).end()){
-    list<CTacInstr*> instrs = (*it++)->GetInstrs();
+    list<CTacInstr*> &instrs = (*it++)->GetInstrs();
     list<CTacInstr*>::const_reverse_iterator iit = instrs.rbegin();
 
     while((iit != instrs.rend())){
@@ -37,10 +37,12 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 
     CTacInstr* instr1;
     CTacInstr* instr0;
+    bool final_is_return = false;
 
     if(iit != instrs.rend()){
       instr0 = *iit++;
       if(instr0->GetOperation() == opReturn){
+	final_is_return = true;
 	while(iit != instrs.rend()){
 	  assert(*iit != NULL);
 	  if((*iit)->GetOperation() == opNop){
@@ -140,6 +142,13 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
       break;
     }
     else{
+      if(final_is_return){
+      	list<CTacInstr*>::const_iterator _iit = instrs.end();
+      	instr0 = *(--_iit);
+        assert(erase_success(instrs, instr0) >= 0);
+      	// instrs.erase(_iit);
+      	assert(cbp->RemoveInstr(instr0) >= 0);
+      }
       instr1->SetOperation(opTailCall);
     }
   }

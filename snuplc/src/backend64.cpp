@@ -497,14 +497,16 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       break;
 
 
-    // function call-related operations
-		case opTailCall:
-			{
-			  isTailCall = true;
-				EmitEpilogue();
+      // function call-related operations
+    case opTailCall:
+      {
+	isTailCall = true;
+	EmitEpilogue();
         EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
-			}
-    case opCall:
+	break;
+      }
+
+  case opCall:
       {
         EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
 
