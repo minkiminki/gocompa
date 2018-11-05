@@ -656,6 +656,18 @@ CBlockTable* CCodeBlock_prime::GetBlockTable() const
   return _blktab;
 }
 
+void CCodeBlock_prime::RemoveNop()
+{
+  list<CTacInstr*>::iterator it = _ops.begin();
+  while (it != _ops.end()) {
+    list<CTacInstr*>::iterator iit = it++;
+    CTacInstr* instr = *iit;
+    if(instr->GetOperation() == opNop){
+      _ops.erase(iit);
+    }
+  }
+}
+
 int CCodeBlock_prime::GetStackSize() const
 {
   return _size;

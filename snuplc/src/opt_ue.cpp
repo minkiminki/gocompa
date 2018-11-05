@@ -45,6 +45,8 @@ void unused_elimination_block(CCodeBlock *cb) {
       assert(cb->RemoveInstr(instr) >= 0);
     }
   }
+
+  cbp->RemoveNop();
 }
 
 void unused_elimination_scope(CScope *m) {

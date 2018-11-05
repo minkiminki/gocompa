@@ -274,6 +274,7 @@ class CCodeBlock_prime : public CCodeBlock {
     void SplitIf(CTacInstr_prime* instr);
     void SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb);
     void SSA_out();
+    void RemoveNop();
 
     /// @name output
     /// @{
