@@ -45,6 +45,7 @@ string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
 static bool isTailCall = false;
 
+static int tmp_label_count = 0;
 
 unsigned int GetSize_prime (const CType* ct)
 {
@@ -553,6 +554,29 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitInstruction("nop", "", cmt.str());
       break;
 
+    case opDIM:
+      {
+	Load(i->GetSrc(1), "%rax");
+	Load(i->GetSrc(2), "%rbx");
+	EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
+	Store(i->GetDest(), 'a');
+      }
+
+    case opDOFS:
+      {
+	string s = ".done_" + to_string(tmp_label_count++);
+	Load(i->GetSrc(1), "%rax");
+
+	EmitInstruction("movl", "(%rax), %eax");
+	EmitInstruction("leal", "4(,%eax,4), %eax");
+	EmitInstruction("testl", "$4, %eax");
+	EmitInstruction("jnz", s, cmt.str());
+	EmitInstruction("addl", "$4, %eax");
+	_out << s << ":" << endl;
+
+	Store(i->GetDest(), 'a');
+	break;
+      }
 
     default:
       EmitInstruction("# ???", "not implemented", cmt.str());

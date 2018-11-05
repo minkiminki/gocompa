@@ -13,5 +13,6 @@ void pointer_typing_scope(CScope *m);
 void param_numbering_scope(CScope *m);
 void clean_up_scope(CScope *m);
 void to_ir_prime_scope(CScope *m);
+void dofs_inlining_scope(CScope *m);
 
 #endif // __SnuPL_OPT_PRE_H__

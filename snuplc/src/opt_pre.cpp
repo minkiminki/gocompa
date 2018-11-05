@@ -9,6 +9,70 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// inling DOFS
+void dofs_inlining_block(CCodeBlock *cb) {
+  list<CTacInstr*>::const_reverse_iterator it = (cb->GetInstr()).rbegin();
+  while (it != (cb->GetInstr()).rend()) {
+    CTacInstr* instr = *(it++);
+    assert(instr != NULL);
+    if(instr->GetOperation() == opCall){
+      CTacName *n = dynamic_cast<CTacName*>(instr->GetSrc(1));
+      assert(n != NULL);
+      if((n->GetSymbol()->GetName()).compare("DOFS") == 0){
+	while (it != (cb->GetInstr()).rend()) {
+	  CTacInstr* instr2 = *it++;
+	  if(instr2->GetOperation() == opParam){
+	    CTacAddr *src = instr2->GetSrc(1);
+	    instr->SetSrc(0, src);
+	    instr2->SetOperation(opNop);
+	    instr2->SetSrc(0, NULL);
+	    instr2->SetDest(NULL);
+	    instr->SetOperation(opDOFS);
+	    break;
+	  }
+	}
+      }
+      else if((n->GetSymbol()->GetName()).compare("DIM") == 0){
+	while (it != (cb->GetInstr()).rend()) {
+	  CTacInstr* instr2 = *it++;
+	  if(instr2->GetOperation() == opParam){
+	    CTacAddr *src0 = instr2->GetSrc(1);
+	    while (it != (cb->GetInstr()).rend()) {
+	      CTacInstr* instr3 = *it++;
+	      if(instr3->GetOperation() == opParam){
+		CTacAddr *src1 = instr3->GetSrc(1);
+		instr->SetSrc(0, src0);
+		instr->SetSrc(1, src1);
+		instr2->SetOperation(opNop);
+		instr2->SetSrc(0, NULL);
+		instr2->SetDest(NULL);
+		instr3->SetOperation(opNop);
+		instr3->SetSrc(0, NULL);
+		instr3->SetDest(NULL);
+		instr->SetOperation(opDIM);
+		break;
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
+void dofs_inlining_scope(CScope *m){
+  dofs_inlining_block(m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    dofs_inlining_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // fix wrong type
 void pointer_typing_block(CCodeBlock *cb) {
   list<CTacInstr*>::const_iterator it = (cb->GetInstr()).begin();

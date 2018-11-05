@@ -99,6 +99,8 @@ char EOperationName[][OPERATION_STRLEN] = {
   "tcall",                          ///< tcall:  dst = tcall src1
   "phi",                            ///< phi: dst = phi src1 src2
   "mov",                            ///< mov: dst = src1
+  "DIM",                            ///< DIM: dst = DIM(src1, src2)
+  "DOFS",                            ///< DOFS: dst = DOFS(src1)
 };
 
 bool IsRelOp(EOperation t)

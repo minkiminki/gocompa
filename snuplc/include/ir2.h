@@ -15,10 +15,11 @@ using namespace boost;
 #define _P1 (printf("------------------------pass first  point---------------------\n1111111111111111111111111111111111111111111111111111111111111\n"));
 #define _P2 (printf("------------------------pass second point---------------------\n2222222222222222222222222222222222222222222222222222222222222\n"));
 
-
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))
 #define opMov ((EOperation)((int)opNop + 3))
+#define opDIM ((EOperation)((int)opNop + 4))
+#define opDOFS ((EOperation)((int)opNop + 5))
 
 unsigned int GetSize_prime(const CType* ct);
 int GetAlign_prime (const CType* ct);
