@@ -33,6 +33,7 @@ void dofs_inlining_block(CCodeBlock *cb) {
 	}
       }
       else if((n->GetSymbol()->GetName()).compare("DIM") == 0){
+	bool finished = false;
 	while (it != (cb->GetInstr()).rend()) {
 	  CTacInstr* instr2 = *it++;
 	  if(instr2->GetOperation() == opParam){
@@ -50,9 +51,11 @@ void dofs_inlining_block(CCodeBlock *cb) {
 		instr3->SetSrc(0, NULL);
 		instr3->SetDest(NULL);
 		instr->SetOperation(opDIM);
+		finished = true;
 		break;
 	      }
 	    }
+	    if(finished) break;
 	  }
 	}
       }

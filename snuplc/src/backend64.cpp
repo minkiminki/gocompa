@@ -558,18 +558,19 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
     case opDIM:
       {
-	Load(i->GetSrc(1), "%rax");
+	Load(i->GetSrc(1), "%rax", cmt.str());
 	Load(i->GetSrc(2), "%rbx");
-	EmitInstruction("movl", "(%rax, %rbx, 4), %eax", cmt.str());
+	EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
 	Store(i->GetDest(), 'a');
+	break;
       }
 
     case opDOFS:
       {
 	string s = ".done_" + to_string(tmp_label_count++);
-	Load(i->GetSrc(1), "%rax");
+	Load(i->GetSrc(1), "%rax", cmt.str());
 
-	EmitInstruction("movl", "(%rax), %eax", cmt.str());
+	EmitInstruction("movl", "(%rax), %eax");
 	EmitInstruction("leal", "4(,%eax,4), %eax");
 	EmitInstruction("testl", "$4, %eax");
 	EmitInstruction("jz", s);
