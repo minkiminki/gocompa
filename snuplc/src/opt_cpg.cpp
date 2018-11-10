@@ -8,81 +8,6 @@
 using namespace std;
 
 
-// int CBasicBlock::ComputeConstants(map<CSymbol*, int*>& constants)
-// {
-//   if(tempinfo > 0) return 0;
-
-//   list<CTacInstr*>::iterator it = _instrs.begin();
-//   while (it != _instrs.end()) {
-//     CTacInstr* instr = *it++;
-//     assert(instr != NULL);
-
-//     CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
-//     if(dest == NULL) continue;
-//     if(dynamic_cast<CTacReference*>(dst) != NULL) continue;
-
-//     CTacName* s_dest = dest->GetSymbol();
-//     if(s_dest == NULL) continue;
-//     if(s_dest->GetSymbol(Type) != stLocal) continue;
-
-//     CTacName* s_dest = dest->GetSymbol();
-//     if(s_dest == NULL) continue;
-//     CTacName* s_dest = dest->GetSymbol();
-//     if(s_dest == NULL) continue;
-
-
-//     switch(inst->GetOpertaion()){
-//     case opAdd:
-
-
-
-
-
-//     }
-
-
-//     CTacInstr_prime *instrp = dynamic_cast<CTacInstr_prime*>(instr);
-//     assert(instrp != NULL);
-//     instrp->SetFromBlock(NULL);
-//     // assert(cb->RemoveInstr(instr) >=0);
-//   }
-
-
-//   list<CBasicBlock*>::const_iterator it = _nextblks.begin();
-//   while (it != _nextblks.end()){
-//     CBasicBlock* blk = *it++;
-//     if(blk==NULL) continue;
-
-//     list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk);
-//     if(fit == _doms.end()){
-//       nodup_insert(_domfrontier, blk);
-//     }
-//   }
-
-//   it = _doms.begin();
-//   while (it != _doms.end()){
-//     CBasicBlock* blk = *it++;
-//     assert(blk!=NULL);
-
-//     list<CBasicBlock*> df = blk->ComputeDF();
-
-//     list<CBasicBlock*>::iterator it2 = df.begin();
-//     while(it2 != df.end()){
-//       CBasicBlock* blk2 = *it2++;
-//       assert(blk2 != NULL);
-
-//       list<CBasicBlock*>::iterator fit = find(_doms.begin(), _doms.end(), blk2);
-//       if(fit == _doms.end()){
-// 	nodup_insert(_domfrontier, blk2);
-//       }
-//     }
-//   }
-
-//   tempinfo = 1;
-//   return _domfrontier;
-// }
-
-
 // ********************************************************************** /
 // ********************************************************************** /
 // Constant Propagation
@@ -91,17 +16,163 @@ int constant_propagation_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
 
-  map<CSymbol*, int*> constants;
-  set<CBasicBlock*> computed;
-  list<CBasicBlock*> worklist;
+  map<const CSymbol*, int> constants;
 
+  list<CTacInstr*>::const_iterator it = cbp->GetInstr().begin();
+  while (it != cbp->GetInstr().end()) {
+    CTacInstr* instr = *it++;
+    assert(instr != NULL);
+
+    int c_src1 = 0;
+    int c_src2 = 0;
+    bool src1_constant = false;
+    bool src2_constant = false;
+
+    CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+    if(src1 != NULL){
+      if(dynamic_cast<CTacReference*>(src1) == NULL){
+	const CSymbol* s_src1 = src1->GetSymbol();
+        assert(s_src1 != NULL);
+	map<const CSymbol*,int>::iterator _c_src1 = constants.find(s_src1);
+	if(_c_src1 != constants.end()){
+	  c_src1 = _c_src1->second;
+	  src1_constant = true;
+	  instr->SetSrc(0, new CTacConst(c_src1));
+	}
+      }
+    }
+
+    CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+    if(src2 != NULL){
+      if(dynamic_cast<CTacReference*>(src2) == NULL){
+	const CSymbol* s_src2 = src1->GetSymbol();
+	assert(s_src2 != NULL);
+	map<const CSymbol*,int>::iterator _c_src2 = constants.find(s_src2);
+	if(_c_src2 != constants.end()){
+	  c_src2 = _c_src2->second;
+	  src2_constant = true;
+	  instr->SetSrc(1, new CTacConst(c_src2));
+	}
+      }
+    }
+
+    switch(instr->GetOperation()){
+
+    case opAdd:
+    case opSub:
+    case opMul:
+    case opDiv:
+    case opAnd:
+    case opOr:
+      {
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest == NULL) continue;
+	if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+
+	const CSymbol* s_dest = dest->GetSymbol();
+	if(s_dest == NULL) continue;
+	if(s_dest->GetSymbolType() != stLocal) continue;
+
+	if(src1_constant && src2_constant){
+	  success = true;
+
+	  switch(instr->GetOperation()){
+	  case opAdd:
+	    constants[s_dest] = c_src1 + c_src2; break;
+	  case opSub:
+	    constants[s_dest] = c_src1 - c_src2; break;
+	  case opMul:
+	    constants[s_dest] = c_src1 * c_src2; break;
+	  case opDiv:
+	    constants[s_dest] = c_src1 / c_src2; break;
+	  case opAnd:
+	    constants[s_dest] = c_src1 && c_src2; break;
+	  case opOr:
+	    constants[s_dest] = c_src1 || c_src2; break;
+	  }
+	}
+      }
+      break;
+
+    case opNeg:
+    case opPos:
+    case opNot:
+    case opAssign:
+    case opMov:
+    case opCast:
+      {
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest == NULL) continue;
+	if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+
+        const CSymbol* s_dest = dest->GetSymbol();
+	if(s_dest == NULL) continue;
+	if(s_dest->GetSymbolType() != stLocal) continue;
+
+	if(src1_constant){
+	  success = true;
+
+	  switch(instr->GetOperation()){
+	  case opNeg:
+	    constants[s_dest] = - c_src1; break;
+	  case opNot:
+	    constants[s_dest] = ! c_src1; break;
+	  case opPos:
+	  case opAssign:
+	  case opMov:
+	  case opCast:
+	    constants[s_dest] = c_src1; break;
+	  }
+	}
+      }
+      break;
+
+    case opEqual:
+    case opNotEqual:
+    case opLessThan:
+    case opLessEqual:
+    case opBiggerThan:
+    case opBiggerEqual:
+      {
+	CTacLabel_prime* dest = dynamic_cast<CTacLabel_prime*>(instr->GetDest());
+	assert(dest != NULL);
+
+	if(src1_constant && src2_constant){
+	  success = true;
+	  bool always = false;
+
+	  switch(instr->GetOperation()){
+	  case opEqual:
+	    always = c_src1 == c_src2; break;
+	  case opNotEqual:
+	    always = c_src1 != c_src2; break;
+	  case opLessThan:
+	    always = c_src1 < c_src2; break;
+	  case opLessEqual:
+	    always = c_src1 <= c_src2; break;
+	  case opBiggerThan:
+	    always = c_src1 < c_src2; break;
+	  case opBiggerEqual:
+	    always = c_src1 <= c_src2; break;
+	  }
+
+	  if(always){
+	    instr->SetOperation(opGoto);
+	    instr->SetSrc(0, NULL);
+	    instr->SetSrc(1, NULL);
+	    // TODO : remove next, prev blks, phi
+	  }
+	  else{
+	    instr->SetOperation(opNop);
+	    instr->SetSrc(0, NULL);
+	    instr->SetSrc(1, NULL);
+	    // TODO : remove next, prev blks, phi
+	  }
+	}
+      }
+    }
+  }
   return success;
-
-
-  // CBasicBlock* GetInitBlock(void) const initblock;
-
-
-
 }
 
 void constant_propagation_scope(CScope *m) {
