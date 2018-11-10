@@ -49,11 +49,10 @@ int constant_propagation_block(CCodeBlock *cb) {
       }
     }
 
-
     CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
     if(src2 != NULL){
       if(dynamic_cast<CTacReference*>(src2) == NULL){
-	const CSymbol* s_src2 = src1->GetSymbol();
+	const CSymbol* s_src2 = src2->GetSymbol();
 	assert(s_src2 != NULL);
 	map<const CSymbol*,int>::iterator _c_src2 = constants.find(s_src2);
 	if(_c_src2 != constants.end()){
@@ -71,7 +70,9 @@ int constant_propagation_block(CCodeBlock *cb) {
       }
     }
 
-    switch(instr->GetOperation()){
+    EOperation op = instr->GetOperation();
+
+    switch(op){
 
     case opAdd:
     case opSub:
@@ -90,11 +91,19 @@ int constant_propagation_block(CCodeBlock *cb) {
 
 	if(src1_constant && src2_constant){
 	  success = true;
+	  instr->SetOperation(opNop);
+	  instr->SetDest(NULL);
+	  instr->SetSrc(0, NULL);
+	  instr->SetSrc(1, NULL);
+	  // TODO : remove symbol
 
-	  switch(instr->GetOperation()){
+	  // printf("herrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\n");
+
+	  switch(op){
 	  case opAdd:
 	    constants[s_dest] = c_src1 + c_src2; break;
 	  case opSub:
+	    //_P1;
 	    constants[s_dest] = c_src1 - c_src2; break;
 	  case opMul:
 	    constants[s_dest] = c_src1 * c_src2; break;
@@ -126,8 +135,15 @@ int constant_propagation_block(CCodeBlock *cb) {
 
 	if(src1_constant){
 	  success = true;
+	  instr->SetOperation(opNop);
+	  instr->SetDest(NULL);
+	  instr->SetSrc(0, NULL);
+	  instr->SetSrc(1, NULL);
+	  // TODO : remove symbol
 
-	  switch(instr->GetOperation()){
+	  // printf("herrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\n");
+
+	  switch(op){
 	  case opNeg:
 	    constants[s_dest] = - c_src1; break;
 	  case opNot:
@@ -155,8 +171,9 @@ int constant_propagation_block(CCodeBlock *cb) {
 	if(src1_constant && src2_constant){
 	  success = true;
 	  bool always = false;
+	  // printf("herrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\n");
 
-	  switch(instr->GetOperation()){
+	  switch(op){
 	  case opEqual:
 	    always = c_src1 == c_src2; break;
 	  case opNotEqual:
@@ -179,6 +196,7 @@ int constant_propagation_block(CCodeBlock *cb) {
 	  }
 	  else{
 	    instr->SetOperation(opNop);
+	    instr->SetDest(NULL);
 	    instr->SetSrc(0, NULL);
 	    instr->SetSrc(1, NULL);
 	    // TODO : remove next, prev blks, phi
@@ -187,12 +205,20 @@ int constant_propagation_block(CCodeBlock *cb) {
       }
     }
   }
+
+
+  // map<const CSymbol*, int>::const_iterator sit = constants.begin();
+  // while (sit != constants.end()) {
+  //   cout << (sit->first) << " : " << (sit++->second) << endl;
+  // }
+
   return success;
 }
 
 void constant_propagation_scope(CScope *m) {
   while(constant_propagation_block(m->GetCodeBlock()) > 0){
   }
+  // constant_propagation_block(m->GetCodeBlock());
 
   vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
