@@ -41,6 +41,14 @@ int constant_propagation_block(CCodeBlock *cb) {
 	}
       }
     }
+    else{
+      CTacConst* _src1 = dynamic_cast<CTacConst*>(instr->GetSrc(1));
+      if(_src1 != NULL){
+	c_src1 = _src1->GetValue();
+	src1_constant= true;
+      }
+    }
+
 
     CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
     if(src2 != NULL){
@@ -53,6 +61,13 @@ int constant_propagation_block(CCodeBlock *cb) {
 	  src2_constant = true;
 	  instr->SetSrc(1, new CTacConst(c_src2));
 	}
+      }
+    }
+    else{
+      CTacConst* _src2 = dynamic_cast<CTacConst*>(instr->GetSrc(2));
+      if(_src2 != NULL){
+	c_src2 = _src2->GetValue();
+	src2_constant= true;
       }
     }
 
