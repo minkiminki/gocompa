@@ -3,6 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <list>
+#include <set>
 
 #include "ir2.h"
 using namespace std;
@@ -620,8 +621,33 @@ list<CBasicBlock*>& CBlockTable::GetFinBlocks(void)
   return _finblocks;
 }
 
-void CBlockTable::BlockRenumber(void)
+void CBlockTable::BlockRenumber(const list<CTacInstr*>& instrs)
 {
+
+  // maxblock = 0;
+  // _blocklist.clear();
+
+  // set<CBasicBlock*> inserted;
+  // list<CTacInstr*>::const_iterator it = instrs.begin();
+  // while(it != instrs.end()){
+  //   CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
+  //   assert(instr != NULL);
+  //   CBasicBlock* cb = instr->GetFromBlock();
+  //   if(cb == NULL){
+  //     continue;
+  //     // cout << instr;./
+  //     // _P1;
+  //     // ADMIT;
+  //   }
+
+  //   if(inserted.find(cb) != inserted.end())
+  //     continue;
+  //   else {
+  //     inserted.insert(cb);
+  //     AddBlock(cb);
+  //   }
+  // }
+
   maxblock = 0;
   list<CBasicBlock*>::const_iterator it = _blocklist.begin();
   while(it != _blocklist.end()){
@@ -629,6 +655,8 @@ void CBlockTable::BlockRenumber(void)
     assert(cb != NULL);
     cb->SetBlockNum(++maxblock);
   }
+
+
 }
 
 void CBlockTable::ClearTempInfos(void)

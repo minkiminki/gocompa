@@ -20,6 +20,7 @@ void full_optimize(int arch, CScope *m) {
   unused_elimination_scope(m);
   ssa_in_scope(m);
   // in ssa form
+  constant_propagation_scope(m);
   register_allocation_scope(arch, m);
   // base regiseter and offset set
   ssa_out_scope(m);

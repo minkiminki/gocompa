@@ -34,7 +34,7 @@ void unused_elimination_block(CCodeBlock *cb) {
   CBlockTable *cbt = cbp->GetBlockTable();
   assert(cbt != NULL);
 
-  cbt->BlockRenumber();
+  cbt->BlockRenumber(cb->GetInstr());
 
   // set block info of CTacInstr
   while(it != ops.end()){
