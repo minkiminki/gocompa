@@ -18,7 +18,7 @@ void remove_label_block(CCodeBlock *cb) {
   while (it != cb->GetInstr().end()) {
     CTacInstr* instr = *it++;
     if(dynamic_cast<CTacLabel_prime*>(instr) != NULL){
-      cout << "insert " << instr << endl;
+      // cout << "insert " << instr << endl;
       labels.insert(instr);
     }
   }
@@ -26,11 +26,11 @@ void remove_label_block(CCodeBlock *cb) {
   it = cb->GetInstr().begin();
   while (it != cb->GetInstr().end()) {
     CTacInstr* instr = *it++;
-    if(instr->GetOperation() == opGoto){
+    if(instr->IsBranch()){
       CTacLabel_prime *dest = dynamic_cast<CTacLabel_prime*>(instr->GetDest());
       assert(dest != NULL);
       if(labels.erase(dest) > 0){
-	cout << "remove " << dest << endl;
+	// cout << "remove " << dest << endl;
       }
     }
   }
@@ -38,7 +38,7 @@ void remove_label_block(CCodeBlock *cb) {
   set<CTacInstr*>::iterator sit = labels.begin();
   while (sit != labels.end()) {
     CTacInstr* instr = *sit++;
-    cout << instr << endl;
+    // cout << instr << endl;
     cb->RemoveInstr(instr);
     // assert(cb->RemoveInstr(instr) >= 0);
   }

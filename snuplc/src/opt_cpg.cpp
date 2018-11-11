@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "opt_bba.h"
+#include "opt_cpg.h"
 using namespace std;
 
 
@@ -266,6 +267,10 @@ int constant_propagation_block(CCodeBlock *cb) {
 	      instr->SetOperation(opGoto);
 	      instr->SetSrc(0, NULL);
 	      instr->SetSrc(1, NULL);
+
+
+
+
 	      // TODO : remove next, prev blks, phi
 	    }
 	    else{
@@ -292,6 +297,7 @@ int constant_propagation_block(CCodeBlock *cb) {
 
 void constant_propagation_scope(CScope *m) {
   while(constant_propagation_block(m->GetCodeBlock()) > 0){
+    remove_unreachable_block(m->GetCodeBlock());
   }
   // constant_propagation_block(m->GetCodeBlock());
 

@@ -704,7 +704,7 @@ void CBlockTable::CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next)
 			    (blk_next->GetInstrs()).end());
 }
 
-void CBlockTable::RemoveBlock(CBasicBlock *blk)
+void CBlockTable::RemoveBlock(CCodeBlock* owner, CBasicBlock *blk)
 {
   assert(blk != NULL);
 
@@ -720,6 +720,39 @@ void CBlockTable::RemoveBlock(CBasicBlock *blk)
     }
     else{
       assert(erase_success(blk_next->GetPrevBlks(), blk) >= 0);
+
+      /* remove phis */
+      list<CTacInstr*>::iterator pit = blk_next->GetPhis().begin();
+      while (pit != (blk_next->GetPhis()).end()) {
+        list<CTacInstr*>::iterator pit_temp = pit++;
+	CTacPhi* phi = dynamic_cast<CTacPhi*>(*pit_temp);
+	assert(phi != NULL);
+
+	if(phi->GetSrcBlk(1) == blk){
+	  assert(phi->GetSrcBlk(2) != blk);
+	  CTacInstr_prime* instr_new = new CTacInstr_prime(opAssign, phi->GetDest(), phi->GetSrc(2), NULL);
+	  instr_new -> SetFromBlock(blk_next);
+
+	  assert(blk_next->GetInstrs().begin() != blk_next->GetInstrs().end());
+	  CTacInstr *instr = *(blk_next->GetInstrs().begin());
+	  assert(instr != NULL);
+
+	  owner->InsertInstr(instr, instr_new);
+	  (blk_next->GetInstrs()).push_front(instr_new);
+	}
+	else if(phi->GetSrcBlk(2) == blk){
+	  CTacInstr_prime* instr_new = new CTacInstr_prime(opAssign, phi->GetDest(), phi->GetSrc(1), NULL);
+	  instr_new -> SetFromBlock(blk_next);
+
+	  assert(blk_next->GetInstrs().begin() != blk_next->GetInstrs().end());
+	  CTacInstr *instr = *(blk_next->GetInstrs().begin());
+	  assert(instr != NULL);
+
+	  owner->InsertInstr(instr, instr_new);
+	  (blk_next->GetInstrs()).push_front(instr_new);
+	}
+      }
+
     }
   }
 

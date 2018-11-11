@@ -9,6 +9,32 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// Remove Unused Labels
+void remove_unreachable_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  CBlockTable *cbt = cbp->GetBlockTable();
+  assert(cbt != NULL);
+
+  // eliminate unused basic block
+  bool success = true;
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+    while (it != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *it++;
+      assert(blk != NULL);
+      if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
+  	cbt->RemoveBlock(cbp, blk);
+  	success = true; break;
+      }
+    }
+  }
+}
+
+// ********************************************************************** /
+// ********************************************************************** /
 // Basic Block Analysis
 bool is_final_instr(EOperation e){
 	return ((e == opReturn) || (e == opGoto));
@@ -125,26 +151,28 @@ void basic_block_analysis_block(CCodeBlock *cb) {
 
   }
 
-  // eliminate unused basic block
-  bool success = true;
-  while(success){
-    success = false;
-    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
-    while (it != (cbt->GetBlockList()).end()) {
-      CBasicBlock *blk = *it++;
-      assert(blk != NULL);
-      if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
-  	cbt->RemoveBlock(blk);
-  	success = true; break;
-      }
-    }
-  }
+  remove_unreachable_block(cb);
+
+  // // eliminate unused basic block
+  // bool success = true;
+  // while(success){
+  //   success = false;
+  //   list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+  //   while (it != (cbt->GetBlockList()).end()) {
+  //     CBasicBlock *blk = *it++;
+  //     assert(blk != NULL);
+  //     if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
+  // 	cbt->RemoveBlock(cbp, blk);
+  // 	success = true; break;
+  //     }
+  //   }
+  // }
 
   // TODO: remove unreachable block
   // TODO: insert empty block for critical edge
 
   // combine block
-  success = true;
+  bool success = true;
   while(success){
     success = false;
     list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();

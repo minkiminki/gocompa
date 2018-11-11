@@ -130,7 +130,7 @@ public:
   void AddFinPreDom(CBasicBlock* block);
   void AddFinBlock(CBasicBlock* finblock);
   int AddBlock(CBasicBlock *block);
-  void RemoveBlock(CBasicBlock *block);
+  void RemoveBlock(CCodeBlock* owner, CBasicBlock *block);
   void BlockRenumber(const list<CTacInstr*>& instrs);
   void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
   void ClearTempInfos(void);
