@@ -264,16 +264,32 @@ int constant_propagation_block(CCodeBlock *cb) {
 	    }
 
 	    if(always){
+	      cout << "change to goto : " << instr << endl;
 	      instr->SetOperation(opGoto);
 	      instr->SetSrc(0, NULL);
 	      instr->SetSrc(1, NULL);
 
-
-
-
+	      CBasicBlock* blk_next = dynamic_cast<CTacInstr_prime*>
+				(instr->GetDest())->GetFromBlock();
+	      list<CBasicBlock*>::const_iterator bit2 = blk->GetNextBlks().begin();
+	      while (bit2 != blk->GetNextBlks().end()) {
+		CBasicBlock* blk_next2 = *bit2++;
+		if(blk_next2 != blk_next){
+		  assert(erase_success(blk->GetNextBlks(), blk_next2) >= 0);
+		  assert(erase_success(blk_next2->GetPrevBlks(), blk) >= 0);
+		  break;
+		}
+	      }
 	      // TODO : remove next, prev blks, phi
 	    }
 	    else{
+	      cout << "change to nop : " << instr << endl;
+
+	      CBasicBlock* blk_next = dynamic_cast<CTacInstr_prime*>
+		(instr->GetDest())->GetFromBlock();
+	      assert(erase_success(blk->GetNextBlks(), blk_next) >= 0);
+	      assert(erase_success(blk_next->GetPrevBlks(), blk) >= 0);
+
 	      instr->SetOperation(opNop);
 	      instr->SetDest(NULL);
 	      instr->SetSrc(0, NULL);
