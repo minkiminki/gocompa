@@ -1008,11 +1008,23 @@ void CCodeBlock_prime::SSA_out()
 	  instrend = --instrend;
 	}
 
-	const CSymbol * s_src = (dynamic_cast<CTacName*>(phi->GetSrc(1)))->GetSymbol();
+	CTacAddr* src1;
+	{
+	  CTacName* _s_src = dynamic_cast<CTacName*>(phi->GetSrc(1));
+	  if(_s_src != NULL){
+	    src1 = new CTacTemp(_s_src->GetSymbol());
+	  }
+	  else{
+	    CTacConst* _s_src = dynamic_cast<CTacConst*>(phi->GetSrc(1));
+	    assert(_s_src != NULL);
+	    src1 = new CTacConst(_s_src->GetValue());
+	  }
+	}
+
 	const CSymbol * s_dest = (dynamic_cast<CTacName*>(phi->GetDest()))->GetSymbol();
 
 	CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(s_dest),
-							 new CTacTemp(s_src), NULL);
+							 src1, NULL);
 
 	instr_new->SetFromBlock(blk1);
 	(blk1->GetInstrs()).insert(instrend, instr_new);
@@ -1036,11 +1048,23 @@ void CCodeBlock_prime::SSA_out()
 	  instrend = --instrend;
 	}
 
-	const CSymbol * s_src = (dynamic_cast<CTacName*>(phi->GetSrc(2)))->GetSymbol();
+	CTacAddr* src2;
+	{
+	  CTacName* _s_src = dynamic_cast<CTacName*>(phi->GetSrc(2));
+	  if(_s_src != NULL){
+	    src2 = new CTacTemp(_s_src->GetSymbol());
+	  }
+	  else{
+	    CTacConst* _s_src = dynamic_cast<CTacConst*>(phi->GetSrc(2));
+	    assert(_s_src != NULL);
+	    src2 = new CTacConst(_s_src->GetValue());
+	  }
+	}
+
 	const CSymbol * s_dest = (dynamic_cast<CTacName*>(phi->GetDest()))->GetSymbol();
 
 	CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(s_dest),
-							 new CTacTemp(s_src), NULL);
+							 src2, NULL);
 
 	instr_new->SetFromBlock(blk2);
 	(blk2->GetInstrs()).insert(instrend, instr_new);
