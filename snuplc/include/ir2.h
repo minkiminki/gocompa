@@ -159,6 +159,7 @@ class CTacInstr_prime : public CTacInstr {
 
   // CTacInstr_prime(EOperation op, CTac *dst, CTacAddr *src1, CTacAddr *src2);
     CTacInstr_prime(CTacInstr *instr);
+    CTacInstr_prime(EOperation op, CTac *dst, CTacAddr *src1, CTacAddr *src2);
 
     /// @brief destructor
     virtual ~CTacInstr_prime(void);
@@ -187,6 +188,30 @@ class CTacInstr_prime : public CTacInstr {
     CSymRegister *_rg;
 };
 
+class CTacPhi : public CTacInstr_prime {
+  public:
+
+    CTacPhi(CTacInstr *instr);
+
+    void SetSrcBlk(int num, CBasicBlock* blk);
+    CBasicBlock* GetSrcBlk(int num);
+
+    /// @}
+
+    /// @name output
+    /// @{
+
+    /// @brief print the node to an output stream
+    /// @param out output stream
+    /// @param indent indentation
+    virtual ostream&  print(ostream &out, int indent=0) const;
+
+    /// @}
+
+  protected:
+    CBasicBlock *src1_blk;
+    CBasicBlock *src2_blk;
+};
 
 //------------------------------------------------------------------------------
 /// @brief label class

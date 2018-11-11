@@ -29,6 +29,11 @@ int list_join(list<T>& l1, list<T>& l2){
 // CTacInstr
 //
 
+CTacInstr_prime::CTacInstr_prime(EOperation op, CTac *dst, CTacAddr *src1, CTacAddr *src2)
+  : CTacInstr(op, dst, src1, src2), _block(NULL)
+{
+}
+
 CTacInstr_prime::CTacInstr_prime(CTacInstr *instr)
   : CTacInstr(opNop, instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL)
 {
@@ -90,6 +95,47 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
 
   return out;
 }
+
+
+// CTacPhi::CTacPhi(CSymbol* s)
+//   : CTacInstr_prime(opNop, instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL)
+// {
+//   CTacName* ndst = new CTacName(s);
+//   CTacName* nsrc1 = new CTacName(s);
+//   CTacName* nsrc2 = new CTacName(s);
+
+//   CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
+//   CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+//   instr_new->SetOperation(opPhi);
+// TODO
+
+
+
+// class CTacPhi : public CTacInstr_prime {
+//   public:
+
+//     CTacPhi(CTacInstr *instr);
+
+//     void SetSrcBlk(int num, CBasicBlock* blk);
+//     CBasicBlock* GetSrcBlk(int num);
+
+//     /// @}
+
+//     /// @name output
+//     /// @{
+
+//     /// @brief print the node to an output stream
+//     /// @param out output stream
+//     /// @param indent indentation
+//     virtual ostream&  print(ostream &out, int indent=0) const;
+
+//     /// @}
+
+//   protected:
+//     CBasicBlock *src1_blk;
+//     CBasicBlock *src2_blk;
+// };
+
 
 
 //------------------------------------------------------------------------------
@@ -365,9 +411,12 @@ void CBasicBlock::AddPhi(list<CBasicBlock*>& worklist, CSymbol* s)
   CTacName* nsrc1 = new CTacName(s);
   CTacName* nsrc2 = new CTacName(s);
 
-  CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
-  CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
-  instr_new->SetOperation(opPhi);
+
+  CTacInstr_prime *instr_new = new CTacInstr_prime(opPhi, ndst, nsrc1, nsrc2);
+
+  // CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
+  // CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+  // instr_new->SetOperation(opPhi);
 
   _phis.push_front(instr_new);
   instr_new->SetFromBlock(this);
@@ -804,9 +853,10 @@ void CCodeBlock_prime::SplitElse(CBasicBlock* bb_prev, CBasicBlock* bb)
   assert(lb!=NULL);
   // assert(lb->GetSymbol()!=NULL);
 
-  CTacInstr *_instr_new = new CTacInstr(opNop, instr, NULL, NULL);
-  CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
-  instr_new->SetOperation(opGoto);
+  CTacInstr_prime *instr_new = new CTacInstr_prime(opGoto, instr, NULL, NULL);
+  // CTacInstr *_instr_new = new CTacInstr(opNop, instr, NULL, NULL);
+  // CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+  // instr_new->SetOperation(opGoto);
 
   assert(erase_success(bb_prev->GetNextBlks(), bb) >= 0);
   assert(erase_success(bb->GetPrevBlks(), bb_prev) >= 0);
@@ -849,10 +899,12 @@ void CCodeBlock_prime::SSA_out()
     while(pit != blk->GetBackPhis().end()){
       pair<const CSymbol*, const CSymbol*> spair = *pit++;
 
-      CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
-					    new CTacTemp(spair.second), NULL);
-      CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
-      instr_new->SetOperation(opAssign);
+      CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(spair.first),
+      					    new CTacTemp(spair.second), NULL);
+      // CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
+      // 					    new CTacTemp(spair.second), NULL);
+      // CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
+      // instr_new->SetOperation(opAssign);
       instr_new->SetFromBlock(blk);
 
       (blk->GetInstrs()).insert(instrend, instr_new);
