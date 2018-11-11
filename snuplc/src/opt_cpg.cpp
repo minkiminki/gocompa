@@ -258,13 +258,12 @@ int constant_propagation_block(CCodeBlock *cb) {
 	    case opLessEqual:
 	      always = c_src1 <= c_src2; break;
 	    case opBiggerThan:
-	      always = c_src1 < c_src2; break;
+	      always = c_src1 > c_src2; break;
 	    case opBiggerEqual:
-	      always = c_src1 <= c_src2; break;
+	      always = c_src1 >= c_src2; break;
 	    }
 
 	    if(always){
-	      cout << "change to goto : " << instr << endl;
 	      instr->SetOperation(opGoto);
 	      instr->SetSrc(0, NULL);
 	      instr->SetSrc(1, NULL);
@@ -283,7 +282,6 @@ int constant_propagation_block(CCodeBlock *cb) {
 	      // TODO : remove next, prev blks, phi
 	    }
 	    else{
-	      cout << "change to nop : " << instr << endl;
 
 	      CBasicBlock* blk_next = dynamic_cast<CTacInstr_prime*>
 		(instr->GetDest())->GetFromBlock();

@@ -69,7 +69,7 @@ void remove_goto_block(CCodeBlock *cb) {
     CTacInstr* instr2 = *it;
     if(instr->IsBranch() && instr->GetDest() == instr2){
       cb->RemoveInstr(instr);
-      _P2;
+      // _P2;
     }
   }
 }
