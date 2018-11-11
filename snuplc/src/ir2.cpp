@@ -986,35 +986,66 @@ void CCodeBlock_prime::SSA_out()
     CBasicBlock* blk = *bit++;
     assert(blk!=NULL);
 
-    assert(blk->GetInstrs().rbegin() != blk->GetInstrs().rend());
-    CTacInstr *instr = *(blk->GetInstrs().rbegin());
-    assert(instr != NULL);
-    list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
-    assert(fit != _ops.end());
+    list<CTacInstr*>::const_iterator pit = blk->GetPhis().begin();
+    while (pit != blk->GetPhis().end()) {
+      CTacPhi* phi = dynamic_cast<CTacPhi*>(*pit++);
+      assert(phi!=NULL);
 
-    list<CTacInstr*>::iterator instrend = blk->GetInstrs().end();
+      {
+	CBasicBlock* blk1 = phi->GetSrcBlk(1);
+	assert(blk1!=NULL);
 
-    if(instr->GetOperation() != opGoto){
-      fit = next(fit);
-      instrend = --instrend;
-    }
+	assert(blk1->GetInstrs().rbegin() != blk1->GetInstrs().rend());
+	CTacInstr *instr = *(blk1->GetInstrs().rbegin());
+	assert(instr != NULL);
+	list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
+	assert(fit != _ops.end());
 
-    list<pair<const CSymbol*, const CSymbol*>>::const_iterator pit = blk->GetBackPhis().begin();
-    while(pit != blk->GetBackPhis().end()){
-      pair<const CSymbol*, const CSymbol*> spair = *pit++;
+	list<CTacInstr*>::iterator instrend = blk1->GetInstrs().end();
 
-      CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(spair.first),
-      					    new CTacTemp(spair.second), NULL);
-      // CTacInstr *_instr_new = new CTacInstr(opNop, new CTacTemp(spair.first),
-      // 					    new CTacTemp(spair.second), NULL);
-      // CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
-      // instr_new->SetOperation(opAssign);
-      instr_new->SetFromBlock(blk);
+	if(instr->GetOperation() != opGoto){
+	  fit = next(fit);
+	  instrend = --instrend;
+	}
 
-      (blk->GetInstrs()).insert(instrend, instr_new);
-      // (blk->GetInstrs()).push_back(instr_new); // TODO : fix it
-      _ops.insert(fit, instr_new);
-      // (cbp->GetInstr()).insert(const_cast<CTacInstr*>(fit), instr_new);
+	const CSymbol * s_src = (dynamic_cast<CTacName*>(phi->GetSrc(1)))->GetSymbol();
+	const CSymbol * s_dest = (dynamic_cast<CTacName*>(phi->GetDest()))->GetSymbol();
+
+	CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(s_dest),
+							 new CTacTemp(s_src), NULL);
+
+	instr_new->SetFromBlock(blk1);
+	(blk1->GetInstrs()).insert(instrend, instr_new);
+	_ops.insert(fit, instr_new);
+      }
+
+      {
+	CBasicBlock* blk2 = phi->GetSrcBlk(2);
+	assert(blk2!=NULL);
+
+	assert(blk2->GetInstrs().rbegin() != blk2->GetInstrs().rend());
+	CTacInstr *instr = *(blk2->GetInstrs().rbegin());
+	assert(instr != NULL);
+	list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
+	assert(fit != _ops.end());
+
+	list<CTacInstr*>::iterator instrend = blk2->GetInstrs().end();
+
+	if(instr->GetOperation() != opGoto){
+	  fit = next(fit);
+	  instrend = --instrend;
+	}
+
+	const CSymbol * s_src = (dynamic_cast<CTacName*>(phi->GetSrc(2)))->GetSymbol();
+	const CSymbol * s_dest = (dynamic_cast<CTacName*>(phi->GetDest()))->GetSymbol();
+
+	CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(s_dest),
+							 new CTacTemp(s_src), NULL);
+
+	instr_new->SetFromBlock(blk2);
+	(blk2->GetInstrs()).insert(instrend, instr_new);
+	_ops.insert(fit, instr_new);
+      }
     }
   }
 }
