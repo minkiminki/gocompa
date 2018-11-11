@@ -739,6 +739,8 @@ void CBlockTable::RemoveBlock(CCodeBlock* owner, CBasicBlock *blk)
 
 	  owner->InsertInstr(instr, instr_new);
 	  (blk_next->GetInstrs()).push_front(instr_new);
+	  assert(erase_success(blk_next->GetPhis(), (CTacInstr*)phi) >= 0);
+	  //	  (blk_next->GetPhis()).erase(pit_temp);
 	}
 	else if(phi->GetSrcBlk(2) == blk){
 	  CTacInstr_prime* instr_new = new CTacInstr_prime(opAssign, phi->GetDest(), phi->GetSrc(1), NULL);
@@ -750,6 +752,7 @@ void CBlockTable::RemoveBlock(CCodeBlock* owner, CBasicBlock *blk)
 
 	  owner->InsertInstr(instr, instr_new);
 	  (blk_next->GetInstrs()).push_front(instr_new);
+	  assert(erase_success(blk_next->GetPhis(), (CTacInstr*)phi) >= 0);
 	}
       }
 
@@ -1032,6 +1035,10 @@ void CCodeBlock_prime::SSA_out()
 	CTacInstr *instr = *(blk1->GetInstrs().rbegin());
 	assert(instr != NULL);
 	list<CTacInstr*>::iterator fit = find(_ops.begin(), _ops.end(), instr);
+	if(fit == _ops.end()){
+	  cout << instr << endl;
+	  _P1;
+	}
 	assert(fit != _ops.end());
 
 	list<CTacInstr*>::iterator instrend = blk1->GetInstrs().end();

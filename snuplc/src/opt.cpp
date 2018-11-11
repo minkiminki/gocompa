@@ -23,9 +23,12 @@ void full_optimize(int arch, CScope *m) {
   ssa_in_scope(m);
   // in ssa form
   constant_propagation_scope(m);
+  unused_elimination_scope(m);
+
   register_allocation_scope(arch, m);
   // base regiseter and offset set
   ssa_out_scope(m);
+
   remove_nop_scope(m);
   remove_goto_scope(m);
   remove_label_scope(m);
