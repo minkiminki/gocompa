@@ -65,6 +65,16 @@ void combine_blocks_block(CCodeBlock *cb) {
   }
 }
 
+void combine_blocks_scope(CScope *m) {
+  combine_blocks_block(m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    combine_blocks_scope(*sit++);
+  }
+  return;
+}
+
 
 // ********************************************************************** /
 // ********************************************************************** /
