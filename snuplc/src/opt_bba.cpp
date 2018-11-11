@@ -33,6 +33,39 @@ void remove_unreachable_block(CCodeBlock *cb) {
   }
 }
 
+
+// ********************************************************************** /
+// ********************************************************************** /
+// Combine Blocks
+void combine_blocks_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  CBlockTable *cbt = cbp->GetBlockTable();
+  assert(cbt != NULL);
+
+  // combine block
+  bool success = true;
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+    while (it != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *it++;
+      assert(blk != NULL);
+      if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
+  	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
+  	if(blk_next != NULL){
+  	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
+  	    cbt->CombineBlock(blk, blk_next);
+  	    success = true; break;
+  	  }
+  	}
+      }
+    }
+  }
+}
+
+
 // ********************************************************************** /
 // ********************************************************************** /
 // Basic Block Analysis
@@ -171,25 +204,26 @@ void basic_block_analysis_block(CCodeBlock *cb) {
   // TODO: remove unreachable block
   // TODO: insert empty block for critical edge
 
-  // combine block
-  bool success = true;
-  while(success){
-    success = false;
-    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
-    while (it != (cbt->GetBlockList()).end()) {
-      CBasicBlock *blk = *it++;
-      assert(blk != NULL);
-      if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
-  	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
-  	if(blk_next != NULL){
-  	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
-  	    cbt->CombineBlock(blk, blk_next);
-  	    success = true; break;
-  	  }
-  	}
-      }
-    }
-  }
+  combine_blocks_block(cbp);
+  // // combine block
+  // bool success = true;
+  // while(success){
+  //   success = false;
+  //   list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+  //   while (it != (cbt->GetBlockList()).end()) {
+  //     CBasicBlock *blk = *it++;
+  //     assert(blk != NULL);
+  //     if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
+  // 	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
+  // 	if(blk_next != NULL){
+  // 	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
+  // 	    cbt->CombineBlock(blk, blk_next);
+  // 	    success = true; break;
+  // 	  }
+  // 	}
+  //     }
+  //   }
+  // }
 
   // remove critical edge
   list<CBasicBlock*>::const_iterator bit = (cbt->GetBlockList()).begin();
@@ -244,7 +278,7 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     blk->SetPreDoms(blks);
   }
 
-  success = true;
+  bool success = true;
   while (success){
     success = false;
     bit = (cbt->GetBlockList()).begin();

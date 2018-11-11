@@ -631,12 +631,12 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
     }
   }
 
-  // for debugging
-  list<CTacInstr*>::const_iterator pit = _phis.begin();
-  while (pit != _phis.end()) {
-    (*pit++)->print(out, indent+2);
-    out << endl;
-  }
+  // // for debugging
+  // list<CTacInstr*>::const_iterator pit = _phis.begin();
+  // while (pit != _phis.end()) {
+  //   (*pit++)->print(out, indent+2);
+  //   out << endl;
+  // }
 
   out << ")";
 
@@ -702,6 +702,20 @@ void CBlockTable::CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next)
   (blk->GetInstrs()).insert((blk->GetInstrs()).end(),
 			    (blk_next->GetInstrs()).begin(),
 			    (blk_next->GetInstrs()).end());
+
+  /* 4 - phis */
+  it = (blk_next->GetNextBlks()).begin();
+  while (it != (blk_next->GetNextBlks()).end()) {
+    CBasicBlock* blk_nnext = *it++;
+    if(blk_nnext == NULL) continue;
+    list<CTacInstr*>::const_iterator pit = blk_nnext->GetPhis().begin();
+    while (pit != blk_nnext->GetPhis().end()) {
+      CTacPhi* phi = dynamic_cast<CTacPhi*>(*pit++);
+      if(phi->GetSrcBlk(1) == blk_next) phi->SetSrcBlk(1, blk);
+      if(phi->GetSrcBlk(2) == blk_next) phi->SetSrcBlk(2, blk);
+    }
+  }
+
 }
 
 void CBlockTable::RemoveBlock(CCodeBlock* owner, CBasicBlock *blk)
