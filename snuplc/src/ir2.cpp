@@ -631,6 +631,13 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
     }
   }
 
+  // for debugging
+  list<CTacInstr*>::const_iterator pit = _phis.begin();
+  while (pit != _phis.end()) {
+    (*pit++)->print(out, indent+2);
+    out << endl;
+  }
+
   out << ")";
 
   return out;
