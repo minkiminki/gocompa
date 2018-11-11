@@ -7,11 +7,6 @@
 using namespace std;
 
 
-void CSymbol::SetSymbolType(ESymbolType symbt)
-{
-  _symboltype = symbt;
-}
-
 // ********************************************************************** /
 // ********************************************************************** /
 // Reigster Promotion
@@ -78,7 +73,7 @@ void register_promotion_scope(CScope *m) {
     CSymbol *s = *sbit++;
     assert(s!=NULL);
 
-    if(s->GetSymbolType() == stGlobal){
+    if(s->GetSymbolType() == stGlobal && s->GetData() == NULL){
       cout << s << endl;
       bool used = false;
       vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
@@ -93,7 +88,6 @@ void register_promotion_scope(CScope *m) {
 	s->SetSymbolType(stLocal);
       }
     }
-
   }
 
 

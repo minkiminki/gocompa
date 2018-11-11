@@ -19,12 +19,14 @@ void full_optimize(int arch, CScope *m) {
   tail_call_optimization_scope(arch, m);
   // call -> tcall
   unused_elimination_scope(m);
+  remove_nop_scope(m);
   ssa_in_scope(m);
   // in ssa form
   constant_propagation_scope(m);
   register_allocation_scope(arch, m);
   // base regiseter and offset set
   ssa_out_scope(m);
+  remove_nop_scope(m);
   // remove phi
   instruction_renumber_scope(m);
   return;

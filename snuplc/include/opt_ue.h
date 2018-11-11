@@ -9,6 +9,7 @@
 #include "symtab.h"
 
 
+void remove_nop_scope(CScope *m);
 void instruction_renumber_scope(CScope *m);
 void unused_elimination_scope(CScope *m);
 

@@ -9,6 +9,26 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// Remove Nops
+void remove_nop_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+  cbp->RemoveNop();
+}
+
+void remove_nop_scope(CScope *m) {
+  remove_nop_block(m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    remove_nop_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // instruction renumbering
 void instruction_renumber_scope(CScope *m) {
   m->GetCodeBlock()->InstrRenumber();
@@ -46,7 +66,7 @@ void unused_elimination_block(CCodeBlock *cb) {
     }
   }
 
-  cbp->RemoveNop();
+  // cbp->RemoveNop();
 }
 
 void unused_elimination_scope(CScope *m) {
