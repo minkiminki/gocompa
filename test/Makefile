@@ -21,5 +21,5 @@ all:
 
 clean:
 	@for i in *.mod; do \
-		rm -f $${i%%.mod} $${i}.s $${i}.tac $${i}.ast $${i}.*.dot $${i}.*.pdf; \
+		rm -f $${i%%.mod} $${i}.s $${i}.tac $${i}.ast $${i}.*.dot $${i}.*.pdf $${i}_64.s $${i}_32.s $${i}_64.tac; \
 	done

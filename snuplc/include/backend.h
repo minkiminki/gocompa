@@ -201,6 +201,7 @@ class CBackendx86_64 : public CBackend {
     virtual void EmitCode(void);
     virtual void EmitData(void);
     virtual void EmitFooter(void);
+		virtual void EmitOperation(CTacInstr *i, string comment);
 
     /// @}
 
@@ -249,6 +250,7 @@ class CBackendx86_64 : public CBackend {
 
     /// @brief emit a load instruction
     void Load(CTacAddr *src, string dst, string comment="");
+		void Load(string src, string dst, string comment="", int size=0);
 
     /// @brief emit a store instruction
     void Store(CTac *dst, char src_base, string comment="");
@@ -256,6 +258,7 @@ class CBackendx86_64 : public CBackend {
     /// @brief return an operand string for @a op
     /// @param op the operand
     string Operand(const CTac *op);
+    string Operand(const CTac *op, bool *is_ref, bool *is_mem);
 
     /// @brief return an immediate for @a value
     string Imm(int value) const;
