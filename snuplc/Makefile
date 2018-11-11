@@ -11,6 +11,7 @@ PRIV_DIR=private
 DEPS=ir.h \
 		ir2.h \
 		opt_pre.h \
+		opt_rpm.h \
 		opt_bba.h \
 		opt_tco.h \
 		opt_ue.h \
@@ -22,6 +23,7 @@ DEPS=ir.h \
 SRC=ir.cpp \
 		ir2.cpp \
 		opt_pre.cpp \
+		opt_rpm.cpp \
 		opt_bba.cpp \
 		opt_tco.cpp \
 		opt_cpg.cpp \

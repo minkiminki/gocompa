@@ -107,6 +107,8 @@ class CSymbol {
     /// @retval ESymbolType symbol type
     ESymbolType GetSymbolType(void) const;
 
+    void SetSymbolType(ESymbolType symbt);
+
     /// @brief set the symbol's type
     /// @param datatype symbol type
     void SetDataType(const CType *datatype);
