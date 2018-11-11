@@ -10,10 +10,6 @@ using namespace std;
 // ********************************************************************** /
 // ********************************************************************** /
 // Reigster Promotion
-void register_promotion_block(CCodeBlock *cb) {
-
-}
-
 bool variable_used_block(CCodeBlock *cb, CSymbol* s){
   list<CTacInstr*>::const_iterator it = cb->GetInstr().begin();
   while(it != cb->GetInstr().end()){
@@ -74,7 +70,6 @@ void register_promotion_scope(CScope *m) {
     assert(s!=NULL);
 
     if(s->GetSymbolType() == stGlobal && s->GetData() == NULL){
-      cout << s << endl;
       bool used = false;
       vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
       while (sit != m->GetSubscopes().end()) {
@@ -83,8 +78,6 @@ void register_promotion_scope(CScope *m) {
 	}
       }
       if(!used){
-	cout << s << endl;
-      	_P1;
 	s->SetSymbolType(stLocal);
       }
     }

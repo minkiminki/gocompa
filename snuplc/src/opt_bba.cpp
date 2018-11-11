@@ -203,20 +203,6 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  // critical edge checking
-  bit = (cbt->GetBlockList()).begin();
-  while(bit != (cbt->GetBlockList()).end()) {
-    CBasicBlock *blk = *bit++;
-    assert(blk != NULL);
-    list<CBasicBlock*>::const_iterator bit_next = (blk->GetNextBlks()).begin();
-    while(bit_next != (blk->GetNextBlks()).end()){
-      CBasicBlock *blk_next = *bit_next++;
-      if(blk_next != NULL){
-  	assert(!is_fork(blk) || !is_join(blk_next));
-      }
-    }
-  }
-
   // dominance relation
   list<CBasicBlock*> blks = cbt->GetBlockList();
   blks.push_back(NULL);

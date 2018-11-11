@@ -27,6 +27,8 @@ void full_optimize(int arch, CScope *m) {
   // base regiseter and offset set
   ssa_out_scope(m);
   remove_nop_scope(m);
+  remove_goto_scope(m);
+  remove_label_scope(m);
   // remove phi
   instruction_renumber_scope(m);
   return;
