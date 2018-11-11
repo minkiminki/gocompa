@@ -191,7 +191,7 @@ class CTacInstr_prime : public CTacInstr {
 class CTacPhi : public CTacInstr_prime {
   public:
 
-    CTacPhi(CTacInstr *instr);
+    CTacPhi(CSymbol* s);
 
     void SetSrcBlk(int num, CBasicBlock* blk);
     CBasicBlock* GetSrcBlk(int num);

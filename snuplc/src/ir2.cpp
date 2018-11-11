@@ -97,18 +97,114 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
 }
 
 
-// CTacPhi::CTacPhi(CSymbol* s)
-//   : CTacInstr_prime(opNop, instr->GetDest(), instr->GetSrc(1), instr->GetSrc(2)), _block(NULL)
-// {
-//   CTacName* ndst = new CTacName(s);
-//   CTacName* nsrc1 = new CTacName(s);
-//   CTacName* nsrc2 = new CTacName(s);
+CTacPhi::CTacPhi(CSymbol* s)
+  : CTacInstr_prime(opPhi, new CTacName(s), new CTacName(s), new CTacName(s))
+{
+}
 
-//   CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
-//   CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
-//   instr_new->SetOperation(opPhi);
-// TODO
+void CTacPhi::SetSrcBlk(int num, CBasicBlock* blk)
+{
+  if (num == 1){
+    src1_blk = blk;
+  }
+  else if (num == 2){
+    src2_blk = blk;
+  }
+  else{
+    assert(false);
+  }
+}
 
+CBasicBlock* CTacPhi::GetSrcBlk(int num)
+{
+  if (num == 1){
+    return src1_blk;
+  }
+  else if (num == 2){
+    return src2_blk;
+  }
+  else{
+    assert(false);
+  }
+}
+
+ostream& CTacPhi::print(ostream &out, int indent) const
+{
+  CBasicBlock *block = GetFromBlock();
+  if(block != NULL) {
+    // out << "  [" << (block->GetBlockNum()) << "]";
+    out << "  [";
+    out.flags(ios::right);
+    out.width(3);
+    out << (block->GetBlockNum());
+    out << "]";
+  }
+  else{
+    out << "  [---]";
+  }
+
+  string ind(indent, ' ');
+
+  out << ind << right << dec << setw(3) << _id << ": ";
+
+  if (_name == "") {
+    bool relop = IsRelOp(GetOperation());
+
+    out << "    " << left << setw(6);
+    if (relop) out << "if"; else out << _op;
+    out << " ";
+    CTacAddr *adr = dynamic_cast<CTacAddr*>(_dst);
+    if (adr != NULL) out << _dst << " <- ";
+    if (_src1 != NULL) {
+      out << _src1;
+      {
+	if(src1_blk != NULL) {
+	  // out << "  [" << (block->GetBlockNum()) << "]";
+	  out << "  [";
+	  out.flags(ios::right);
+	  out.width(3);
+	  out << (src1_blk->GetBlockNum());
+	  out << "]";
+	}
+	else{
+	  out << "  [---]";
+	}
+      }
+    }
+
+    if (_src2 != NULL) {
+      if (relop) out << " " << _op; else out << ",";
+      out << " " << _src2;
+
+      {
+	if(src2_blk != NULL) {
+	  // out << "  [" << (block->GetBlockNum()) << "]";
+	  out << "  [";
+	  out.flags(ios::right);
+	  out.width(3);
+	  out << (src2_blk->GetBlockNum());
+	  out << "]";
+	}
+	else{
+	  out << "  [---]";
+	}
+      }
+
+    }
+    CTacInstr *target = dynamic_cast<CTacInstr*>(_dst);
+    if (target != NULL) {
+      if (relop) out << " goto ";
+
+      CTacLabel_prime *l = dynamic_cast<CTacLabel_prime*>(target);
+      if (l != NULL) out << l->GetLabel();
+      else out << target->GetId();
+    }
+  } else {
+    out << "[CTacInstr: '" << _name << "']";
+  }
+
+  return out;
+}
 
 
 // class CTacPhi : public CTacInstr_prime {
@@ -407,12 +503,13 @@ void CBasicBlock::AddBackPhi(const CSymbol* dst, const CSymbol* src)
 void CBasicBlock::AddPhi(list<CBasicBlock*>& worklist, CSymbol* s)
 {
   if(tempinfo >= 2) return;
-  CTacName* ndst = new CTacName(s);
-  CTacName* nsrc1 = new CTacName(s);
-  CTacName* nsrc2 = new CTacName(s);
+  // CTacName* ndst = new CTacName(s);
+  // CTacName* nsrc1 = new CTacName(s);
+  // CTacName* nsrc2 = new CTacName(s);
 
+  CTacPhi *instr_new = new CTacPhi(s);
 
-  CTacInstr_prime *instr_new = new CTacInstr_prime(opPhi, ndst, nsrc1, nsrc2);
+  // CTacInstr_prime *instr_new = new CTacInstr_prime(opPhi, ndst, nsrc1, nsrc2);
 
   // CTacInstr *_instr_new = new CTacInstr(opNop, ndst, nsrc1, nsrc2);
   // CTacInstr_prime *instr_new = new CTacInstr_prime(_instr_new);
