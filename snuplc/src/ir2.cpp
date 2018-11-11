@@ -989,8 +989,8 @@ void CCodeBlock_prime::SSA_out()
     list<CTacInstr*>::const_iterator pit = blk->GetPhis().begin();
     while (pit != blk->GetPhis().end()) {
       CTacPhi* phi = dynamic_cast<CTacPhi*>(*pit++);
-      assert(phi!=NULL);
 
+      assert(phi!=NULL);
       {
 	CBasicBlock* blk1 = phi->GetSrcBlk(1);
 	assert(blk1!=NULL);
