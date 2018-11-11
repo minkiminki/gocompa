@@ -9,6 +9,7 @@
 #include "symtab.h"
 
 
+void remove_unreachable_block(CCodeBlock *cb);
 void basic_block_analysis_scope(CScope *m);
 
 #endif // __SnuPL_OPT_BBA_H__

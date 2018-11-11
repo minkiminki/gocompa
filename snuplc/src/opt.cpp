@@ -11,6 +11,7 @@ void full_optimize(int arch, CScope *m) {
   // now pointer variables have proper types
   dofs_inlining_scope(m);
   // DIM and DOFS inlined
+  register_promotion_scope(m);
   to_ir_prime_scope(m);
   // now it's ir_prime
   basic_block_analysis_scope(m);
@@ -18,12 +19,19 @@ void full_optimize(int arch, CScope *m) {
   tail_call_optimization_scope(arch, m);
   // call -> tcall
   unused_elimination_scope(m);
+  remove_nop_scope(m);
   ssa_in_scope(m);
   // in ssa form
   constant_propagation_scope(m);
+  unused_elimination_scope(m);
+
   register_allocation_scope(arch, m);
   // base regiseter and offset set
   ssa_out_scope(m);
+
+  remove_nop_scope(m);
+  remove_goto_scope(m);
+  remove_label_scope(m);
   // remove phi
   instruction_renumber_scope(m);
   return;
