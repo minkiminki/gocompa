@@ -405,50 +405,66 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 	int reg_count = 0;
 	string mnm;
 	string temp_regs[2] = {"%rax", "%rdx"};
-	bool is_ref = false, is_mem[3] = {false, false, false};
+	bool is_ref = false, is_mem[3] = {false, false, false}, isDiv = false;
+	bool get_src2 = true, isNeg = false, isAsg = false;
 	EOperation op = i->GetOperation();
 
   string operand;
-
-	string src1, src2, dst, old_dst;
-	src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
-	if(is_ref) {
-		if(is_mem[0])
-			//TODO::아마 referenced된 변수 사이즈를 정확하게 파악해야 할 것 같음
-			Load(src1, temp_regs[reg_count], comment, 8);
-		Load("("+src1+")", temp_regs[reg_count++], comment, OperandSize(i->GetSrc(1)));
-		src1 = temp_regs[reg_count++];
-		//Load(src1, temp_regs[reg_count++], comment, GetSize_prime(i->GetSrc(1)->GetDataType()));
-		is_mem[0] = false;
-	}
-	is_ref = false;
-	src2 = Operand(i->GetSrc(2), &is_ref, &is_mem[1]);
-	if(is_ref) {
-		if(is_mem[1])
-			Load(src2, temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
-		//Load(src1, temp_regs[reg_count], comment, GetSize_prime(i->GetSrc(1)->GetDataType()));
-		Load("("+src2+")", temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
-		src2 = temp_regs[reg_count++];
-		//Load(src1, temp_regs[reg_count++], comment, GetSize_prime(i->GetSrc(2)->GetDataType()));
-		is_mem[1] = false;
-	}
-	is_ref = false;
-	dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
-	old_dst = dst;
-	if(is_mem[2]) {
-		if(is_mem[0] || is_mem[1]) {
-			Load(dst, temp_regs[reg_count], "move dst to tempreg", OperandSize(i->GetDest()));
-			dst = temp_regs[reg_count++];
-			//Load(dst, temp_regs[reg_count++], comment, GetSize_prime(i->GetDest()->GetDataType()));
-		}
-	}
 
 	switch (op) {
 		case opAdd: mnm = "addq"; break;
 		case opSub: mnm = "subq"; break;
 		case opAnd: mnm = "andq"; break;
 		case opOr:  mnm = "orq";  break;
+		case opMul: mnm = "imulq"; break;
+		case opDiv: mnm = "idivq"; isDiv = true; break;
+    case opNeg:
+    case opNot:
+      mnm = (op == opNeg ? "negq" : "notq");
+			get_src2 = false;
+			isNeg = true;
+      EmitInstruction("negq", "%rax");
+      break;
+		case opAssign: get_src2 = false; isAsg = true; break;
 	}
+
+	string src1, src2, dst, old_dst;
+	src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
+	// get operands and destination
+	// 이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
+	if(is_ref) {
+		if(is_mem[0]) // memory면 한번 주소 레지스터로 가져와야함
+			Load(src1, temp_regs[reg_count], comment, 8);
+		Load("("+src1+")", temp_regs[reg_count++], comment, OperandSize(i->GetSrc(1)));
+		src1 = temp_regs[reg_count++];
+		is_mem[0] = false;
+	} else if(isDiv || isNeg) {
+		Load(src1, temp_regs[reg_count], comment, OperandSize(i->GetSrc(1)));
+		src1 = temp_regs[reg_count++];
+		is_mem[0] = false;
+	}
+	// for op which need only one operand, do not execute it
+	if(get_src2) {
+		is_ref = false;
+		src2 = Operand(i->GetSrc(2), &is_ref, &is_mem[1]);
+		if(is_ref) {
+			if(is_mem[1])
+				Load(src2, temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
+			Load("("+src2+")", temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
+			src2 = temp_regs[reg_count++];
+			is_mem[1] = false;
+		}
+	}
+	is_ref = false;
+	dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
+	old_dst = dst;
+	if(is_mem[2]) {
+		if(is_mem[0] || is_mem[1]) { //operands둘 중 하나라도 메모리면 dest를 레지스터로 옮김
+			Load(dst, temp_regs[reg_count], "move dst to tempreg", OperandSize(i->GetDest()));
+			dst = temp_regs[reg_count++];
+		}
+	}
+
 	string cmt = "";
 /* Debugging
 	for(int i=0; i<3; i++){
@@ -458,9 +474,27 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 			cmt = cmt + "0";
 	}
 */
-	Load(src1, dst, "is_mem:" + cmt, OperandSize(i->GetSrc(1)));
-  EmitInstruction(mnm, src2 + ", " + dst);
-	Store(dst, old_dst, "store original dest", OperandSize(i->GetDest()));
+	switch (op) {
+		case opAdd: 
+		case opSub: 
+		case opAnd: 
+		case opOr:  
+		case opMul:
+		case opDiv:
+			Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+			EmitInstruction(mnm, src2 + ", " + dst);
+			Store(dst, old_dst, "store original dest", OperandSize(i->GetDest()));
+      break;
+    case opNeg:
+    case opNot:
+			Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+			EmitInstruction(mnm, src1 + ", " + dst);
+      break;
+		case opAssign:
+			Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+			break;
+
+	}
 	/* TODO::src, dst reg가 같을 때 바꾸기
 	if(src1.strcmp(dst) == 0)
 		EmitInstruction(mnm, src2 + ", " + dst, comment)
@@ -487,16 +521,23 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opSub:
     case opAnd:
     case opOr:
-			//modified
+    case opMul:
+    case opDiv:
+    case opNeg:
+    case opNot:
+		case opAssign:
 			EmitOperation(i, cmt.str());
-      //Load(i->GetSrc(1), "%rax", cmt.str());
-      //Load(i->GetSrc(2), "%rbx");
-      //EmitInstruction(mnm, "%rbx, %rax");
-      //Store(i->GetDest(), 'a');
+			break;
+			/*
+      Load(i->GetSrc(1), "%rax", cmt.str());
+      Load(i->GetSrc(2), "%rbx");
+      EmitInstruction(mnm, "%rbx, %rax");
+      Store(i->GetDest(), 'a');
       break;
 
     case opMul:
-      Load(i->GetSrc(1), "%rax", cmt.str());
+			EmitOperation(i, cmt.str());
+			Load(i->GetSrc(1), "%rax", cmt.str());
       Load(i->GetSrc(2), "%rbx");
       EmitInstruction("imulq", "%rbx");
       Store(i->GetDest(), 'a');
@@ -509,7 +550,6 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitInstruction("idivq","%rbx");
       Store(i->GetDest(), 'a');
       break;
-
 
     // unary operators
     case opNeg:
@@ -529,6 +569,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       Store(i->GetDest(), 'a');
       break;
 
+		*/
     // pointer operations
     // dst = &src1
     case opAddress:
@@ -565,15 +606,15 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
 
       // function call-related operations
-    case opTailCall:
-      {
-	isTailCall = true;
-	EmitEpilogue();
-        EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
-	break;
-      }
+		case opTailCall:
+			{
+				isTailCall = true;
+				EmitEpilogue();
+				EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
+				break;
+			}
 
-  case opCall:
+		case opCall:
       {
         EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
 
