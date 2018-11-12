@@ -410,7 +410,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 
   string operand;
 
-	string src1, src2, dst;
+	string src1, src2, dst, old_dst;
 	src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
 	if(is_ref) {
 		if(is_mem[0])
@@ -434,11 +434,13 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 	}
 	is_ref = false;
 	dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
+	old_dst = dst;
 	if(is_mem[2]) {
-		if(is_mem[0] || is_mem[1])
+		if(is_mem[0] || is_mem[1]) {
 			Load(dst, temp_regs[reg_count], "move dst to tempreg", OperandSize(i->GetDest()));
 			dst = temp_regs[reg_count++];
 			//Load(dst, temp_regs[reg_count++], comment, GetSize_prime(i->GetDest()->GetDataType()));
+		}
 	}
 
 	switch (op) {
@@ -458,6 +460,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 */
 	Load(src1, dst, "is_mem:" + cmt, OperandSize(i->GetSrc(1)));
   EmitInstruction(mnm, src2 + ", " + dst);
+	Store(dst, old_dst, "store original dest", OperandSize(i->GetDest()));
 	/* TODO::src, dst reg가 같을 때 바꾸기
 	if(src1.strcmp(dst) == 0)
 		EmitInstruction(mnm, src2 + ", " + dst, comment)
@@ -694,6 +697,19 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 
   // emit the load instruction
   EmitInstruction(mnm + mod, Operand(src) + ", " + dst, comment);
+}
+void CBackendx86_64::Store(string src, string dst, string comment, int size)
+{
+	string mod = "q";
+	/*
+  switch (size) {
+    case 1: mod = "b"; break;
+    case 2: mod = "w"; break; 
+    case 4: mod = "l"; break;
+    case 8: mod = "q"; break;
+	}
+	*/
+	EmitInstruction("mov" + mod, src + ", " + dst, comment);
 }
 
 void CBackendx86_64::Store(CTac *dst, char src_base, string comment)

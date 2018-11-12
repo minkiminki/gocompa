@@ -254,6 +254,7 @@ class CBackendx86_64 : public CBackend {
 
     /// @brief emit a store instruction
     void Store(CTac *dst, char src_base, string comment="");
+		void Store(string src="", string dst="", string comment="", int size=0);
 
     /// @brief return an operand string for @a op
     /// @param op the operand
