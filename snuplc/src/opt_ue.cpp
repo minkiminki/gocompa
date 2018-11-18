@@ -10,6 +10,64 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// Remove Unused Variables
+void remove_var_block(CSymtab* symtab, CCodeBlock *cb) {
+  set<CTacInstr*> labels;
+
+  vector<CSymbol*> symbs = symtab->GetSymbols();
+  set<const CSymbol*> occurs;
+
+  list<CTacInstr*>::const_iterator it = cb->GetInstr().begin();
+  while (it != cb->GetInstr().end()) {
+    CTacInstr* instr = *it++;
+
+    {
+      CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+      if(src1 != NULL){
+	occurs.insert(src1->GetSymbol());
+      }
+    }
+    {
+      CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+      if(src2 != NULL){
+	occurs.insert(src2->GetSymbol());
+      }
+    }
+    {
+      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+      if(dest != NULL){
+	occurs.insert(dest->GetSymbol());
+      }
+    }
+  }
+
+  vector<CSymbol*>::iterator sit = symbs.begin();
+  while (sit != symbs.end()) {
+    CSymbol *s = *sit++;
+    assert(s != NULL);
+    if(s->GetSymbolType() != stLocal) continue;
+
+    set<const CSymbol*>::iterator fit = occurs.find(s);
+    if(fit == occurs.end()){
+      assert(symtab->RemoveSymbol(s));
+    }
+  }
+
+}
+
+void remove_var_scope(CScope *m) {
+  remove_var_block(m->GetSymbolTable(), m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    remove_var_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // Remove Unused Labels
 void remove_label_block(CCodeBlock *cb) {
   set<CTacInstr*> labels;

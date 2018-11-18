@@ -266,23 +266,23 @@ int dead_store_elimination_block(CCodeBlock *cb) {
     }
   }
 
-  bit = cbp->GetBlockTable()->GetBlockList().begin();
-  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
-    CBasicBlock* blk = *bit++;
-    cout << "(" << blk->GetBlockNum() << " -";
-    list<const CSymbol*>::iterator sit = uses_below[blk].begin();
-    while (sit != uses_below[blk].end()) {
-      cout << " " << (*sit++)->GetName();
-    }
+  // bit = cbp->GetBlockTable()->GetBlockList().begin();
+  // while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+  //   CBasicBlock* blk = *bit++;
+  //   cout << "(" << blk->GetBlockNum() << " -";
+  //   list<const CSymbol*>::iterator sit = uses_below[blk].begin();
+  //   while (sit != uses_below[blk].end()) {
+  //     cout << " " << (*sit++)->GetName();
+  //   }
 
-    // cout << " |";
-    // sit = uses2[blk].begin();
-    // while (sit != uses2[blk].end()) {
-    //   cout << " " << (*sit++)->GetName();
-    // }
+  //   // cout << " |";
+  //   // sit = uses2[blk].begin();
+  //   // while (sit != uses2[blk].end()) {
+  //   //   cout << " " << (*sit++)->GetName();
+  //   // }
 
-    cout << ")" << endl;
-  }
+  //   cout << ")" << endl;
+  // }
 
 
   bit = cbp->GetBlockTable()->GetBlockList().begin();
