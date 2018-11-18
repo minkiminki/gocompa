@@ -210,7 +210,8 @@ class CTacInstr_prime : public CTacInstr {
     CBasicBlock* GetFromBlock(void) const;
     void SetFromBlock(CBasicBlock* block);
 
-  list<CSymbol*>& GetLiveVars(void);
+  list<const CSymbol*>& GetLiveVars(void);
+  void SetLiveVars(list<const CSymbol*>& live_vars);
 
   void SetRegister(CSymRegister *rg);
   CSymRegister *GetRegister();
@@ -231,7 +232,7 @@ class CTacInstr_prime : public CTacInstr {
     CBasicBlock *_block;
     dynamic_bitset<> liveness;
     CSymRegister *_rg;
-    list<CSymbol*> live_vars;
+    list<const CSymbol*> _live_vars;
 };
 
 class CTacPhi : public CTacInstr_prime {

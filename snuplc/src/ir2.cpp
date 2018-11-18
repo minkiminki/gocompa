@@ -77,6 +77,15 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "[CTacInstr: '" << _name << "']";
   }
 
+  {
+    out << "  <<";
+    list<const CSymbol*>::const_iterator sit = _live_vars.begin();
+    while (sit != _live_vars.end()) {
+      out << " " << (*sit++)->GetName();
+    }
+    out << " >>";
+  }
+
   return out;
 }
 
@@ -870,9 +879,14 @@ void CTacInstr_prime::SetFromBlock(CBasicBlock* block)
   _block = block;
 }
 
-list<CSymbol*>& CTacInstr_prime::GetLiveVars(void)
+void CTacInstr_prime::SetLiveVars(list<const CSymbol*>& live_vars)
 {
-  return live_vars;
+  _live_vars = live_vars;
+}
+
+list<const CSymbol*>& CTacInstr_prime::GetLiveVars(void)
+{
+  return _live_vars;
 }
 
 CBlockTable* CCodeBlock_prime::GetBlockTable() const

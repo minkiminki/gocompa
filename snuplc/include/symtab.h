@@ -423,7 +423,8 @@ class CSymtab {
     /// @retval true if the symbol was inserted successfully
     /// @retval false if such a symbol already exists in the local symbol table
     bool AddSymbol(CSymbol *s);
-    bool RemoveSymbol(const string name);
+    // bool RemoveSymbol(const string name);
+    bool RemoveSymbol(CSymbol *s);
 
     /// @brief return a symbol with a given name
     /// @param name symbol name (identifier)

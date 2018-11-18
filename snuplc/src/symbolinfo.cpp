@@ -21,8 +21,9 @@ bool CSymbol::isInReg(void) const
   else return true;
 }
 
-bool CSymtab::RemoveSymbol(const string name)
+bool CSymtab::RemoveSymbol(CSymbol *s)
 {
+  const string name = s->GetName();
   map<string, CSymbol*>::iterator it = _symtab.find(name);
   if(it == _symtab.end()) return false;
   else{
@@ -30,3 +31,13 @@ bool CSymtab::RemoveSymbol(const string name)
     return true;
   }
 }
+
+// bool CSymtab::RemoveSymbol(const string name)
+// {
+//   map<string, CSymbol*>::iterator it = _symtab.find(name);
+//   if(it == _symtab.end()) return false;
+//   else{
+//     _symtab.erase(it);
+//     return true;
+//   }
+// }

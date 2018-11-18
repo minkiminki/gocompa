@@ -10,7 +10,8 @@ using namespace std;
 // ********************************************************************** /
 // ********************************************************************** /
 // Dead Store Elimination
-void dead_store_elimination_block(CCodeBlock *cb) {
+int dead_store_elimination_block(CCodeBlock *cb) {
+  bool dse_success = false;
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
 
@@ -20,6 +21,7 @@ void dead_store_elimination_block(CCodeBlock *cb) {
   map<CBasicBlock*, list<const CSymbol*>> defs;
   map<CBasicBlock*, list<const CSymbol*>> uses1;
   map<CBasicBlock*, list<const CSymbol*>> uses2;
+  map<CBasicBlock*, list<const CSymbol*>> uses_below;
 
   list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
   while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
@@ -165,6 +167,9 @@ void dead_store_elimination_block(CCodeBlock *cb) {
     defs[blk] = blk_defs;
     uses1[blk] = blk_uses1;
     uses2[blk] = blk_uses2;
+
+    list<const CSymbol*> blk_uses_below;
+    uses_below[blk] = blk_uses_below;
   }
 
   // map<CBasicBlock*, list<const CSymbol*>> live_top;
@@ -186,15 +191,17 @@ void dead_store_elimination_block(CCodeBlock *cb) {
     // while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
     //   CBasicBlock* blk = *bit++;
     //   cout << "(" << blk->GetBlockNum() << " -";
-    //   list<const CSymbol*>::iterator sit = uses1[blk].begin();
-    //   while (sit != uses1[blk].end()) {
+    //   list<const CSymbol*>::iterator sit = uses_below[blk].begin();
+    //   while (sit != uses_below[blk].end()) {
     // 	cout <<  " " << (*sit++)->GetName();;
     //   }
-    //   cout << " |";
-    //   sit = uses2[blk].begin();
-    //   while (sit != uses2[blk].end()) {
-    // 	cout <<  " " << (*sit++)->GetName();;
-    //   }
+
+    //   // cout << " |";
+    //   // sit = uses2[blk].begin();
+    //   // while (sit != uses2[blk].end()) {
+    //   // 	cout <<  " " << (*sit++)->GetName();;
+    //   // }
+
     //   cout << ")" << endl;
     // }
     // cout << "-----------------------------------" << endl;
@@ -203,8 +210,8 @@ void dead_store_elimination_block(CCodeBlock *cb) {
     while (bit != cbp->GetBlockTable()->GetBlockList().begin()) {
       CBasicBlock* blk = *(--bit);
 
-      list<const CSymbol*> uses1_next;
-      list<const CSymbol*> uses2_next;
+      // list<const CSymbol*> uses1_next;
+      // list<const CSymbol*> uses2_next;
 
       list<CBasicBlock*>::iterator bit_next = blk->GetNextBlks().begin();
       while (bit_next != blk->GetNextBlks().end()) {
@@ -215,12 +222,14 @@ void dead_store_elimination_block(CCodeBlock *cb) {
 	if(blk_next == NULL) continue;
 
 	if(*(blk_next->GetPrevBlks().begin()) == blk){
-	  list_add(uses1_next, uses1[blk_next]);
-	  list_add(uses2_next, uses1[blk_next]);
+	  list_add(uses_below[blk], uses1[blk_next]);
+	  // list_add(uses1_next, uses1[blk_next]);
+	  // list_add(uses2_next, uses1[blk_next]);
 	}
 	else if(*next(blk_next->GetPrevBlks().begin()) == blk){
-	  list_add(uses1_next, uses2[blk_next]);
-	  list_add(uses2_next, uses2[blk_next]);
+	  list_add(uses_below[blk], uses2[blk_next]);
+	  // list_add(uses1_next, uses2[blk_next]);
+	  // list_add(uses2_next, uses2[blk_next]);
 	}
 
 	// if(blk_next != NULL){
@@ -231,11 +240,15 @@ void dead_store_elimination_block(CCodeBlock *cb) {
 
       // list<const CSymbol*> & defs_blk = defs[blk];
 
-      list_substract(uses1_next, defs[blk]);
-      list_substract(uses2_next, defs[blk]);
+      list<const CSymbol*> uses_next = uses_below[blk];
+      list_substract(uses_next, defs[blk]);
+      // list_substract(uses1_next, defs[blk]);
+      // list_substract(uses2_next, defs[blk]);
 
-      if(list_add(uses1[blk], uses1_next)) success = true;
-      if(list_add(uses2[blk], uses2_next)) success = true;
+      if(list_add(uses1[blk], uses_next)) success = true;
+      if(list_add(uses2[blk], uses_next)) success = true;
+      // if(list_add(uses1[blk], uses1_next)) success = true;
+      // if(list_add(uses2[blk], uses2_next)) success = true;
 
     }
   }
@@ -244,18 +257,112 @@ void dead_store_elimination_block(CCodeBlock *cb) {
   // while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
   //   CBasicBlock* blk = *bit++;
   //   cout << "(" << blk->GetBlockNum() << " -";
-  //   list<const CSymbol*>::iterator sit = uses1[blk].begin();
-  //   while (sit != uses1[blk].end()) {
+  //   list<const CSymbol*>::iterator sit = uses_below[blk].begin();
+  //   while (sit != uses_below[blk].end()) {
   //     cout << " " << (*sit++)->GetName();
   //   }
-  //   cout << " |";
-  //   sit = uses2[blk].begin();
-  //   while (sit != uses2[blk].end()) {
-  //     cout << " " << (*sit++)->GetName();
-  //   }
+
+  //   // cout << " |";
+  //   // sit = uses2[blk].begin();
+  //   // while (sit != uses2[blk].end()) {
+  //   //   cout << " " << (*sit++)->GetName();
+  //   // }
+
   //   cout << ")" << endl;
   // }
 
+
+  bit = cbp->GetBlockTable()->GetBlockList().begin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
+    list<const CSymbol*> live_vars = uses_below[blk];
+
+    list<CTacInstr*>::iterator it = blk->GetInstrs().end();
+    while (it != blk->GetInstrs().begin()) {
+      CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*--it);
+
+      {
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	if(src1 != NULL){
+	  const CSymbol* s_src1 = src1->GetSymbol();
+	  assert(s_src1 != NULL);
+
+	  if(dynamic_cast<const CSymProc*>(s_src1) == NULL ){
+	    if(s_src1->GetSymbolType() != stGlobal){
+
+	      nodup_insert(live_vars, s_src1);
+	      // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(), s_src1);
+	      // if(fit == live_vars.end()){
+	      // 	nodup_insert(live_vars, s_src1);
+	      // }
+
+	    }
+	  }
+	}
+      }
+      {
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	if(src2 != NULL){
+	  const CSymbol* s_src2 = src2->GetSymbol();
+	  assert(s_src2 != NULL);
+	  if(s_src2->GetSymbolType() != stGlobal){
+	    // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(),s_src2);
+	    // if(fit == live_vars.end()){
+	    //   nodup_insert(live_vars, s_src2);
+	    // }
+
+	    nodup_insert(live_vars, s_src2);
+	  }
+	}
+      }
+      {
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest != NULL){
+	  if(dynamic_cast<CTacReference*>(dest) != NULL){
+	    const CSymbol* s_dest = dest->GetSymbol();
+	    assert(s_dest != NULL);
+
+	    if(s_dest->GetSymbolType() != stGlobal){
+	      // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(),s_dest);
+	      // if(fit == live_vars.end()){
+	      // 	nodup_insert(live_vars, s_dest);
+	      // }
+	      nodup_insert(live_vars, s_dest);
+	    }
+	  }
+	  else{
+	    const CSymbol* s_dest = dest->GetSymbol();
+	    assert(s_dest != NULL);
+	    if(s_dest->GetSymbolType() != stGlobal){
+	      if(erase_success(live_vars, s_dest) < 0){
+		cout << s_dest << " isn't used" << endl;
+		// TODO: DSE!!
+		// dse_success = true;
+	      }
+	    }
+	  }
+	}
+      }
+      instr->SetLiveVars(live_vars);
+    }
+
+    it = blk->GetPhis().begin();
+    while (it != blk->GetPhis().end()) {
+      CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
+      assert(instr != NULL);
+      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+      assert(dest != NULL);
+      const CSymbol* s_dest = dest->GetSymbol();
+      assert(s_dest != NULL);
+      if(erase_success(live_vars, s_dest) < 0){
+	cout << s_dest << " isn't used" << endl;
+	// TODO: DSE!!
+	// dse_success = true;
+      }
+    }
+  }
+
+    return dse_success;
 }
 
 void dead_store_elimination_scope(CScope *m) {
