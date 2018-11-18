@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cassert>
+#include <set>
 
 #include "opt_la.h"
 using namespace std;
@@ -9,7 +10,152 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
-// Liveness Analysis & Dead Store Elimination
+// Dead Store Elimination
+void dead_store_elimination_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  CBlockTable *cbt = cbp->GetBlockTable();
+  assert(cbt != NULL);
+
+  set<const CSymbol*> needed;
+
+  bool success = true;
+
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_reverse_iterator bit = cbp->GetBlockTable()->GetBlockList().rbegin();
+    while (bit != cbp->GetBlockTable()->GetBlockList().rend()) {
+      CBasicBlock* blk = *bit++;
+
+      list<CTacInstr*>::const_reverse_iterator it = blk->GetInstrs().rbegin();
+      while (it != blk->GetInstrs().rend()) {
+	CTacInstr* instr = *it++;
+	assert(instr != NULL);
+
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+
+	if(dest != NULL){
+	  if(dynamic_cast<CTacReference*>(instr->GetDest()) != NULL){
+	    if(dest->GetSymbol()->GetSymbolType() == stLocal){
+	      if(needed.insert(dest->GetSymbol()).second)
+		success = true;
+	    }
+	    if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	      if(needed.insert(src1->GetSymbol()).second)
+		success = true;
+	    }
+	    if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	      if(needed.insert(src2->GetSymbol()).second)
+		success = true;
+	    }
+	  }
+	  else if(dest->GetSymbol()->GetSymbolType() == stGlobal || needed.find(dest->GetSymbol()) != needed.end()){
+	    if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	      if(needed.insert(src1->GetSymbol()).second)
+		success = true;
+	    }
+	    if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	      if(needed.insert(src2->GetSymbol()).second)
+		success = true;
+	    }
+	  }
+	}
+	else if(instr->GetOperation() == opParam || instr->GetOperation() == opReturn){
+	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(needed.insert(src1->GetSymbol()).second)
+	      success = true;
+	  }
+	}
+	else if(instr->IsBranch()){
+	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(needed.insert(src1->GetSymbol()).second)
+	      success = true;
+	  }
+	  if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	    if(needed.insert(src2->GetSymbol()).second)
+	      success = true;
+	  }
+	}
+      }
+
+      it = blk->GetPhis().rbegin();
+      while (it != blk->GetPhis().rend()) {
+	CTacInstr* instr = *it++;
+	assert(instr != NULL);
+
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+
+	if(needed.find(dest->GetSymbol()) != needed.end()){
+	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(needed.insert(src1->GetSymbol()).second)
+	      success = true;
+	  }
+	  if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	    if(needed.insert(src2->GetSymbol()).second)
+	      success = true;
+	  }
+	}
+      }
+    }
+  }
+
+  list<CBasicBlock*>::const_reverse_iterator bit = cbp->GetBlockTable()->GetBlockList().rbegin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().rend()) {
+    CBasicBlock* blk = *bit++;
+
+    list<CTacInstr*>::const_iterator it = blk->GetInstrs().begin();
+    while (it != blk->GetInstrs().end()) {
+      CTacInstr* instr = *it++;
+      assert(instr != NULL);
+
+      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+      if(dest != NULL && dest->GetSymbol()->GetSymbolType() == stLocal && needed.find(dest->GetSymbol()) == needed.end()){
+	// cout << instr << endl;
+	// _P1;
+	if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){
+	  instr->SetSrc(0, NULL);
+	  instr->SetSrc(1, NULL);
+	  instr->SetOperation(opNop);
+	}
+	instr->SetDest(NULL);
+      }
+    }
+
+    it = blk->GetPhis().begin();
+    while (it != blk->GetPhis().end()) {
+      list<CTacInstr*>::const_iterator it_temp = it++;
+      CTacInstr* instr = *it_temp;
+      assert(instr != NULL);
+
+      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+      if(needed.find(dest->GetSymbol()) == needed.end()){
+	// cout << instr << endl;
+	// _P1;
+	(blk->GetPhis()).erase(it_temp);
+      }
+    }
+  }
+}
+
+void dead_store_elimination_scope(CScope *m) {
+  dead_store_elimination_block(m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit = m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    dead_store_elimination_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
+// Liveness Analysis
 int liveness_analysis_block(CCodeBlock *cb) {
   bool dse_success = false;
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
