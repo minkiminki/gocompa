@@ -53,7 +53,12 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << " <";
     out.flags(ios::right);
     out.width(3);
-    out << _live_vars.size();
+    if(_live_vars.size() == 0){
+      out << "---";
+    }
+    else{
+      out << _live_vars.size();
+    }
     out << ">";
   }
 
@@ -287,7 +292,12 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
       out << " <";
       out.flags(ios::right);
       out.width(3);
-      out << _live_vars.size();
+      if(_live_vars.size() == 0){
+	out << "---";
+      }
+      else{
+	out << _live_vars.size();
+      }
       out << ">";
     }
 

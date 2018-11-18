@@ -9,8 +9,8 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
-// Dead Store Elimination
-int dead_store_elimination_block(CCodeBlock *cb) {
+// Liveness Analysis & Dead Store Elimination
+int liveness_analysis_block(CCodeBlock *cb) {
   bool dse_success = false;
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
@@ -428,33 +428,11 @@ int dead_store_elimination_block(CCodeBlock *cb) {
   return dse_success;
 }
 
-void dead_store_elimination_scope(CScope *m) {
-  while(dead_store_elimination_block(m->GetCodeBlock())){
+void liveness_analysis_scope(CScope *m) {
+  while(liveness_analysis_block(m->GetCodeBlock())){
   }
 
   vector<CScope*>::const_iterator sit = m->GetSubscopes().begin();
-  while (sit != m->GetSubscopes().end()) {
-    dead_store_elimination_scope(*sit++);
-  }
-  return;
-}
-
-
-// ********************************************************************** /
-// ********************************************************************** /
-// Liveness Analysis
-void liveness_analysis_block(CCodeBlock *cb) {
-  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
-  assert(cbp != NULL);
-
-  CBlockTable *cbt = cbp->GetBlockTable();
-  assert(cbt != NULL);
-}
-
-void liveness_analysis_scope(CScope *m) {
-  liveness_analysis_block(m->GetCodeBlock());
-
-  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
     liveness_analysis_scope(*sit++);
   }
