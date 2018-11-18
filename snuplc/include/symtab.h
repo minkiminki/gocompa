@@ -68,6 +68,7 @@ enum ESymbolType {
   stParam,          ///< parameter symbol
   stProcedure,      ///< procedure symbol
   stReserved,       ///< reserved names
+  stRegister,
 };
 
 class CSymtab;

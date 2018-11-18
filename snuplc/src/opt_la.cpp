@@ -23,6 +23,19 @@ int dead_store_elimination_block(CCodeBlock *cb) {
   map<CBasicBlock*, list<const CSymbol*>> uses2;
   map<CBasicBlock*, list<const CSymbol*>> uses_below;
 
+  const CNullType* nulltyp = CTypeManager::Get()->GetNull();
+
+  const CSymbol* param_regs[6];
+  param_regs[0] = new CSymbol("%rdi", stRegister, nulltyp);
+  param_regs[1] = new CSymbol("%rsi", stRegister, nulltyp);
+  param_regs[2] = new CSymbol("%rdx", stRegister, nulltyp);
+  param_regs[3] = new CSymbol("%rcx", stRegister, nulltyp);
+  param_regs[4] = new CSymbol("%r8", stRegister, nulltyp);
+  param_regs[5] = new CSymbol("%r9", stRegister, nulltyp);
+
+  const CSymbol* caller_save1 = new CSymbol("%r10", stRegister, nulltyp);
+  const CSymbol* caller_save2 = new CSymbol("%r11", stRegister, nulltyp);
+
   list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
   while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
     CBasicBlock* blk = *bit++;
@@ -253,23 +266,23 @@ int dead_store_elimination_block(CCodeBlock *cb) {
     }
   }
 
-  // bit = cbp->GetBlockTable()->GetBlockList().begin();
-  // while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
-  //   CBasicBlock* blk = *bit++;
-  //   cout << "(" << blk->GetBlockNum() << " -";
-  //   list<const CSymbol*>::iterator sit = uses_below[blk].begin();
-  //   while (sit != uses_below[blk].end()) {
-  //     cout << " " << (*sit++)->GetName();
-  //   }
+  bit = cbp->GetBlockTable()->GetBlockList().begin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
+    cout << "(" << blk->GetBlockNum() << " -";
+    list<const CSymbol*>::iterator sit = uses_below[blk].begin();
+    while (sit != uses_below[blk].end()) {
+      cout << " " << (*sit++)->GetName();
+    }
 
-  //   // cout << " |";
-  //   // sit = uses2[blk].begin();
-  //   // while (sit != uses2[blk].end()) {
-  //   //   cout << " " << (*sit++)->GetName();
-  //   // }
+    // cout << " |";
+    // sit = uses2[blk].begin();
+    // while (sit != uses2[blk].end()) {
+    //   cout << " " << (*sit++)->GetName();
+    // }
 
-  //   cout << ")" << endl;
-  // }
+    cout << ")" << endl;
+  }
 
 
   bit = cbp->GetBlockTable()->GetBlockList().begin();
@@ -343,7 +356,38 @@ int dead_store_elimination_block(CCodeBlock *cb) {
 	  }
 	}
       }
+
+      if(instr->GetOperation() == opCall || instr->GetOperation() == opTailCall){
+	CTacName *n = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	assert(n != NULL);
+	const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
+	assert(proc != NULL);
+
+	int num = proc->GetNParams();
+        num = (num > 6) ? 6 : num;
+
+	switch(num){
+	case 6: nodup_insert(live_vars, param_regs[5]);
+	case 5: nodup_insert(live_vars, param_regs[4]);
+	case 4: nodup_insert(live_vars, param_regs[3]);
+	case 3: nodup_insert(live_vars, param_regs[2]);
+	case 2: nodup_insert(live_vars, param_regs[1]);
+	case 1: nodup_insert(live_vars, param_regs[0]);
+	}
+      }
+      else if(instr->GetOperation() == opParam){
+	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
+	assert(n != NULL);
+	int num = n->GetValue();
+	assert(erase_success(live_vars, param_regs[num-1]) >= 0);
+      }
+
       instr->SetLiveVars(live_vars);
+
+      if(instr->GetOperation() == opCall || instr->GetOperation() == opTailCall){
+	instr->GetLiveVars().push_back(caller_save1);
+	instr->GetLiveVars().push_back(caller_save2);
+      }
     }
 
     it = blk->GetPhis().begin();

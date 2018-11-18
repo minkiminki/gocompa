@@ -48,6 +48,15 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "  [---]";
   }
 
+
+  {
+    out << " <";
+    out.flags(ios::right);
+    out.width(3);
+    out << _live_vars.size();
+    out << ">";
+  }
+
   string ind(indent, ' ');
 
   out << ind << right << dec << setw(3) << _id << ": ";
@@ -78,7 +87,8 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
   }
 
   {
-    out << "  <<";
+    out << " <<";
+    // out << " << " << _live_vars.size() << " -";
     list<const CSymbol*>::const_iterator sit = _live_vars.begin();
     while (sit != _live_vars.end()) {
       out << " " << (*sit++)->GetName();
@@ -271,6 +281,14 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
     }
     else{
       out << "  [---]";
+    }
+
+    {
+      out << " <";
+      out.flags(ios::right);
+      out.width(3);
+      out << _live_vars.size();
+      out << ">";
     }
 
     string ind(indent, ' ');
