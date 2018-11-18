@@ -9,22 +9,6 @@
 using namespace std;
 
 
-template<typename T>
-int list_join(list<T>& l1, list<T>& l2){
-  int success = 0;
-  typename list<T>::iterator it = l1.begin();
-  while(it != l1.end()){
-    typename list<T>::iterator it_before = it++;
-    T key = *(it_before);
-    typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
-    if(findit == l2.end()){
-      l1.erase(it_before);
-      success = 1;
-    }
-  }
-  return success;
-}
-
 //------------------------------------------------------------------------------
 // CTacInstr
 //
@@ -631,12 +615,16 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
     }
   }
 
-  // // for debugging
-  // list<CTacInstr*>::const_iterator pit = _phis.begin();
-  // while (pit != _phis.end()) {
-  //   (*pit++)->print(out, indent+2);
-  //   out << endl;
-  // }
+  // for debugging
+  list<CTacInstr*>::const_iterator pit = _phis.begin();
+  while (pit != _phis.end()) {
+    CTacInstr *phi = *pit++;
+    string s_dest = dynamic_cast<CTacName*>(phi->GetDest())->GetSymbol()->GetName();
+    string s_src1 = dynamic_cast<CTacName*>(phi->GetSrc(1))->GetSymbol()->GetName();
+    string s_src2 = dynamic_cast<CTacName*>(phi->GetSrc(2))->GetSymbol()->GetName();
+
+    out << " <" << s_dest << " <- " << s_src1 << ", " << s_src2 << ">";
+  }
 
   out << ")";
 
@@ -880,6 +868,11 @@ CBasicBlock* CTacInstr_prime::GetFromBlock(void) const
 void CTacInstr_prime::SetFromBlock(CBasicBlock* block)
 {
   _block = block;
+}
+
+list<CSymbol*>& CTacInstr_prime::GetLiveVars(void)
+{
+  return live_vars;
 }
 
 CBlockTable* CCodeBlock_prime::GetBlockTable() const

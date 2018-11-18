@@ -18,6 +18,7 @@ DEPS=ir.h \
 		opt_ra.h \
 		opt_cpg.h \
 		opt_ssa.h \
+		opt_la.h \
 		opt.h \
 		backend.h
 SRC=ir.cpp \
@@ -30,6 +31,7 @@ SRC=ir.cpp \
 		opt_ue.cpp \
 		opt_ra.cpp \
 		opt_ssa.cpp \
+		opt_la.cpp \
 		opt.cpp \
 		symbolinfo.cpp \
 		backend_default.cpp \
