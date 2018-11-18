@@ -348,9 +348,16 @@ int dead_store_elimination_block(CCodeBlock *cb) {
 	    assert(s_dest != NULL);
 	    if(s_dest->GetSymbolType() != stGlobal){
 	      if(erase_success(live_vars, s_dest) < 0){
-		cout << s_dest << " isn't used" << endl;
-		// TODO: DSE!!
-		// dse_success = true;
+		// cout << s_dest << " isn't used" << endl;
+		// _P1;
+		// todo: DSE!!
+
+		instr->SetOperation(opNop);
+		instr->SetDest(NULL);
+		instr->SetSrc(0, NULL);
+		instr->SetSrc(1, NULL);
+
+		dse_success = true;
 	      }
 	    }
 	  }
@@ -379,7 +386,14 @@ int dead_store_elimination_block(CCodeBlock *cb) {
 	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
 	assert(n != NULL);
 	int num = n->GetValue();
-	assert(erase_success(live_vars, param_regs[num-1]) >= 0);
+
+	if(erase_success(live_vars, param_regs[num-1]) < 0){
+	  cout << instr << endl;
+	  cout << param_regs[num-1] << endl;
+	  _P2;
+	}
+
+	// assert(erase_success(live_vars, param_regs[num-1]) >= 0);
       }
 
       instr->SetLiveVars(live_vars);
@@ -392,25 +406,31 @@ int dead_store_elimination_block(CCodeBlock *cb) {
 
     it = blk->GetPhis().begin();
     while (it != blk->GetPhis().end()) {
-      CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
+      list<CTacInstr*>::iterator it_temp = it++;
+      CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it_temp);
       assert(instr != NULL);
       CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
       assert(dest != NULL);
       const CSymbol* s_dest = dest->GetSymbol();
       assert(s_dest != NULL);
       if(erase_success(live_vars, s_dest) < 0){
-	cout << s_dest << " isn't used" << endl;
+	// cout << s_dest << " isn't used" << endl;
+	// _P1;
 	// TODO: DSE!!
-	// dse_success = true;
+
+	(blk->GetPhis()).erase(it_temp);
+	dse_success = true;
+
       }
     }
   }
 
-    return dse_success;
+  return dse_success;
 }
 
 void dead_store_elimination_scope(CScope *m) {
-  dead_store_elimination_block(m->GetCodeBlock());
+  while(dead_store_elimination_block(m->GetCodeBlock())){
+  }
 
   vector<CScope*>::const_iterator sit = m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
