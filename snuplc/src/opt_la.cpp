@@ -18,23 +18,29 @@ int dead_store_elimination_block(CCodeBlock *cb) {
   CBlockTable *cbt = cbp->GetBlockTable();
   assert(cbt != NULL);
 
+  Liveness *liveness = cbt->GetLiveness();
+  assert(liveness != NULL);
+
   map<CBasicBlock*, list<const CSymbol*>> defs;
-  map<CBasicBlock*, list<const CSymbol*>> uses1;
-  map<CBasicBlock*, list<const CSymbol*>> uses2;
+  map<CBasicBlock*, list<const CSymbol*>> uses1 = liveness->GetUses(1);
+  map<CBasicBlock*, list<const CSymbol*>> uses2 = liveness->GetUses(2);
   map<CBasicBlock*, list<const CSymbol*>> uses_below;
 
-  const CNullType* nulltyp = CTypeManager::Get()->GetNull();
+  uses1.clear();
+  uses2.clear();
 
-  const CSymbol* param_regs[6];
-  param_regs[0] = new CSymbol("%rdi", stRegister, nulltyp);
-  param_regs[1] = new CSymbol("%rsi", stRegister, nulltyp);
-  param_regs[2] = new CSymbol("%rdx", stRegister, nulltyp);
-  param_regs[3] = new CSymbol("%rcx", stRegister, nulltyp);
-  param_regs[4] = new CSymbol("%r8", stRegister, nulltyp);
-  param_regs[5] = new CSymbol("%r9", stRegister, nulltyp);
+  const CSymbol** param_regs = liveness->GetParamRegs();
+  // param_regs[0] = new CSymbol("%rdi", stRegister, nulltyp);
+  // param_regs[1] = new CSymbol("%rsi", stRegister, nulltyp);
+  // param_regs[2] = new CSymbol("%rdx", stRegister, nulltyp);
+  // param_regs[3] = new CSymbol("%rcx", stRegister, nulltyp);
+  // param_regs[4] = new CSymbol("%r8", stRegister, nulltyp);
+  // param_regs[5] = new CSymbol("%r9", stRegister, nulltyp);
 
-  const CSymbol* caller_save1 = new CSymbol("%r10", stRegister, nulltyp);
-  const CSymbol* caller_save2 = new CSymbol("%r11", stRegister, nulltyp);
+  const CSymbol* caller_save1 = liveness->GetCallerSave(1);
+  const CSymbol* caller_save2 = liveness->GetCallerSave(2);
+  // const CSymbol* caller_save1 = new CSymbol("%r10", stRegister, nulltyp);
+  // const CSymbol* caller_save2 = new CSymbol("%r11", stRegister, nulltyp);
 
   list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
   while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
@@ -270,19 +276,18 @@ int dead_store_elimination_block(CCodeBlock *cb) {
   // while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
   //   CBasicBlock* blk = *bit++;
   //   cout << "(" << blk->GetBlockNum() << " -";
-  //   list<const CSymbol*>::iterator sit = uses_below[blk].begin();
-  //   while (sit != uses_below[blk].end()) {
+  //   list<const CSymbol*>::iterator sit = uses1[blk].begin();
+  //   while (sit != uses1[blk].end()) {
   //     cout << " " << (*sit++)->GetName();
   //   }
-
-  //   // cout << " |";
-  //   // sit = uses2[blk].begin();
-  //   // while (sit != uses2[blk].end()) {
-  //   //   cout << " " << (*sit++)->GetName();
-  //   // }
-
+  //   cout << " |";
+  //   sit = uses2[blk].begin();
+  //   while (sit != uses2[blk].end()) {
+  //     cout << " " << (*sit++)->GetName();
+  //   }
   //   cout << ")" << endl;
   // }
+  // cout << "------------------------------------" << endl;
 
 
   bit = cbp->GetBlockTable()->GetBlockList().begin();

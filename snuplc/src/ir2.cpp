@@ -686,6 +686,7 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
 CBlockTable::CBlockTable(void)
   : maxblock(0), _initblock(NULL)
 {
+  _liveness = new Liveness();
 }
 
 CBlockTable::~CBlockTable(void)
@@ -695,6 +696,11 @@ CBlockTable::~CBlockTable(void)
 list<CBasicBlock*>& CBlockTable::GetBlockList(void)
 {
   return _blocklist;
+}
+
+Liveness* CBlockTable::GetLiveness(void)
+{
+  return _liveness;
 }
 
 int CBlockTable::AddBlock(CBasicBlock *block)

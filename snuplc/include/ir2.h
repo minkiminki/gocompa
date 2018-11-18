@@ -177,6 +177,7 @@ public:
   void BlockRenumber(const list<CTacInstr*>& instrs);
   void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
   void ClearTempInfos(void);
+  Liveness* GetLiveness(void);
   virtual ostream&  print(ostream &out, int indent=0) const;
 
 
@@ -187,6 +188,7 @@ protected:
   list<CBasicBlock*> _finpredoms;
   list<CBasicBlock*> _findoms;
   int maxblock;
+  Liveness* _liveness;
 };
 
 class CTacInstr_prime : public CTacInstr {
@@ -365,5 +367,21 @@ class CCodeBlock_prime : public CCodeBlock {
 
 };
 
+class Liveness {
+ public:
+  Liveness(void);
+  // ~Liveness(void);
+
+  const CSymbol** GetParamRegs(void);
+  const CSymbol* GetCallerSave(int index);
+  map<CBasicBlock*, list<const CSymbol*>> & GetUses(int index);
+
+ protected:
+  map<CBasicBlock*, list<const CSymbol*>> _uses1;
+  map<CBasicBlock*, list<const CSymbol*>> _uses2;
+  const CSymbol* _param_regs[6];
+  const CSymbol* _caller_save1;
+  const CSymbol* _caller_save2;
+};
 
 #endif // __SnuPL_IR2_H__

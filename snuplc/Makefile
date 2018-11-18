@@ -23,6 +23,7 @@ DEPS=ir.h \
 		backend.h
 SRC=ir.cpp \
 		ir2.cpp \
+		liveness.cpp \
 		opt_pre.cpp \
 		opt_rpm.cpp \
 		opt_bba.cpp \

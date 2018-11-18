@@ -452,6 +452,7 @@ class CTacLabel : public CTacInstr {
 ///
 class CAstNode;
 class CCodeBlock;
+class Liveness;
 
 class CScope {
   public:
