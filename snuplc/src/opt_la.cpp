@@ -352,10 +352,12 @@ int dead_store_elimination_block(CCodeBlock *cb) {
 		// _P1;
 		// todo: DSE!!
 
-		instr->SetOperation(opNop);
+		if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){
+		  instr->SetSrc(0, NULL);
+		  instr->SetSrc(1, NULL);
+		  instr->SetOperation(opNop);
+		}
 		instr->SetDest(NULL);
-		instr->SetSrc(0, NULL);
-		instr->SetSrc(1, NULL);
 
 		dse_success = true;
 	      }
@@ -386,14 +388,7 @@ int dead_store_elimination_block(CCodeBlock *cb) {
 	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
 	assert(n != NULL);
 	int num = n->GetValue();
-
-	if(erase_success(live_vars, param_regs[num-1]) < 0){
-	  cout << instr << endl;
-	  cout << param_regs[num-1] << endl;
-	  _P2;
-	}
-
-	// assert(erase_success(live_vars, param_regs[num-1]) >= 0);
+	assert(erase_success(live_vars, param_regs[num-1]) >= 0);
       }
 
       instr->SetLiveVars(live_vars);

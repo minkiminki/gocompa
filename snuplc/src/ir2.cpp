@@ -646,9 +646,34 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
   list<CTacInstr*>::const_iterator pit = _phis.begin();
   while (pit != _phis.end()) {
     CTacInstr *phi = *pit++;
-    string s_dest = dynamic_cast<CTacName*>(phi->GetDest())->GetSymbol()->GetName();
-    string s_src1 = dynamic_cast<CTacName*>(phi->GetSrc(1))->GetSymbol()->GetName();
-    string s_src2 = dynamic_cast<CTacName*>(phi->GetSrc(2))->GetSymbol()->GetName();
+
+    string s_dest;
+    if(dynamic_cast<CTacName*>(phi->GetDest()) != NULL){
+      s_dest = dynamic_cast<CTacName*>(phi->GetDest())->GetSymbol()->GetName();
+    }
+    else{
+      s_dest = to_string(dynamic_cast<CTacConst*>(phi->GetDest())->GetValue());
+    }
+
+    string s_src1;
+    if(dynamic_cast<CTacName*>(phi->GetSrc(1)) != NULL){
+      s_src1 = dynamic_cast<CTacName*>(phi->GetSrc(1))->GetSymbol()->GetName();
+    }
+    else{
+      s_src1 = to_string(dynamic_cast<CTacConst*>(phi->GetSrc(1))->GetValue());
+    }
+    string s_src2;
+    if(dynamic_cast<CTacName*>(phi->GetSrc(2)) != NULL){
+      s_src2 = dynamic_cast<CTacName*>(phi->GetSrc(2))->GetSymbol()->GetName();
+    }
+    else{
+      s_src2 = to_string(dynamic_cast<CTacConst*>(phi->GetSrc(2))->GetValue());
+    }
+
+
+    // string s_dest = dynamic_cast<CTacName*>(phi->GetDest())->GetSymbol()->GetName();
+    // string s_src1 = dynamic_cast<CTacName*>(phi->GetSrc(1))->GetSymbol()->GetName();
+    // string s_src2 = dynamic_cast<CTacName*>(phi->GetSrc(2))->GetSymbol()->GetName();
 
     out << " <" << s_dest << " <- " << s_src1 << ", " << s_src2 << ">";
   }
