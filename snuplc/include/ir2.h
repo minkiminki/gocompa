@@ -60,6 +60,49 @@ int list_pop(list<T>& l, T* ret){
   }
 }
 
+template<typename T>
+int list_join(list<T>& l1, list<T>& l2){
+  int success = 0;
+  typename list<T>::iterator it = l1.begin();
+  while(it != l1.end()){
+    typename list<T>::iterator it_before = it++;
+    T key = *(it_before);
+    typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
+    if(findit == l2.end()){
+      l1.erase(it_before);
+      success = 1;
+    }
+  }
+  return success;
+}
+
+template<typename T>
+int list_add(list<T>& l1, list<T>& l2){
+  int success = 0;
+  typename list<T>::iterator it = l2.begin();
+  while(it != l2.end()){
+    T key = *it++;
+    if(!nodup_insert(l1, key)) success = 1;
+  }
+  return success;
+}
+
+template<typename T>
+int list_substract(list<T>& l1, list<T>& l2){
+  int success = 0;
+  typename list<T>::iterator it = l1.begin();
+  while(it != l1.end()){
+    typename list<T>::iterator it_before = it++;
+    T key = *(it_before);
+    typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
+    if(findit != l2.end()){
+      l1.erase(it_before);
+      success = 1;
+    }
+  }
+  return success;
+}
+
 //------------------------------------------------------------------------------
 /// @brief instruction class
 ///
@@ -134,6 +177,7 @@ public:
   void BlockRenumber(const list<CTacInstr*>& instrs);
   void CombineBlock(CBasicBlock* blk, CBasicBlock* blk_next);
   void ClearTempInfos(void);
+  Liveness* GetLiveness(void);
   virtual ostream&  print(ostream &out, int indent=0) const;
 
 
@@ -144,6 +188,7 @@ protected:
   list<CBasicBlock*> _finpredoms;
   list<CBasicBlock*> _findoms;
   int maxblock;
+  Liveness* _liveness;
 };
 
 class CTacInstr_prime : public CTacInstr {
@@ -167,6 +212,9 @@ class CTacInstr_prime : public CTacInstr {
     CBasicBlock* GetFromBlock(void) const;
     void SetFromBlock(CBasicBlock* block);
 
+  list<const CSymbol*>& GetLiveVars(void);
+  void SetLiveVars(list<const CSymbol*>& live_vars);
+
   void SetRegister(CSymRegister *rg);
   CSymRegister *GetRegister();
 
@@ -186,6 +234,7 @@ class CTacInstr_prime : public CTacInstr {
     CBasicBlock *_block;
     dynamic_bitset<> liveness;
     CSymRegister *_rg;
+    list<const CSymbol*> _live_vars;
 };
 
 class CTacPhi : public CTacInstr_prime {
@@ -318,5 +367,21 @@ class CCodeBlock_prime : public CCodeBlock {
 
 };
 
+class Liveness {
+ public:
+  Liveness(void);
+  // ~Liveness(void);
+
+  const CSymbol** GetParamRegs(void);
+  const CSymbol* GetCallerSave(int index);
+  map<CBasicBlock*, list<const CSymbol*>> & GetUses(int index);
+
+ protected:
+  map<CBasicBlock*, list<const CSymbol*>> _uses1;
+  map<CBasicBlock*, list<const CSymbol*>> _uses2;
+  const CSymbol* _param_regs[6];
+  const CSymbol* _caller_save1;
+  const CSymbol* _caller_save2;
+};
 
 #endif // __SnuPL_IR2_H__

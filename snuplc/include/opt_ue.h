@@ -9,6 +9,7 @@
 #include "symtab.h"
 
 
+void remove_var_scope(CScope *m);
 void remove_label_scope(CScope *m);
 void remove_goto_scope(CScope *m);
 void remove_nop_scope(CScope *m);

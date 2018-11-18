@@ -9,22 +9,6 @@
 using namespace std;
 
 
-template<typename T>
-int list_join(list<T>& l1, list<T>& l2){
-  int success = 0;
-  typename list<T>::iterator it = l1.begin();
-  while(it != l1.end()){
-    typename list<T>::iterator it_before = it++;
-    T key = *(it_before);
-    typename list<T>::iterator findit = find(l2.begin(), l2.end(), key);
-    if(findit == l2.end()){
-      l1.erase(it_before);
-      success = 1;
-    }
-  }
-  return success;
-}
-
 //------------------------------------------------------------------------------
 // CTacInstr
 //
@@ -64,6 +48,20 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "  [---]";
   }
 
+
+  {
+    out << " <";
+    out.flags(ios::right);
+    out.width(3);
+    if(_live_vars.size() == 0){
+      out << "---";
+    }
+    else{
+      out << _live_vars.size();
+    }
+    out << ">";
+  }
+
   string ind(indent, ' ');
 
   out << ind << right << dec << setw(3) << _id << ": ";
@@ -91,6 +89,16 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     }
   } else {
     out << "[CTacInstr: '" << _name << "']";
+  }
+
+  {
+    out << " <<";
+    // out << " << " << _live_vars.size() << " -";
+    list<const CSymbol*>::const_iterator sit = _live_vars.begin();
+    while (sit != _live_vars.end()) {
+      out << " " << (*sit++)->GetName();
+    }
+    out << " >>";
   }
 
   return out;
@@ -278,6 +286,19 @@ ostream& CTacLabel_prime::print(ostream &out, int indent) const
     }
     else{
       out << "  [---]";
+    }
+
+    {
+      out << " <";
+      out.flags(ios::right);
+      out.width(3);
+      if(_live_vars.size() == 0){
+	out << "---";
+      }
+      else{
+	out << _live_vars.size();
+      }
+      out << ">";
     }
 
     string ind(indent, ' ');
@@ -631,12 +652,41 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
     }
   }
 
-  // // for debugging
-  // list<CTacInstr*>::const_iterator pit = _phis.begin();
-  // while (pit != _phis.end()) {
-  //   (*pit++)->print(out, indent+2);
-  //   out << endl;
-  // }
+  // for debugging
+  list<CTacInstr*>::const_iterator pit = _phis.begin();
+  while (pit != _phis.end()) {
+    CTacInstr *phi = *pit++;
+
+    string s_dest;
+    if(dynamic_cast<CTacName*>(phi->GetDest()) != NULL){
+      s_dest = dynamic_cast<CTacName*>(phi->GetDest())->GetSymbol()->GetName();
+    }
+    else{
+      s_dest = to_string(dynamic_cast<CTacConst*>(phi->GetDest())->GetValue());
+    }
+
+    string s_src1;
+    if(dynamic_cast<CTacName*>(phi->GetSrc(1)) != NULL){
+      s_src1 = dynamic_cast<CTacName*>(phi->GetSrc(1))->GetSymbol()->GetName();
+    }
+    else{
+      s_src1 = to_string(dynamic_cast<CTacConst*>(phi->GetSrc(1))->GetValue());
+    }
+    string s_src2;
+    if(dynamic_cast<CTacName*>(phi->GetSrc(2)) != NULL){
+      s_src2 = dynamic_cast<CTacName*>(phi->GetSrc(2))->GetSymbol()->GetName();
+    }
+    else{
+      s_src2 = to_string(dynamic_cast<CTacConst*>(phi->GetSrc(2))->GetValue());
+    }
+
+
+    // string s_dest = dynamic_cast<CTacName*>(phi->GetDest())->GetSymbol()->GetName();
+    // string s_src1 = dynamic_cast<CTacName*>(phi->GetSrc(1))->GetSymbol()->GetName();
+    // string s_src2 = dynamic_cast<CTacName*>(phi->GetSrc(2))->GetSymbol()->GetName();
+
+    out << " <" << s_dest << " <- " << s_src1 << ", " << s_src2 << ">";
+  }
 
   out << ")";
 
@@ -646,6 +696,7 @@ ostream& CBasicBlock::print(ostream &out, int indent) const
 CBlockTable::CBlockTable(void)
   : maxblock(0), _initblock(NULL)
 {
+  _liveness = new Liveness();
 }
 
 CBlockTable::~CBlockTable(void)
@@ -655,6 +706,11 @@ CBlockTable::~CBlockTable(void)
 list<CBasicBlock*>& CBlockTable::GetBlockList(void)
 {
   return _blocklist;
+}
+
+Liveness* CBlockTable::GetLiveness(void)
+{
+  return _liveness;
 }
 
 int CBlockTable::AddBlock(CBasicBlock *block)
@@ -880,6 +936,16 @@ CBasicBlock* CTacInstr_prime::GetFromBlock(void) const
 void CTacInstr_prime::SetFromBlock(CBasicBlock* block)
 {
   _block = block;
+}
+
+void CTacInstr_prime::SetLiveVars(list<const CSymbol*>& live_vars)
+{
+  _live_vars = live_vars;
+}
+
+list<const CSymbol*>& CTacInstr_prime::GetLiveVars(void)
+{
+  return _live_vars;
 }
 
 CBlockTable* CCodeBlock_prime::GetBlockTable() const

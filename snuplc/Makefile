@@ -18,10 +18,12 @@ DEPS=ir.h \
 		opt_ra.h \
 		opt_cpg.h \
 		opt_ssa.h \
+		opt_la.h \
 		opt.h \
 		backend.h
 SRC=ir.cpp \
 		ir2.cpp \
+		liveness.cpp \
 		opt_pre.cpp \
 		opt_rpm.cpp \
 		opt_bba.cpp \
@@ -30,6 +32,7 @@ SRC=ir.cpp \
 		opt_ue.cpp \
 		opt_ra.cpp \
 		opt_ssa.cpp \
+		opt_la.cpp \
 		opt.cpp \
 		symbolinfo.cpp \
 		backend_default.cpp \
