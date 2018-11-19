@@ -452,6 +452,7 @@ class CTacLabel : public CTacInstr {
 ///
 class CAstNode;
 class CCodeBlock;
+class Liveness;
 
 class CScope {
   public:
@@ -710,6 +711,7 @@ class CCodeBlock {
     /// @retval CTacInstr* inserted instruction
     CTacInstr* AddInstr(CTacInstr *instr);
 
+    void InsertInstr(CTacInstr *instr_loc, CTacInstr *instr);
     int RemoveInstr(CTacInstr *instr);
 
     void InstrRenumber(void);

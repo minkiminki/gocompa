@@ -636,6 +636,15 @@ CTacInstr* CCodeBlock::AddInstr(CTacInstr *instr)
   return instr;
 }
 
+void CCodeBlock::InsertInstr(CTacInstr *instr_loc, CTacInstr *instr)
+{
+  assert(instr != NULL);
+  list<CTacInstr*>::iterator findit
+    = find(_ops.begin(), _ops.end(), instr_loc);
+  assert(findit != _ops.end());
+  _ops.insert(findit, instr);
+}
+
 int CCodeBlock::RemoveInstr(CTacInstr *instr)
 {
   assert(instr != NULL);

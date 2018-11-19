@@ -150,6 +150,7 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
       	assert(cbp->RemoveInstr(instr0) >= 0);
       }
       instr1->SetOperation(opTailCall);
+      instr1->SetDest(NULL);
     }
   }
 }

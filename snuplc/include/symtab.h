@@ -68,6 +68,7 @@ enum ESymbolType {
   stParam,          ///< parameter symbol
   stProcedure,      ///< procedure symbol
   stReserved,       ///< reserved names
+  stRegister,
 };
 
 class CSymtab;
@@ -106,6 +107,8 @@ class CSymbol {
     /// @brief return the symbol's type
     /// @retval ESymbolType symbol type
     ESymbolType GetSymbolType(void) const;
+
+    void SetSymbolType(ESymbolType symbt);
 
     /// @brief set the symbol's type
     /// @param datatype symbol type
@@ -421,6 +424,8 @@ class CSymtab {
     /// @retval true if the symbol was inserted successfully
     /// @retval false if such a symbol already exists in the local symbol table
     bool AddSymbol(CSymbol *s);
+    // bool RemoveSymbol(const string name);
+    bool RemoveSymbol(CSymbol *s);
 
     /// @brief return a symbol with a given name
     /// @param name symbol name (identifier)

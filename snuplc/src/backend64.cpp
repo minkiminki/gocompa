@@ -49,18 +49,18 @@ static int tmp_label_count = 0;
 
 unsigned int GetSize_prime (const CType* ct)
 {
-	if(ct->IsPointer())
-		return 8;
-	else
-		return ct->GetSize();
+  if(ct->IsPointer())
+    return 8;
+  else
+    return ct->GetSize();
 }
 
 int GetAlign_prime (const CType* ct)
 {
-	if(ct->IsPointer())
-		return 8;
-	else
-		return ct->GetAlign();
+  if(ct->IsPointer())
+    return 8;
+  else
+    return ct->GetAlign();
 }
 
 //------------------------------------------------------------------------------
@@ -79,29 +79,29 @@ CBackendx86_64::~CBackendx86_64(void)
 void CBackendx86_64::EmitHeader(void)
 {
   _out << "##################################################" << endl
-       << "# " << _m->GetName() << endl
-       << "#" << endl
-       << endl;
+    << "# " << _m->GetName() << endl
+    << "#" << endl
+    << endl;
 }
 
 void CBackendx86_64::EmitCode(void)
 {
   _out << _ind << "#-----------------------------------------" << endl
-       << _ind << "# text section" << endl
-       << _ind << "#" << endl
-       << _ind << ".text" << endl
-       << _ind << ".align 4" << endl
-       << endl
-       << _ind << "# entry point and pre-defined functions" << endl
-       << _ind << ".global main" << endl
-       << _ind << ".extern DIM" << endl
-       << _ind << ".extern DOFS" << endl
-       << _ind << ".extern ReadInt" << endl
-       << _ind << ".extern WriteInt" << endl
-       << _ind << ".extern WriteStr" << endl
-       << _ind << ".extern WriteChar" << endl
-       << _ind << ".extern WriteLn" << endl
-       << endl;
+    << _ind << "# text section" << endl
+    << _ind << "#" << endl
+    << _ind << ".text" << endl
+    << _ind << ".align 4" << endl
+    << endl
+    << _ind << "# entry point and pre-defined functions" << endl
+    << _ind << ".global main" << endl
+    << _ind << ".extern DIM" << endl
+    << _ind << ".extern DOFS" << endl
+    << _ind << ".extern ReadInt" << endl
+    << _ind << ".extern WriteInt" << endl
+    << _ind << ".extern WriteStr" << endl
+    << _ind << ".extern WriteChar" << endl
+    << _ind << ".extern WriteLn" << endl
+    << endl;
 
   // emit subscopes (=procedures/functions) first
   vector<CScope*>::const_iterator sit = _m->GetSubscopes().begin();
@@ -110,30 +110,30 @@ void CBackendx86_64::EmitCode(void)
   EmitScope(_m);
 
   _out << _ind << "# end of text section" << endl
-       << _ind << "#-----------------------------------------" << endl
-       << endl;
+    << _ind << "#-----------------------------------------" << endl
+    << endl;
 }
 
 void CBackendx86_64::EmitData(void)
 {
   _out << _ind << "#-----------------------------------------" << endl
-       << _ind << "# global data section" << endl
-       << _ind << "#" << endl
-       << _ind << ".data" << endl
-       << _ind << ".align 4" << endl
-       << endl;
+    << _ind << "# global data section" << endl
+    << _ind << "#" << endl
+    << _ind << ".data" << endl
+    << _ind << ".align 4" << endl
+    << endl;
 
   EmitGlobalData(_m);
 
   _out << _ind << "# end of global data section" << endl
-       << _ind << "#-----------------------------------------" << endl
-       << endl;
+    << _ind << "#-----------------------------------------" << endl
+    << endl;
 }
 
 void CBackendx86_64::EmitFooter(void)
 {
   _out << _ind << ".end" << endl
-       << "##################################################" << endl;
+    << "##################################################" << endl;
 }
 
 void CBackendx86_64::SetScope(CScope *scope)
@@ -157,7 +157,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   // label
   _out << _ind << "# scope " << scope->GetName() << endl
-       << label << ":" << endl;
+    << label << ":" << endl;
 
   // compute the size of locals
   CSymtab *st = scope->GetSymbolTable();
@@ -178,17 +178,17 @@ void CBackendx86_64::EmitScope(CScope *scope)
   _out << _ind << "# prologue" << endl;
   EmitInstruction("pushq", "%rbp");
   EmitInstruction("movq", "%rsp, %rbp");
-	// currently push/pop all regs
-	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
-	EmitCalleePush(callee_used_regs);
-	EmitParamPush(param_num);
+  // currently push/pop all regs
+  const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
+  EmitCalleePush(callee_used_regs);
+  EmitParamPush(param_num);
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
-	//EmitInstruction("pushl", "%rsi");
-	//EmitInstruction("pushl", "%rdi");
+  //EmitInstruction("pushl", "%rsi");
+  //EmitInstruction("pushl", "%rdi");
   EmitInstruction("subq", Imm(size) + ", %rsp", "make room for locals");
 
   // clear stack
-	//modified
+  //modified
   size_t lsize = size/8;
   if (lsize > 4) {
     _out << endl;
@@ -213,17 +213,18 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   // emit code
   _out << endl
-       << _ind << "# function body" << endl;
+    << _ind << "# function body" << endl;
 
   SetScope(scope);
   // CCodeBlock *cb = scope->GetCodeBlock();
 
   if (cb != NULL) EmitCodeBlock(cb);
 
-	if(isTailCall==false)
-		EmitEpilogue();
+  if(isTailCall==false)
+    EmitEpilogue();
 
 }
+
 void CBackendx86_64::EmitEpilogue()
 {
   // epilogue
@@ -231,27 +232,27 @@ void CBackendx86_64::EmitEpilogue()
   assert(cs != NULL);
   CCodeBlock_prime *cb = dynamic_cast<CCodeBlock_prime*>(cs->GetCodeBlock());
   size_t size = cb->GetStackSize();
-	int param_num = cb->GetParamNum();
-	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
+  int param_num = cb->GetParamNum();
+  const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
 
   _out << endl;
-	if(isTailCall==false) {
-		_out << Label("exit") << ":" << endl;
-		_out << _ind << "# epilogue" << endl;
-	}
+  if(isTailCall==false) {
+    _out << Label("exit") << ":" << endl;
+    _out << _ind << "# epilogue" << endl;
+  }
   EmitInstruction("addq", Imm(size) + ", %rsp", "remove locals");
   //EmitInstruction("popq", "%rdi");
   //EmitInstruction("popq", "%rsi");
   //EmitInstruction("popq", "%rbx");
-	// currently push/pop all regs
-	int param_size = (param_num <= 6) ? param_num*8 : 6*8;
-	EmitCalleePop(callee_used_regs);
+  // currently push/pop all regs
+  int param_size = (param_num <= 6) ? param_num*8 : 6*8;
+  EmitCalleePop(callee_used_regs);
   EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
   EmitInstruction("popq", "%rbp");
-	if(isTailCall==false)
-		EmitInstruction("ret");
+  if(isTailCall==false)
+    EmitInstruction("ret");
   _out << endl;
-	isTailCall = false;
+  isTailCall = false;
 }
 
 void CBackendx86_64::EmitGlobalData(CScope *scope)
@@ -284,7 +285,7 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
       if ((GetAlign_prime(t) > 1) && (size % GetAlign_prime(t) != 0)) {
         size += GetAlign_prime(t) - size % GetAlign_prime(t);
         _out << setw(4) << " " << ".align "
-             << right << setw(3) << GetAlign_prime(t) << endl;
+          << right << setw(3) << GetAlign_prime(t) << endl;
       }
 
       _out << left << setw(36) << s->GetName() + ":" << "# " << t << endl;
@@ -363,7 +364,7 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
 
       ostringstream comment;
       comment << "local array '" << s->GetName() << "': "
-              << dim << " dimensions";
+        << dim << " dimensions";
 
       EmitInstruction("movq", Imm(dim) + "," + dst.str(), comment.str());
 
@@ -371,14 +372,14 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
         assert(a != NULL);
 
         ostringstream dst;
-				assert(!s->isInReg());
-				dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
-				//        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+        assert(!s->isInReg());
+        dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
+        //        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
         ofs += 4;
 
         ostringstream comment;
         comment << "  dimension " << d+1 << ": "
-                << a->GetNElem() << " elements";
+          << a->GetNElem() << " elements";
 
         EmitInstruction("movq", Imm(a->GetNElem()) + "," + dst.str(),
             comment.str());
@@ -402,107 +403,107 @@ void CBackendx86_64::EmitCodeBlock(CCodeBlock *cb)
 //working
 void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 {
-	int reg_count = 0;
-	string mnm;
-	string temp_regs[2] = {"%rax", "%rdx"};
-	bool is_ref = false, is_mem[3] = {false, false, false}, isDiv = false;
-	bool get_src2 = true, isNeg = false, isAsg = false;
-	EOperation op = i->GetOperation();
+  int reg_count = 0;
+  string mnm;
+  string temp_regs[2] = {"%rax", "%rdx"};
+  bool is_ref = false, is_mem[3] = {false, false, false}, isDiv = false;
+  bool get_src2 = true, isNeg = false, isAsg = false;
+  EOperation op = i->GetOperation();
 
   string operand;
 
-	switch (op) {
-		case opAdd: mnm = "addq"; break;
-		case opSub: mnm = "subq"; break;
-		case opAnd: mnm = "andq"; break;
-		case opOr:  mnm = "orq";  break;
-		case opMul: mnm = "imulq"; break;
-		case opDiv: mnm = "idivq"; isDiv = true; break;
+  switch (op) {
+    case opAdd: mnm = "addq"; break;
+    case opSub: mnm = "subq"; break;
+    case opAnd: mnm = "andq"; break;
+    case opOr:  mnm = "orq";  break;
+    case opMul: mnm = "imulq"; break;
+    case opDiv: mnm = "idivq"; isDiv = true; break;
     case opNeg:
     case opNot:
-      mnm = (op == opNeg ? "negq" : "notq");
-			get_src2 = false;
-			isNeg = true;
-      EmitInstruction("negq", "%rax");
-      break;
-		case opAssign: get_src2 = false; isAsg = true; break;
-	}
+                mnm = (op == opNeg ? "negq" : "notq");
+                get_src2 = false;
+                isNeg = true;
+                EmitInstruction("negq", "%rax");
+                break;
+    case opAssign: get_src2 = false; isAsg = true; break;
+  }
 
-	string src1, src2, dst, old_dst;
-	src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
-	// get operands and destination
-	// 이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
-	if(is_ref) {
-		if(is_mem[0]) // memory면 한번 주소 레지스터로 가져와야함
-			Load(src1, temp_regs[reg_count], comment, 8);
-		Load("("+src1+")", temp_regs[reg_count++], comment, OperandSize(i->GetSrc(1)));
-		src1 = temp_regs[reg_count++];
-		is_mem[0] = false;
-	} else if(isDiv || isNeg) {
-		Load(src1, temp_regs[reg_count], comment, OperandSize(i->GetSrc(1)));
-		src1 = temp_regs[reg_count++];
-		is_mem[0] = false;
-	}
-	// for op which need only one operand, do not execute it
-	if(get_src2) {
-		is_ref = false;
-		src2 = Operand(i->GetSrc(2), &is_ref, &is_mem[1]);
-		if(is_ref) {
-			if(is_mem[1])
-				Load(src2, temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
-			Load("("+src2+")", temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
-			src2 = temp_regs[reg_count++];
-			is_mem[1] = false;
-		}
-	}
-	is_ref = false;
-	dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
-	old_dst = dst;
-	if(is_mem[2]) {
-		if(is_mem[0] || is_mem[1]) { //operands둘 중 하나라도 메모리면 dest를 레지스터로 옮김
-			Load(dst, temp_regs[reg_count], "move dst to tempreg", OperandSize(i->GetDest()));
-			dst = temp_regs[reg_count++];
-		}
-	}
+  string src1, src2, dst, old_dst;
+  src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
+  // get operands and destination
+  // 이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
+  if(is_ref) {
+    if(is_mem[0]) // memory면 한번 주소 레지스터로 가져와야함
+      Load(src1, temp_regs[reg_count], comment, 8);
+    Load("("+src1+")", temp_regs[reg_count++], comment, OperandSize(i->GetSrc(1)));
+    src1 = temp_regs[reg_count++];
+    is_mem[0] = false;
+  } else if(isDiv || isNeg) {
+    Load(src1, temp_regs[reg_count], comment, OperandSize(i->GetSrc(1)));
+    src1 = temp_regs[reg_count++];
+    is_mem[0] = false;
+  }
+  // for op which need only one operand, do not execute it
+  if(get_src2) {
+    is_ref = false;
+    src2 = Operand(i->GetSrc(2), &is_ref, &is_mem[1]);
+    if(is_ref) {
+      if(is_mem[1])
+        Load(src2, temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
+      Load("("+src2+")", temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
+      src2 = temp_regs[reg_count++];
+      is_mem[1] = false;
+    }
+  }
+  is_ref = false;
+  dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
+  old_dst = dst;
+  if(is_mem[2]) {
+    if(is_mem[0] || is_mem[1]) { //operands둘 중 하나라도 메모리면 dest를 레지스터로 옮김
+      Load(dst, temp_regs[reg_count], "move dst to tempreg", OperandSize(i->GetDest()));
+      dst = temp_regs[reg_count++];
+    }
+  }
 
-	string cmt = "";
-/* Debugging
-	for(int i=0; i<3; i++){
-		if(is_mem[i])
-			cmt = cmt + "1";
-		else
-			cmt = cmt + "0";
-	}
-*/
-	switch (op) {
-		case opAdd: 
-		case opSub: 
-		case opAnd: 
-		case opOr:  
-		case opMul:
-		case opDiv:
-			Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-			EmitInstruction(mnm, src2 + ", " + dst);
-			Store(dst, old_dst, "store original dest", OperandSize(i->GetDest()));
+  string cmt = "";
+  /* Debugging
+     for(int i=0; i<3; i++){
+     if(is_mem[i])
+     cmt = cmt + "1";
+     else
+     cmt = cmt + "0";
+     }
+     */
+  switch (op) {
+    case opAdd: 
+    case opSub: 
+    case opAnd: 
+    case opOr:  
+    case opMul:
+    case opDiv:
+      Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      EmitInstruction(mnm, src2 + ", " + dst);
+      Store(dst, old_dst, "store original dest", OperandSize(i->GetDest()));
       break;
     case opNeg:
     case opNot:
-			Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-			EmitInstruction(mnm, src1 + ", " + dst);
+      Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      EmitInstruction(mnm, src1 + ", " + dst);
       break;
-		case opAssign:
-			Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-			break;
+    case opAssign:
+      Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      break;
 
-	}
-	/* TODO::src, dst reg가 같을 때 바꾸기
-	if(src1.strcmp(dst) == 0)
-		EmitInstruction(mnm, src2 + ", " + dst, comment)
-	}
-	else if((op != opSub) && src2.strcmp(dst)){
-	}
-	*/
-	
+  }
+  /* TODO::src, dst reg가 같을 때 바꾸기
+     if(src1.strcmp(dst) == 0)
+     EmitInstruction(mnm, src2 + ", " + dst, comment)
+     }
+     else if((op != opSub) && src2.strcmp(dst)){
+     }
+     */
+
 }
 
 void CBackendx86_64::EmitInstruction(CTacInstr *i)
@@ -525,73 +526,40 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opDiv:
     case opNeg:
     case opNot:
-		case opAssign:
-			EmitOperation(i, cmt.str());
-			break;
-			/*
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction(mnm, "%rbx, %rax");
-      Store(i->GetDest(), 'a');
-      break;
-
-    case opMul:
-			EmitOperation(i, cmt.str());
-			Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("imulq", "%rbx");
-      Store(i->GetDest(), 'a');
-      break;
-
-    case opDiv:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("cdq");
-      EmitInstruction("idivq","%rbx");
-      Store(i->GetDest(), 'a');
-      break;
-
-    // unary operators
-    case opNeg:
-    case opNot:
-      mnm = (op == opNeg ? "negq" : "notq");
-
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      EmitInstruction("negq", "%rax");
-      Store(i->GetDest(), 'a');
-      break;
-
-
-    // memory operations
-    // dst = src1
     case opAssign:
+      EmitOperation(i, cmt.str());
+      break;
+      /*
+      // memory operations
+      // dst = src1
+      case opAssign:
       Load(i->GetSrc(1), "%rax", cmt.str());
       Store(i->GetDest(), 'a');
       break;
 
-		*/
-    // pointer operations
-    // dst = &src1
+*/
+      // pointer operations
+      // dst = &src1
     case opAddress:
       EmitInstruction("leaq", Operand(i->GetSrc(1)) + ", %rax", cmt.str());
       EmitInstruction("movq", "%rax, " + Operand(i->GetDest()));
       break;
-    // dst = *src1
+      // dst = *src1
     case opDeref:
       // opDeref are not generated for now
       EmitInstruction("# opDeref", "not implemented", cmt.str());
       break;
 
 
-    // unconditional branching
-    // goto dst
+      // unconditional branching
+      // goto dst
     case opGoto:
       EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
       break;
 
 
-    // conditional branching
-    // if src1 relOp src2 then goto dst
+      // conditional branching
+      // if src1 relOp src2 then goto dst
     case opEqual:
     case opNotEqual:
     case opLessThan:
@@ -606,15 +574,15 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
 
       // function call-related operations
-		case opTailCall:
-			{
-				isTailCall = true;
-				EmitEpilogue();
-				EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
-				break;
-			}
+    case opTailCall:
+      {
+        isTailCall = true;
+        EmitEpilogue();
+        EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
+        break;
+      }
 
-		case opCall:
+    case opCall:
       {
         EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
 
@@ -622,7 +590,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
         assert(n != NULL);
         int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
-				//modified
+        //modified
         if (npar > 6) EmitInstruction("addq", Imm((npar-6)*8) + ", %rsp");
 
         // function result
@@ -640,22 +608,22 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitInstruction("jmp", Label("exit"));
       break;
 
-		//modified
+      //modified
     case opParam:
-	  {
-			CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
-			int paramIndex = t->GetValue();
-			if(paramIndex > 6) {
-				Load(i->GetSrc(1), "%rax", cmt.str());
-				EmitInstruction("pushq", "%rax");
-			}
-			else {
-				Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
-			}
-		} //EmitInstruction("pushq", "%rax");
+      {
+        CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
+        int paramIndex = t->GetValue();
+        if(paramIndex > 6) {
+          Load(i->GetSrc(1), "%rax", cmt.str());
+          EmitInstruction("pushq", "%rax");
+        }
+        else {
+          Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
+        }
+      } //EmitInstruction("pushq", "%rax");
       break;
 
-    // special
+      // special
     case opLabel:
       _out << Label(dynamic_cast<CTacLabel_prime*>(i)) << ":" << endl;
       break;
@@ -666,26 +634,27 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
     case opDIM:
       {
-	Load(i->GetSrc(1), "%rax");
-	Load(i->GetSrc(2), "%rbx");
-	EmitInstruction("movl", "(%rax, %rbx, 4), %eax", cmt.str());
-	Store(i->GetDest(), 'a');
+        Load(i->GetSrc(1), "%rax", cmt.str());
+        Load(i->GetSrc(2), "%rbx");
+        EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
+        Store(i->GetDest(), 'a');
+        break;
       }
 
     case opDOFS:
       {
-	string s = ".done_" + to_string(tmp_label_count++);
-	Load(i->GetSrc(1), "%rax");
+        string s = ".done_" + to_string(tmp_label_count++);
+        Load(i->GetSrc(1), "%rax", cmt.str());
 
-	EmitInstruction("movl", "(%rax), %eax", cmt.str());
-	EmitInstruction("leal", "4(,%eax,4), %eax");
-	EmitInstruction("testl", "$4, %eax");
-	EmitInstruction("jz", s);
-	EmitInstruction("addl", "$4, %eax");
-	_out << s << ":" << endl;
+        EmitInstruction("movl", "(%rax), %eax");
+        EmitInstruction("leal", "4(,%eax,4), %eax");
+        EmitInstruction("testl", "$4, %eax");
+        EmitInstruction("jz", s);
+        EmitInstruction("addl", "$4, %eax");
+        _out << s << ":" << endl;
 
-	Store(i->GetDest(), 'a');
-	break;
+        Store(i->GetDest(), 'a');
+        break;
       }
 
     default:
@@ -696,9 +665,9 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 void CBackendx86_64::EmitInstruction(string mnemonic, string args, string comment)
 {
   _out << left
-       << _ind
-       << setw(7) << mnemonic << " "
-       << setw(23) << args;
+    << _ind
+    << setw(7) << mnemonic << " "
+    << setw(23) << args;
   if (comment != "") _out << " # " << comment;
   _out << endl;
 }
@@ -741,16 +710,16 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 }
 void CBackendx86_64::Store(string src, string dst, string comment, int size)
 {
-	string mod = "q";
-	/*
-  switch (size) {
-    case 1: mod = "b"; break;
-    case 2: mod = "w"; break; 
-    case 4: mod = "l"; break;
-    case 8: mod = "q"; break;
-	}
-	*/
-	EmitInstruction("mov" + mod, src + ", " + dst, comment);
+  string mod = "q";
+  /*
+     switch (size) {
+     case 1: mod = "b"; break;
+     case 2: mod = "w"; break; 
+     case 4: mod = "l"; break;
+     case 8: mod = "q"; break;
+     }
+     */
+  EmitInstruction("mov" + mod, src + ", " + dst, comment);
 }
 
 void CBackendx86_64::Store(CTac *dst, char src_base, string comment)
@@ -784,42 +753,45 @@ string CBackendx86_64::Operand(const CTac *op)
   if ((c = dynamic_cast<const CTacConst*>(op)) != NULL) {
     operand = Imm(c->GetValue());
   } else
-  if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
-    const CSymbol *s = n->GetSymbol();
+    if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
+      const CSymbol *s = n->GetSymbol();
 
-    switch (s->GetSymbolType()) {
-      case stGlobal:
-      case stProcedure:
-				operand = s->GetName();
-        break;
+      switch (s->GetSymbolType()) {
+        case stGlobal:
+        case stProcedure:
+          operand = s->GetName();
+          break;
 
-      case stLocal:
-			case stParam:
-				{
-					ostringstream o;
-					if(s->isInReg()){
-						o << s->GetBaseRegister();
-					}
-					else{
-						o << s->GetOffset() << "(" << "%rbp" << ")";
-					}
-					operand = o.str();
-				}
-				break;
+        case stLocal:
+        case stParam:
+          {
+            ostringstream o;
+            if(s->isInReg()){
+              o << s->GetBaseRegister();
+            }
+            else{
+              o << s->GetOffset() << "(" << "%rbp" << ")";
+            }
+            operand = o.str();
+          }
+          break;
+      }
+
+      if (dynamic_cast<const CTacReference*>(n) != NULL) {
+        //operand = "("+temp_reg")";
+      }
+
+      operand = "(%rdi)";
     }
 
-    if (dynamic_cast<const CTacReference*>(n) != NULL) {
-      //operand = "("+temp_reg")";
-		}
+} else
+if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
+  operand = Label(l);
+} else {
+  operand = "?";
+}
 
-  } else
-  if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
-    operand = Label(l);
-  } else {
-    operand = "?";
-  }
-
-  return operand;
+return operand;
 }
 string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
 {
@@ -832,43 +804,43 @@ string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
   if ((c = dynamic_cast<const CTacConst*>(op)) != NULL) {
     operand = Imm(c->GetValue());
   } else
-  if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
-    const CSymbol *s = n->GetSymbol();
+    if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
+      const CSymbol *s = n->GetSymbol();
 
-    switch (s->GetSymbolType()) {
-      case stGlobal:
-      case stProcedure:
-				operand = s->GetName();
-				*is_mem = true;
-        break;
+      switch (s->GetSymbolType()) {
+        case stGlobal:
+        case stProcedure:
+          operand = s->GetName();
+          *is_mem = true;
+          break;
 
-      case stLocal:
-			case stParam:
-				{
-					ostringstream o;
-					if(s->isInReg()){
-						o << s->GetBaseRegister();
-					}
-					else{
-						o << s->GetOffset() << "(" << "%rbp" << ")";
-						*is_mem = true;
-					}
-					operand = o.str();
-				}
-				break;
+        case stLocal:
+        case stParam:
+          {
+            ostringstream o;
+            if(s->isInReg()){
+              o << s->GetBaseRegister();
+            }
+            else{
+              o << s->GetOffset() << "(" << "%rbp" << ")";
+              *is_mem = true;
+            }
+            operand = o.str();
+          }
+          break;
+      }
+
+      if (dynamic_cast<const CTacReference*>(n) != NULL) {
+        *is_ref = true;
+        //operand = "("+temp_reg")";
+      }
+
+    } else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
+      operand = Label(l);
+      *is_mem = true;
+    } else {
+      operand = "?";
     }
-
-    if (dynamic_cast<const CTacReference*>(n) != NULL) {
-			*is_ref = true;
-      //operand = "("+temp_reg")";
-		}
-
-  } else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
-    operand = Label(l);
-		*is_mem = true;
-  } else {
-    operand = "?";
-  }
 
   return operand;
 }
@@ -970,23 +942,23 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
     if ((st == stLocal) || (st == stParam)) {
       ostringstream loc;
       if(s->isInReg()){
-	loc << right << setw(4) << s->GetBaseRegister();
-	    // << "(" << "" << ")";
-	_out << _ind << "#   "
-	     << left << setw(10) << loc.str() << "  "
-	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
-	     << s
-	     << endl;
+        loc << right << setw(4) << s->GetBaseRegister();
+        // << "(" << "" << ")";
+        _out << _ind << "#   "
+          << left << setw(10) << loc.str() << "  "
+          << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
+          << s
+          << endl;
 
       }
       else{
-	loc << right << setw(4) << s->GetOffset()
-	    << "(" << "%rbp" << ")";
-	_out << _ind << "#   "
-	     << left << setw(10) << loc.str() << "  "
-	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
-	     << s
-	     << endl;
+        loc << right << setw(4) << s->GetOffset()
+          << "(" << "%rbp" << ")";
+        _out << _ind << "#   "
+          << left << setw(10) << loc.str() << "  "
+          << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
+          << s
+          << endl;
 
       }
 
@@ -997,32 +969,32 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 }
 
 void CBackendx86_64::EmitCalleePush(const boost::dynamic_bitset<> used_regs){
-	/// bit order: (low) rbx, r12, r13, r14, r15 (high)
-	for(int i=0; i<5; i++)
-		if(used_regs[i])
-			EmitInstruction("pushq", callee_regs[i], "save callee saved registers");
+  /// bit order: (low) rbx, r12, r13, r14, r15 (high)
+  for(int i=0; i<5; i++)
+    if(used_regs[i])
+      EmitInstruction("pushq", callee_regs[i], "save callee saved registers");
 }
 
 void CBackendx86_64::EmitCalleePop(const boost::dynamic_bitset<> used_regs){
-	/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-	for(int i=4; i>=0; i--)
-		if(used_regs[i])
-			EmitInstruction("popq", callee_regs[i], "restore callee saved registers");
+  /// bit order: (low) rbx, r12, r13, r13, r15 (high)
+  for(int i=4; i>=0; i--)
+    if(used_regs[i])
+      EmitInstruction("popq", callee_regs[i], "restore callee saved registers");
 }
 
 void CBackendx86_64::EmitCallerPush(const boost::dynamic_bitset<> used_regs){
-	for(int i=0; i<2; i++)
-		if(used_regs[i])
-			EmitInstruction("pushq", caller_regs[i],"save caller saved registers");
+  for(int i=0; i<2; i++)
+    if(used_regs[i])
+      EmitInstruction("pushq", caller_regs[i],"save caller saved registers");
 }
 void CBackendx86_64::EmitCallerPop(const boost::dynamic_bitset<> used_regs){
-	for(int i=1; i>=0; i--)
-		if(used_regs[i])
-			EmitInstruction("popq", caller_regs[i],"restore caller saved registers");
+  for(int i=1; i>=0; i--)
+    if(used_regs[i])
+      EmitInstruction("popq", caller_regs[i],"restore caller saved registers");
 }
 
 //TODO: fix it after register coloring
 void CBackendx86_64::EmitParamPush(int param_num){
-	for(int i = 0; i < param_num; i++)
-		EmitInstruction("pushq", param_regs[i], "put param regs into stack to use");
+  for(int i = 0; i < param_num; i++)
+    EmitInstruction("pushq", param_regs[i], "put param regs into stack to use");
 }

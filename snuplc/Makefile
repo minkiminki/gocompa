@@ -11,21 +11,28 @@ PRIV_DIR=private
 DEPS=ir.h \
 		ir2.h \
 		opt_pre.h \
+		opt_rpm.h \
 		opt_bba.h \
 		opt_tco.h \
 		opt_ue.h \
 		opt_ra.h \
+		opt_cpg.h \
 		opt_ssa.h \
+		opt_la.h \
 		opt.h \
 		backend.h
 SRC=ir.cpp \
 		ir2.cpp \
+		liveness.cpp \
 		opt_pre.cpp \
+		opt_rpm.cpp \
 		opt_bba.cpp \
 		opt_tco.cpp \
+		opt_cpg.cpp \
 		opt_ue.cpp \
 		opt_ra.cpp \
 		opt_ssa.cpp \
+		opt_la.cpp \
 		opt.cpp \
 		symbolinfo.cpp \
 		backend_default.cpp \

@@ -9,6 +9,75 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// Remove Unused Labels
+void remove_unreachable_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  CBlockTable *cbt = cbp->GetBlockTable();
+  assert(cbt != NULL);
+
+  // eliminate unused basic block
+  bool success = true;
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+    while (it != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *it++;
+      assert(blk != NULL);
+      if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
+  	cbt->RemoveBlock(cbp, blk);
+  	success = true; break;
+      }
+    }
+  }
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
+// Combine Blocks
+void combine_blocks_block(CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  CBlockTable *cbt = cbp->GetBlockTable();
+  assert(cbt != NULL);
+
+  // combine block
+  bool success = true;
+  while(success){
+    success = false;
+    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+    while (it != (cbt->GetBlockList()).end()) {
+      CBasicBlock *blk = *it++;
+      assert(blk != NULL);
+      if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
+  	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
+  	if(blk_next != NULL){
+  	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
+  	    cbt->CombineBlock(blk, blk_next);
+  	    success = true; break;
+  	  }
+  	}
+      }
+    }
+  }
+}
+
+void combine_blocks_scope(CScope *m) {
+  combine_blocks_block(m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    combine_blocks_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // Basic Block Analysis
 bool is_final_instr(EOperation e){
 	return ((e == opReturn) || (e == opGoto));
@@ -125,43 +194,46 @@ void basic_block_analysis_block(CCodeBlock *cb) {
 
   }
 
-  // eliminate unused basic block
-  bool success = true;
-  while(success){
-    success = false;
-    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
-    while (it != (cbt->GetBlockList()).end()) {
-      CBasicBlock *blk = *it++;
-      assert(blk != NULL);
-      if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
-  	cbt->RemoveBlock(blk);
-  	success = true; break;
-      }
-    }
-  }
+  remove_unreachable_block(cb);
+
+  // // eliminate unused basic block
+  // bool success = true;
+  // while(success){
+  //   success = false;
+  //   list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+  //   while (it != (cbt->GetBlockList()).end()) {
+  //     CBasicBlock *blk = *it++;
+  //     assert(blk != NULL);
+  //     if((blk->GetPrevBlks()).begin() == (blk->GetPrevBlks()).end()){
+  // 	cbt->RemoveBlock(cbp, blk);
+  // 	success = true; break;
+  //     }
+  //   }
+  // }
 
   // TODO: remove unreachable block
   // TODO: insert empty block for critical edge
 
-  // combine block
-  success = true;
-  while(success){
-    success = false;
-    list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
-    while (it != (cbt->GetBlockList()).end()) {
-      CBasicBlock *blk = *it++;
-      assert(blk != NULL);
-      if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
-  	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
-  	if(blk_next != NULL){
-  	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
-  	    cbt->CombineBlock(blk, blk_next);
-  	    success = true; break;
-  	  }
-  	}
-      }
-    }
-  }
+  combine_blocks_block(cbp);
+  // // combine block
+  // bool success = true;
+  // while(success){
+  //   success = false;
+  //   list<CBasicBlock*>::const_iterator it = (cbt->GetBlockList()).begin();
+  //   while (it != (cbt->GetBlockList()).end()) {
+  //     CBasicBlock *blk = *it++;
+  //     assert(blk != NULL);
+  //     if(next((blk->GetNextBlks()).begin(), 1) == (blk->GetNextBlks()).end()){
+  // 	CBasicBlock *blk_next = *(blk->GetNextBlks()).begin();
+  // 	if(blk_next != NULL){
+  // 	  if(next((blk_next->GetPrevBlks()).begin(), 1) == (blk_next->GetPrevBlks()).end()){
+  // 	    cbt->CombineBlock(blk, blk_next);
+  // 	    success = true; break;
+  // 	  }
+  // 	}
+  //     }
+  //   }
+  // }
 
   // remove critical edge
   list<CBasicBlock*>::const_iterator bit = (cbt->GetBlockList()).begin();
@@ -203,20 +275,6 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  // critical edge checking
-  bit = (cbt->GetBlockList()).begin();
-  while(bit != (cbt->GetBlockList()).end()) {
-    CBasicBlock *blk = *bit++;
-    assert(blk != NULL);
-    list<CBasicBlock*>::const_iterator bit_next = (blk->GetNextBlks()).begin();
-    while(bit_next != (blk->GetNextBlks()).end()){
-      CBasicBlock *blk_next = *bit_next++;
-      if(blk_next != NULL){
-  	assert(!is_fork(blk) || !is_join(blk_next));
-      }
-    }
-  }
-
   // dominance relation
   list<CBasicBlock*> blks = cbt->GetBlockList();
   blks.push_back(NULL);
@@ -230,7 +288,7 @@ void basic_block_analysis_block(CCodeBlock *cb) {
     blk->SetPreDoms(blks);
   }
 
-  success = true;
+  bool success = true;
   while (success){
     success = false;
     bit = (cbt->GetBlockList()).begin();
