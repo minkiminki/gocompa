@@ -156,8 +156,7 @@ void dead_store_elimination_scope(CScope *m) {
 // ********************************************************************** /
 // ********************************************************************** /
 // Liveness Analysis
-int liveness_analysis_block(CCodeBlock *cb) {
-  bool dse_success = false;
+void liveness_analysis_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
   assert(cbp != NULL);
 
@@ -498,20 +497,24 @@ int liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_dest = dest->GetSymbol();
 	    assert(s_dest != NULL);
 	    if(s_dest->GetSymbolType() != stGlobal){
-	      if(erase_success(live_vars, s_dest) < 0){
-		// cout << s_dest << " isn't used" << endl;
-		// _P1;
-		// todo: DSE!!
 
-		if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){
-		  instr->SetSrc(0, NULL);
-		  instr->SetSrc(1, NULL);
-		  instr->SetOperation(opNop);
-		}
-		instr->SetDest(NULL);
+	      erase_success(live_vars, s_dest);
 
-		dse_success = true;
-	      }
+	      // if(erase_success(live_vars, s_dest) < 0){
+	      // 	// cout << s_dest << " isn't used" << endl;
+	      // 	// _P1;
+	      // 	// todo: DSE!!
+
+	      // 	if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){
+	      // 	  instr->SetSrc(0, NULL);
+	      // 	  instr->SetSrc(1, NULL);
+	      // 	  instr->SetOperation(opNop);
+	      // 	}
+	      // 	instr->SetDest(NULL);
+
+	      // 	dse_success = true;
+	      // }
+
 	    }
 	  }
 	}
@@ -559,24 +562,22 @@ int liveness_analysis_block(CCodeBlock *cb) {
       assert(dest != NULL);
       const CSymbol* s_dest = dest->GetSymbol();
       assert(s_dest != NULL);
-      if(erase_success(live_vars, s_dest) < 0){
-	// cout << s_dest << " isn't used" << endl;
-	// _P1;
-	// TODO: DSE!!
+      erase_success(live_vars, s_dest);
+      // if(erase_success(live_vars, s_dest) < 0){
+      // 	// cout << s_dest << " isn't used" << endl;
+      // 	// _P1;
+      // 	// TODO: DSE!!
 
-	(blk->GetPhis()).erase(it_temp);
-	dse_success = true;
+      // 	(blk->GetPhis()).erase(it_temp);
+      // 	dse_success = true;
 
-      }
+      // }
     }
   }
-
-  return dse_success;
 }
 
 void liveness_analysis_scope(CScope *m) {
-  while(liveness_analysis_block(m->GetCodeBlock())){
-  }
+  liveness_analysis_block(m->GetCodeBlock());
 
   vector<CScope*>::const_iterator sit = m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
