@@ -49,18 +49,18 @@ static int tmp_label_count = 0;
 
 unsigned int GetSize_prime (const CType* ct)
 {
-	if(ct->IsPointer())
-		return 8;
-	else
-		return ct->GetSize();
+  if(ct->IsPointer())
+    return 8;
+  else
+    return ct->GetSize();
 }
 
 int GetAlign_prime (const CType* ct)
 {
-	if(ct->IsPointer())
-		return 8;
-	else
-		return ct->GetAlign();
+  if(ct->IsPointer())
+    return 8;
+  else
+    return ct->GetAlign();
 }
 
 //------------------------------------------------------------------------------
@@ -178,17 +178,17 @@ void CBackendx86_64::EmitScope(CScope *scope)
   _out << _ind << "# prologue" << endl;
   EmitInstruction("pushq", "%rbp");
   EmitInstruction("movq", "%rsp, %rbp");
-	// currently push/pop all regs
-	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
-	EmitCalleePush(callee_used_regs);
-	EmitParamPush(param_num);
+  // currently push/pop all regs
+  const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
+  EmitCalleePush(callee_used_regs);
+  EmitParamPush(param_num);
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
-	//EmitInstruction("pushl", "%rsi");
-	//EmitInstruction("pushl", "%rdi");
+  //EmitInstruction("pushl", "%rsi");
+  //EmitInstruction("pushl", "%rdi");
   EmitInstruction("subq", Imm(size) + ", %rsp", "make room for locals");
 
   // clear stack
-	//modified
+  //modified
   size_t lsize = size/8;
   if (lsize > 4) {
     _out << endl;
@@ -220,10 +220,11 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   if (cb != NULL) EmitCodeBlock(cb);
 
-	if(isTailCall==false)
-		EmitEpilogue();
+  if(isTailCall==false)
+    EmitEpilogue();
 
 }
+
 void CBackendx86_64::EmitEpilogue()
 {
   // epilogue
@@ -231,27 +232,27 @@ void CBackendx86_64::EmitEpilogue()
   assert(cs != NULL);
   CCodeBlock_prime *cb = dynamic_cast<CCodeBlock_prime*>(cs->GetCodeBlock());
   size_t size = cb->GetStackSize();
-	int param_num = cb->GetParamNum();
-	const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
+  int param_num = cb->GetParamNum();
+  const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
 
   _out << endl;
-	if(isTailCall==false) {
-		_out << Label("exit") << ":" << endl;
-		_out << _ind << "# epilogue" << endl;
-	}
+  if(isTailCall==false) {
+    _out << Label("exit") << ":" << endl;
+    _out << _ind << "# epilogue" << endl;
+  }
   EmitInstruction("addq", Imm(size) + ", %rsp", "remove locals");
   //EmitInstruction("popq", "%rdi");
   //EmitInstruction("popq", "%rsi");
   //EmitInstruction("popq", "%rbx");
-	// currently push/pop all regs
-	int param_size = (param_num <= 6) ? param_num*8 : 6*8;
-	EmitCalleePop(callee_used_regs);
+  // currently push/pop all regs
+  int param_size = (param_num <= 6) ? param_num*8 : 6*8;
+  EmitCalleePop(callee_used_regs);
   EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
   EmitInstruction("popq", "%rbp");
-	if(isTailCall==false)
-		EmitInstruction("ret");
+  if(isTailCall==false)
+    EmitInstruction("ret");
   _out << endl;
-	isTailCall = false;
+  isTailCall = false;
 }
 
 void CBackendx86_64::EmitGlobalData(CScope *scope)
@@ -295,13 +296,13 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
         int dim = a->GetNDim();
 
         _out << setw(4) << " "
-          << ".long " << right << setw(4) << dim << endl;
+	     << ".long " << right << setw(4) << dim << endl;
 
         for (int d=0; d<dim; d++) {
           assert(a != NULL);
 
           _out << setw(4) << " "
-            << ".long " << right << setw(4) << a->GetNElem() << endl;
+	       << ".long " << right << setw(4) << a->GetNElem() << endl;
 
           a = dynamic_cast<const CArrayType*>(a->GetInnerType());
         }
@@ -313,11 +314,11 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
         assert(sdi != NULL);  // only support string data initializers for now
 
         _out << left << setw(4) << " "
-          << ".asciz " << '"' << sdi->GetData() << '"' << endl;
+	     << ".asciz " << '"' << sdi->GetData() << '"' << endl;
       } else {
         _out  << left << setw(4) << " "
-          << ".skip " << dec << right << setw(4) << t->GetDataSize()
-          << endl;
+	      << ".skip " << dec << right << setw(4) << t->GetDataSize()
+	      << endl;
       }
 
       size += GetSize_prime(t);
@@ -381,7 +382,7 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
                 << a->GetNElem() << " elements";
 
         EmitInstruction("movq", Imm(a->GetNElem()) + "," + dst.str(),
-            comment.str());
+			comment.str());
 
         a = dynamic_cast<const CArrayType*>(a->GetInnerType());
       }
@@ -411,178 +412,178 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
   switch (op) {
     // binary operators
-    case opAdd:
-    case opSub:
-    case opAnd:
-    case opOr:
-      switch (op) {
-        case opAdd: mnm = "addq"; break;
-        case opSub: mnm = "subq"; break;
-        case opAnd: mnm = "andq"; break;
-        case opOr:  mnm = "orq";  break;
-      }
+  case opAdd:
+  case opSub:
+  case opAnd:
+  case opOr:
+    switch (op) {
+    case opAdd: mnm = "addq"; break;
+    case opSub: mnm = "subq"; break;
+    case opAnd: mnm = "andq"; break;
+    case opOr:  mnm = "orq";  break;
+    }
 
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction(mnm, "%rbx, %rax");
-      Store(i->GetDest(), 'a');
-      break;
+    Load(i->GetSrc(1), "%rax", cmt.str());
+    Load(i->GetSrc(2), "%rbx");
+    EmitInstruction(mnm, "%rbx, %rax");
+    Store(i->GetDest(), 'a');
+    break;
 
-    case opMul:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("imulq", "%rbx");
-      Store(i->GetDest(), 'a');
-      break;
+  case opMul:
+    Load(i->GetSrc(1), "%rax", cmt.str());
+    Load(i->GetSrc(2), "%rbx");
+    EmitInstruction("imulq", "%rbx");
+    Store(i->GetDest(), 'a');
+    break;
 
-    case opDiv:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("cdq");
-      EmitInstruction("idivq","%rbx");
-      Store(i->GetDest(), 'a');
-      break;
+  case opDiv:
+    Load(i->GetSrc(1), "%rax", cmt.str());
+    Load(i->GetSrc(2), "%rbx");
+    EmitInstruction("cdq");
+    EmitInstruction("idivq","%rbx");
+    Store(i->GetDest(), 'a');
+    break;
 
 
     // unary operators
-    case opNeg:
-    case opNot:
-      mnm = (op == opNeg ? "negq" : "notq");
+  case opNeg:
+  case opNot:
+    mnm = (op == opNeg ? "negq" : "notq");
 
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      EmitInstruction("negq", "%rax");
-      Store(i->GetDest(), 'a');
-      break;
+    Load(i->GetSrc(1), "%rax", cmt.str());
+    EmitInstruction("negq", "%rax");
+    Store(i->GetDest(), 'a');
+    break;
 
 
     // memory operations
     // dst = src1
-    case opAssign:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Store(i->GetDest(), 'a');
-      break;
+  case opAssign:
+    Load(i->GetSrc(1), "%rax", cmt.str());
+    Store(i->GetDest(), 'a');
+    break;
 
     // pointer operations
     // dst = &src1
-    case opAddress:
-      EmitInstruction("leaq", Operand(i->GetSrc(1)) + ", %rax", cmt.str());
-      EmitInstruction("movq", "%rax, " + Operand(i->GetDest()));
-      break;
+  case opAddress:
+    EmitInstruction("leaq", Operand(i->GetSrc(1)) + ", %rax", cmt.str());
+    EmitInstruction("movq", "%rax, " + Operand(i->GetDest()));
+    break;
     // dst = *src1
-    case opDeref:
-      // opDeref are not generated for now
-      EmitInstruction("# opDeref", "not implemented", cmt.str());
-      break;
+  case opDeref:
+    // opDeref are not generated for now
+    EmitInstruction("# opDeref", "not implemented", cmt.str());
+    break;
 
 
     // unconditional branching
     // goto dst
-    case opGoto:
-      EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
-      break;
+  case opGoto:
+    EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
+    break;
 
 
     // conditional branching
     // if src1 relOp src2 then goto dst
-    case opEqual:
-    case opNotEqual:
-    case opLessThan:
-    case opLessEqual:
-    case opBiggerThan:
-    case opBiggerEqual:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("cmpq", "%rbx, %rax");
-      EmitInstruction("j" + Condition(op), Operand(i->GetDest()));
+  case opEqual:
+  case opNotEqual:
+  case opLessThan:
+  case opLessEqual:
+  case opBiggerThan:
+  case opBiggerEqual:
+    Load(i->GetSrc(1), "%rax", cmt.str());
+    Load(i->GetSrc(2), "%rbx");
+    EmitInstruction("cmpq", "%rbx, %rax");
+    EmitInstruction("j" + Condition(op), Operand(i->GetDest()));
+    break;
+
+
+    // function call-related operations
+  case opTailCall:
+    {
+      isTailCall = true;
+      EmitEpilogue();
+      EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
       break;
-
-
-      // function call-related operations
-    case opTailCall:
-      {
-	isTailCall = true;
-	EmitEpilogue();
-        EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
-	break;
-      }
+    }
 
   case opCall:
-      {
-        EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
+    {
+      EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
 
-        // fix stack pointer
-        CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
-        assert(n != NULL);
-        int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
-				//modified
-        if (npar > 6) EmitInstruction("addq", Imm((npar-6)*8) + ", %rsp");
+      // fix stack pointer
+      CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
+      assert(n != NULL);
+      int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
+      //modified
+      if (npar > 6) EmitInstruction("addq", Imm((npar-6)*8) + ", %rsp");
 
-        // function result
-        CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
-        if (t != NULL) {
-          Store(i->GetDest(), 'a');
-        }
+      // function result
+      CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
+      if (t != NULL) {
+	Store(i->GetDest(), 'a');
       }
-      break;
+    }
+    break;
 
-    case opReturn:
-      if (i->GetSrc(1) != NULL) {
-        Load(i->GetSrc(1), "%rax", cmt.str());
+  case opReturn:
+    if (i->GetSrc(1) != NULL) {
+      Load(i->GetSrc(1), "%rax", cmt.str());
+    }
+    EmitInstruction("jmp", Label("exit"));
+    break;
+
+    //modified
+  case opParam:
+    {
+      CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
+      int paramIndex = t->GetValue();
+      if(paramIndex > 6) {
+	Load(i->GetSrc(1), "%rax", cmt.str());
+	EmitInstruction("pushq", "%rax");
       }
-      EmitInstruction("jmp", Label("exit"));
-      break;
-
-		//modified
-    case opParam:
-	  {
-			CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
-			int paramIndex = t->GetValue();
-			if(paramIndex > 6) {
-				Load(i->GetSrc(1), "%rax", cmt.str());
-				EmitInstruction("pushq", "%rax");
-			}
-			else {
-				Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
-			}
-		} //EmitInstruction("pushq", "%rax");
-      break;
+      else {
+	Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
+      }
+    } //EmitInstruction("pushq", "%rax");
+    break;
 
     // special
-    case opLabel:
-      _out << Label(dynamic_cast<CTacLabel_prime*>(i)) << ":" << endl;
+  case opLabel:
+    _out << Label(dynamic_cast<CTacLabel_prime*>(i)) << ":" << endl;
+    break;
+
+  case opNop:
+    EmitInstruction("nop", "", cmt.str());
+    break;
+
+  case opDIM:
+    {
+      Load(i->GetSrc(1), "%rax", cmt.str());
+      Load(i->GetSrc(2), "%rbx");
+      EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
+      Store(i->GetDest(), 'a');
       break;
+    }
 
-    case opNop:
-      EmitInstruction("nop", "", cmt.str());
+  case opDOFS:
+    {
+      string s = ".done_" + to_string(tmp_label_count++);
+      Load(i->GetSrc(1), "%rax", cmt.str());
+
+      EmitInstruction("movl", "(%rax), %eax");
+      EmitInstruction("leal", "4(,%eax,4), %eax");
+      EmitInstruction("testl", "$4, %eax");
+      EmitInstruction("jz", s);
+      EmitInstruction("addl", "$4, %eax");
+      _out << s << ":" << endl;
+
+      Store(i->GetDest(), 'a');
       break;
+    }
 
-    case opDIM:
-      {
-	Load(i->GetSrc(1), "%rax", cmt.str());
-	Load(i->GetSrc(2), "%rbx");
-	EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
-	Store(i->GetDest(), 'a');
-	break;
-      }
-
-    case opDOFS:
-      {
-	string s = ".done_" + to_string(tmp_label_count++);
-	Load(i->GetSrc(1), "%rax", cmt.str());
-
-	EmitInstruction("movl", "(%rax), %eax");
-	EmitInstruction("leal", "4(,%eax,4), %eax");
-	EmitInstruction("testl", "$4, %eax");
-	EmitInstruction("jz", s);
-	EmitInstruction("addl", "$4, %eax");
-	_out << s << ":" << endl;
-
-	Store(i->GetDest(), 'a');
-	break;
-      }
-
-    default:
-      EmitInstruction("# ???", "not implemented", cmt.str());
+  default:
+    EmitInstruction("# ???", "not implemented", cmt.str());
   }
 }
 
@@ -605,10 +606,10 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 
   // set operator modifier based on the operand size
   switch (OperandSize(src)) {
-    case 1: mod = "zbq"; break;
-    case 2: mod = "zwq"; break;
-    case 4: mod = "l"; dst.replace(1, 1, "e"); break;
-    case 8: mod = "q"; break;
+  case 1: mod = "zbq"; break;
+  case 2: mod = "zwq"; break;
+  case 4: mod = "l"; dst.replace(1, 1, "e"); break;
+  case 8: mod = "q"; break;
   }
 
   // emit the load instruction
@@ -625,10 +626,10 @@ void CBackendx86_64::Store(CTac *dst, char src_base, string comment)
 
   // compose the source register name based on the operand size
   switch (OperandSize(dst)) {
-    case 1: mod = "b"; src += string(1, src_base) + "l"; break;
-    case 2: mod = "w"; src += string(1, src_base) + "x"; break;
-    case 4: mod = "l"; src += "e" + string(1, src_base) + "x"; break;
-    case 8: mod = "q"; src += "r" + string(1, src_base) + "x"; break;
+  case 1: mod = "b"; src += string(1, src_base) + "l"; break;
+  case 2: mod = "w"; src += string(1, src_base) + "x"; break;
+  case 4: mod = "l"; src += "e" + string(1, src_base) + "x"; break;
+  case 8: mod = "q"; src += "r" + string(1, src_base) + "x"; break;
   }
 
   // emit the store instruction
@@ -646,10 +647,10 @@ string CBackendx86_64::Operand(const CTac *op)
   if ((c = dynamic_cast<const CTacConst*>(op)) != NULL) {
     operand = Imm(c->GetValue());
   } else
-  if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
-    const CSymbol *s = n->GetSymbol();
+    if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
+      const CSymbol *s = n->GetSymbol();
 
-    switch (s->GetSymbolType()) {
+      switch (s->GetSymbolType()) {
       case stGlobal:
         operand = s->GetName();
         break;
@@ -672,32 +673,32 @@ string CBackendx86_64::Operand(const CTac *op)
 	  operand = o.str();
         }
         break;
-    }
+      }
 
-    if (dynamic_cast<const CTacReference*>(n) != NULL) {
-			switch (GetSize_prime(s->GetDataType())) {
-				case 1:
-					EmitInstruction("movzbq", operand + ", %rdi");
-					break;
-				case 2:
-					EmitInstruction("movzwq", operand + ", %rdi");
-					break;
-				case 4:
-					EmitInstruction("movl", operand + ", %edi");
-					break;
-				case 8:
-					EmitInstruction("movq", operand + ", %rdi");
-			}
+      if (dynamic_cast<const CTacReference*>(n) != NULL) {
+	switch (GetSize_prime(s->GetDataType())) {
+	case 1:
+	  EmitInstruction("movzbq", operand + ", %rdi");
+	  break;
+	case 2:
+	  EmitInstruction("movzwq", operand + ", %rdi");
+	  break;
+	case 4:
+	  EmitInstruction("movl", operand + ", %edi");
+	  break;
+	case 8:
+	  EmitInstruction("movq", operand + ", %rdi");
+	}
 
-      operand = "(%rdi)";
-		}
+	operand = "(%rdi)";
+      }
 
-  } else
-  if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
-    operand = Label(l);
-  } else {
-    operand = "?";
-  }
+    } else
+      if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
+	operand = Label(l);
+      } else {
+	operand = "?";
+      }
 
   return operand;
 }
@@ -731,13 +732,13 @@ string CBackendx86_64::Label(string label) const
 string CBackendx86_64::Condition(EOperation cond) const
 {
   switch (cond) {
-    case opEqual:       return "e";
-    case opNotEqual:    return "ne";
-    case opLessThan:    return "l";
-    case opLessEqual:   return "le";
-    case opBiggerThan:  return "g";
-    case opBiggerEqual: return "ge";
-    default:            assert(false); break;
+  case opEqual:       return "e";
+  case opNotEqual:    return "ne";
+  case opLessThan:    return "l";
+  case opLessEqual:   return "le";
+  case opBiggerThan:  return "g";
+  case opBiggerEqual: return "ge";
+  default:            assert(false); break;
   }
 }
 
@@ -800,7 +801,7 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
       ostringstream loc;
       if(s->isInReg()){
 	loc << right << setw(4) << s->GetBaseRegister();
-	    // << "(" << "" << ")";
+	// << "(" << "" << ")";
 	_out << _ind << "#   "
 	     << left << setw(10) << loc.str() << "  "
 	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
@@ -826,32 +827,32 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 }
 
 void CBackendx86_64::EmitCalleePush(const boost::dynamic_bitset<> used_regs){
-	/// bit order: (low) rbx, r12, r13, r14, r15 (high)
-	for(int i=0; i<5; i++)
-		if(used_regs[i])
-			EmitInstruction("pushq", callee_regs[i], "save callee saved registers");
+  /// bit order: (low) rbx, r12, r13, r14, r15 (high)
+  for(int i=0; i<5; i++)
+    if(used_regs[i])
+      EmitInstruction("pushq", callee_regs[i], "save callee saved registers");
 }
 
 void CBackendx86_64::EmitCalleePop(const boost::dynamic_bitset<> used_regs){
-	/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-	for(int i=4; i>=0; i--)
-		if(used_regs[i])
-			EmitInstruction("popq", callee_regs[i], "restore callee saved registers");
+  /// bit order: (low) rbx, r12, r13, r13, r15 (high)
+  for(int i=4; i>=0; i--)
+    if(used_regs[i])
+      EmitInstruction("popq", callee_regs[i], "restore callee saved registers");
 }
 
 void CBackendx86_64::EmitCallerPush(const boost::dynamic_bitset<> used_regs){
-	for(int i=0; i<2; i++)
-		if(used_regs[i])
-			EmitInstruction("pushq", caller_regs[i],"save caller saved registers");
+  for(int i=0; i<2; i++)
+    if(used_regs[i])
+      EmitInstruction("pushq", caller_regs[i],"save caller saved registers");
 }
 void CBackendx86_64::EmitCallerPop(const boost::dynamic_bitset<> used_regs){
-	for(int i=1; i>=0; i--)
-		if(used_regs[i])
-			EmitInstruction("popq", caller_regs[i],"restore caller saved registers");
+  for(int i=1; i>=0; i--)
+    if(used_regs[i])
+      EmitInstruction("popq", caller_regs[i],"restore caller saved registers");
 }
 
 //TODO: fix it after register coloring
 void CBackendx86_64::EmitParamPush(int param_num){
-	for(int i = 0; i < param_num; i++)
-		EmitInstruction("pushq", param_regs[i], "put param regs into stack to use");
+  for(int i = 0; i < param_num; i++)
+    EmitInstruction("pushq", param_regs[i], "put param regs into stack to use");
 }
