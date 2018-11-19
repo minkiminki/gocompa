@@ -12,31 +12,60 @@ using namespace std;
 // ********************************************************************** /
 // Remove Unused Variables
 void remove_var_block(CSymtab* symtab, CCodeBlock *cb) {
-  set<CTacInstr*> labels;
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
 
   vector<CSymbol*> symbs = symtab->GetSymbols();
   set<const CSymbol*> occurs;
 
-  list<CTacInstr*>::const_iterator it = cb->GetInstr().begin();
-  while (it != cb->GetInstr().end()) {
-    CTacInstr* instr = *it++;
 
-    {
-      CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
-      if(src1 != NULL){
-	occurs.insert(src1->GetSymbol());
+  list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
+
+    list<CTacInstr*>::const_iterator it = blk->GetPhis().begin();
+    while (it != blk->GetPhis().end()) {
+      CTacInstr* instr = *it++;
+      {
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	if(src1 != NULL){
+	  occurs.insert(src1->GetSymbol());
+	}
+      }
+      {
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	if(src2 != NULL){
+	  occurs.insert(src2->GetSymbol());
+	}
+      }
+      {
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest != NULL){
+	  occurs.insert(dest->GetSymbol());
+	}
       }
     }
-    {
-      CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
-      if(src2 != NULL){
-	occurs.insert(src2->GetSymbol());
+
+    it = blk->GetInstrs().begin();
+    while (it != blk->GetInstrs().end()) {
+      CTacInstr* instr = *it++;
+      {
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	if(src1 != NULL){
+	  occurs.insert(src1->GetSymbol());
+	}
       }
-    }
-    {
-      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
-      if(dest != NULL){
-	occurs.insert(dest->GetSymbol());
+      {
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	if(src2 != NULL){
+	  occurs.insert(src2->GetSymbol());
+	}
+      }
+      {
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest != NULL){
+	  occurs.insert(dest->GetSymbol());
+	}
       }
     }
   }
