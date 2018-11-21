@@ -407,7 +407,9 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
   string mnm;
   string temp_regs[2] = {"%rax", "%rdx"};
   bool is_ref = false, is_mem[3] = {false, false, false}, isDiv = false;
-  bool get_src2 = true, isNeg = false, isAsg = false;
+  bool get_src1 = true, get_src2 = true, get_dst = true;
+  bool isNeg = false, isAsg = false;
+  string cmt = comment;
   EOperation op = i->GetOperation();
 
   string operand;
@@ -418,55 +420,79 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opAnd: mnm = "andq"; break;
     case opOr:  mnm = "orq";  break;
     case opMul: mnm = "imulq"; break;
-    case opDiv: mnm = "idivq"; isDiv = true; break;
+    case opDiv: mnm = "idivq";
+                isDiv = true; break;
     case opNeg:
-    case opNot:
-                mnm = (op == opNeg ? "negq" : "notq");
+    case opNot: mnm = (op == opNeg ? "negq" : "notq");
                 get_src2 = false;
                 isNeg = true;
                 EmitInstruction("negq", "%rax");
                 break;
-    case opAssign: get_src2 = false; isAsg = true; break;
+    case opAssign:
+                get_src2 = false;
+                isAsg = true;
+                break;
+    case opGoto:
+                get_src2 = false;
+                get_dst = false;
+                break;
   }
 
-  string src1, src2, dst, old_dst;
-  src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
   // get operands and destination
+  // if destination is in memory, use a temporary register
+  // also if operation is division or neg/not, src1 should go into a register(%rax)
   // 이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
-  if(is_ref) {
-    if(is_mem[0]) // memory면 한번 주소 레지스터로 가져와야함
-      Load(src1, temp_regs[reg_count], comment, 8);
-    Load("("+src1+")", temp_regs[reg_count++], comment, OperandSize(i->GetSrc(1)));
-    src1 = temp_regs[reg_count++];
-    is_mem[0] = false;
-  } else if(isDiv || isNeg) {
-    Load(src1, temp_regs[reg_count], comment, OperandSize(i->GetSrc(1)));
-    src1 = temp_regs[reg_count++];
-    is_mem[0] = false;
+  string src1, src2, dst, old_dst;
+  if(get_src1) {
+    src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
+    
+    if(is_ref) {
+      if(is_mem[0]) {// memory면 한번 주소 레지스터로 가져와야함
+        Load(src1, temp_regs[reg_count], cmt, 8); // 8 is for pointer size
+        cmt = "";
+      }
+        
+      Load("("+src1+")", temp_regs[reg_count++], cmt, OperandSize(i->GetSrc(1)));
+      cmt = "";
+      src1 = temp_regs[reg_count++];
+      is_mem[0] = false;
+    } else if(isDiv || isNeg) {
+      Load(src1, temp_regs[reg_count], cmt, OperandSize(i->GetSrc(1)));
+      cmt = "";
+      src1 = temp_regs[reg_count++];
+      is_mem[0] = false;
+    }
   }
   // for op which need only one operand, do not execute it
   if(get_src2) {
     is_ref = false;
     src2 = Operand(i->GetSrc(2), &is_ref, &is_mem[1]);
+
     if(is_ref) {
-      if(is_mem[1])
-        Load(src2, temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
-      Load("("+src2+")", temp_regs[reg_count], comment, OperandSize(i->GetSrc(2)));
+      if(is_mem[1]) {
+        Load(src2, temp_regs[reg_count], cmt, OperandSize(i->GetSrc(2)));
+        cmt = "";
+      }
+      Load("("+src2+")", temp_regs[reg_count], cmt, OperandSize(i->GetSrc(2)));
+      cmt = "";
       src2 = temp_regs[reg_count++];
       is_mem[1] = false;
     }
   }
-  is_ref = false;
-  dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
-  old_dst = dst;
-  if(is_mem[2]) {
-    if(is_mem[0] || is_mem[1]) { //operands둘 중 하나라도 메모리면 dest를 레지스터로 옮김
-      Load(dst, temp_regs[reg_count], "move dst to tempreg", OperandSize(i->GetDest()));
+  bool storeDest = false;
+  if(get_dst) {
+    is_ref = false;
+    dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
+
+    if(is_mem[2]) {
+      // register를 dest로 사용해야함
+      // case which src1, src2 are both reference not exists
+      old_dst = dst;
       dst = temp_regs[reg_count++];
+      storeDest = true;
     }
   }
 
-  string cmt = "";
   /* Debugging
      for(int i=0; i<3; i++){
      if(is_mem[i])
@@ -474,7 +500,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
      else
      cmt = cmt + "0";
      }
-     */
+  */
   switch (op) {
     case opAdd: 
     case opSub: 
@@ -484,7 +510,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opDiv:
       Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
       EmitInstruction(mnm, src2 + ", " + dst);
-      Store(dst, old_dst, "store original dest", OperandSize(i->GetDest()));
       break;
     case opNeg:
     case opNot:
@@ -494,8 +519,26 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opAssign:
       Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
       break;
-
+    case opAddress:
+      EmitInstruction("leaq", src1 + ", " + dst);
+      break;
+    case opGoto:
+      EmitInstruction("jmp", dst);
+      break;
+    // conditional branching
+    // if src1 relOp src2 then goto dst
+    case opEqual:
+    case opNotEqual:
+    case opLessThan:
+    case opLessEqual:
+    case opBiggerThan:
+    case opBiggerEqual:
+      EmitInstruction("cmpq", src2 + ", " + src1);
+      EmitInstruction("j" + Condition(op), dst);
+      break;
   }
+  if(storeDest)
+    Store(dst, old_dst, "store operation result", OperandSize(i->GetDest()));
   /* TODO::src, dst reg가 같을 때 바꾸기
      if(src1.strcmp(dst) == 0)
      EmitInstruction(mnm, src2 + ", " + dst, comment)
@@ -527,6 +570,14 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opNeg:
     case opNot:
     case opAssign:
+    case opAddress:
+    case opGoto:
+    case opEqual:
+    case opNotEqual:
+    case opLessThan:
+    case opLessEqual:
+    case opBiggerThan:
+    case opBiggerEqual:
       EmitOperation(i, cmt.str());
       break;
       /*
@@ -537,26 +588,25 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       Store(i->GetDest(), 'a');
       break;
 
-*/
       // pointer operations
       // dst = &src1
     case opAddress:
       EmitInstruction("leaq", Operand(i->GetSrc(1)) + ", %rax", cmt.str());
       EmitInstruction("movq", "%rax, " + Operand(i->GetDest()));
       break;
+      */
       // dst = *src1
     case opDeref:
       // opDeref are not generated for now
       EmitInstruction("# opDeref", "not implemented", cmt.str());
       break;
 
-
+    /*
       // unconditional branching
       // goto dst
     case opGoto:
       EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
       break;
-
 
       // conditional branching
       // if src1 relOp src2 then goto dst
@@ -573,6 +623,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       break;
 
 
+    */
       // function call-related operations
     case opTailCall:
       {
@@ -752,46 +803,45 @@ string CBackendx86_64::Operand(const CTac *op)
 
   if ((c = dynamic_cast<const CTacConst*>(op)) != NULL) {
     operand = Imm(c->GetValue());
-  } else
-    if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
-      const CSymbol *s = n->GetSymbol();
+  }
+  else if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
+    const CSymbol *s = n->GetSymbol();
 
-      switch (s->GetSymbolType()) {
-        case stGlobal:
-        case stProcedure:
-          operand = s->GetName();
-          break;
+    switch (s->GetSymbolType()) {
+      case stGlobal:
+      case stProcedure:
+        operand = s->GetName();
+        break;
 
-        case stLocal:
-        case stParam:
-          {
-            ostringstream o;
-            if(s->isInReg()){
-              o << s->GetBaseRegister();
-            }
-            else{
-              o << s->GetOffset() << "(" << "%rbp" << ")";
-            }
-            operand = o.str();
+      case stLocal:
+      case stParam:
+        {
+          ostringstream o;
+          if(s->isInReg()){
+            o << s->GetBaseRegister();
           }
-          break;
-      }
+          else{
+            o << s->GetOffset() << "(" << "%rbp" << ")";
+          }
+          operand = o.str();
+        }
+        break;
+    }
 
-      if (dynamic_cast<const CTacReference*>(n) != NULL) {
-        //operand = "("+temp_reg")";
-      }
+    if (dynamic_cast<const CTacReference*>(n) != NULL) {
+      //operand = "("+temp_reg")";
 
       operand = "(%rdi)";
     }
 
-} else
-if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
-  operand = Label(l);
-} else {
-  operand = "?";
-}
+  }
+  else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
+    operand = Label(l);
+  } else {
+    operand = "?";
+  }
 
-return operand;
+  return operand;
 }
 string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
 {
