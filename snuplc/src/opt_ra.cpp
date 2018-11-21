@@ -16,6 +16,118 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
   assert(cbp != NULL);
   vector<CSymbol*> slist = symtab->GetSymbols();
 
+  {
+    Liveness *liveness = cbp->GetBlockTable()->GetLiveness();
+    assert(liveness != NULL);
+    map<const CSymbol*, list<const CSymbol*>> live_graph;
+    list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
+    while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+      CBasicBlock* blk = *bit++;
+
+      {
+	list<const CSymbol*> &slist = (liveness->GetUses(1))[blk];
+	{
+	  list<const CSymbol*>::const_iterator sit = slist.begin();
+	  while (sit != slist.end()) {
+	    const CSymbol* s = *sit++;
+	    if(live_graph.find(s) == live_graph.end()){
+	      list<const CSymbol *> list_tmp;
+	      live_graph[s] = list_tmp;
+	    }
+	  }
+	}
+	{
+	  list<const CSymbol*>::const_iterator sit1 = slist.begin();
+	  while (sit1 != slist.end()) {
+	    const CSymbol* s1 = *sit1++;
+	    list<const CSymbol*> &lives1 = live_graph[s1];
+	    list<const CSymbol*>::const_iterator sit2 = sit1;
+	    while (sit2 != slist.end()) {
+	      const CSymbol* s2 = *sit2++;
+	      list<const CSymbol*> &lives2 = live_graph[s2];
+	      nodup_insert(lives1, s2);
+	      nodup_insert(lives2, s1);
+	    }
+	  }
+	}
+      }
+
+      {
+	list<const CSymbol*> &slist = (liveness->GetUses(2))[blk];
+	{
+	  list<const CSymbol*>::const_iterator sit = slist.begin();
+	  while (sit != slist.end()) {
+	    const CSymbol* s = *sit++;
+	    if(live_graph.find(s) == live_graph.end()){
+	      list<const CSymbol *> list_tmp;
+	      live_graph[s] = list_tmp;
+	      // live_graph[s] = new list<const CSymbol*>;
+	    }
+	  }
+	}
+	{
+	  list<const CSymbol*>::const_iterator sit1 = slist.begin();
+	  while (sit1 != slist.end()) {
+	    const CSymbol* s1 = *sit1++;
+	    list<const CSymbol*> &lives1 = live_graph[s1];
+	    list<const CSymbol*>::const_iterator sit2 = sit1;
+	    while (sit2 != slist.end()) {
+	      const CSymbol* s2 = *sit2++;
+	      list<const CSymbol*> &lives2 = live_graph[s2];
+	      nodup_insert(lives1, s2);
+	      nodup_insert(lives2, s1);
+	    }
+	  }
+	}
+      }
+
+      list<CTacInstr*>::const_iterator it = blk->GetInstrs().begin();
+      while (it != blk->GetInstrs().end()) {
+	CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
+	assert(instr != NULL);
+	{
+	  list<const CSymbol*> &slist = instr->GetLiveVars();
+	  {
+	    list<const CSymbol*>::const_iterator sit = slist.begin();
+	    while (sit != slist.end()) {
+	      const CSymbol* s = *sit++;
+	      if(live_graph.find(s) == live_graph.end()){
+		list<const CSymbol *> list_tmp;
+		live_graph[s] = list_tmp;
+	      }
+	    }
+	  }
+	  {
+	    list<const CSymbol*>::const_iterator sit1 = slist.begin();
+	    while (sit1 != slist.end()) {
+	      const CSymbol* s1 = *sit1++;
+	      list<const CSymbol*> &lives1 = live_graph[s1];
+	      list<const CSymbol*>::const_iterator sit2 = sit1;
+	      while (sit2 != slist.end()) {
+		const CSymbol* s2 = *sit2++;
+		list<const CSymbol*> &lives2 = live_graph[s2];
+		nodup_insert(lives1, s2);
+		nodup_insert(lives2, s1);
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+    map<const CSymbol*, list<const CSymbol*>>::iterator git = live_graph.begin();
+    while (git != live_graph.end()) {
+      cout << (git->first->GetName()) << " -";
+      list<const CSymbol*> &slist = git->second;
+      list<const CSymbol*>::const_iterator sit = slist.begin();
+      while (sit != slist.end()) {
+	cout << " " << (*sit++)->GetName();
+      }
+      cout << endl;
+      git++;
+    }
+  }
+
   // compute stack offset
   int callee_save = 5;
   int param_ofs = -(callee_save)*8;

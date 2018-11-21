@@ -215,7 +215,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_src1 = src1->GetSymbol();
 	    assert(s_src1 != NULL);
 
-	    if(s_src1->GetSymbolType() != stGlobal)
+	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray()))
 	      nodup_insert(blk_uses1, s_src1);
 	  }
 	}
@@ -225,7 +225,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_src2 = src2->GetSymbol();
 	    assert(s_src2 != NULL);
 
-	    if(s_src2->GetSymbolType() != stGlobal)
+	    if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray()))
 	      nodup_insert(blk_uses2, s_src2);
 	  }
 	}
@@ -239,7 +239,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_src1 = src1->GetSymbol();
 	    assert(s_src1 != NULL);
 
-	    if(s_src1->GetSymbolType() != stGlobal)
+	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray()))
 	      nodup_insert(blk_uses2, s_src1);
 	  }
 	}
@@ -249,7 +249,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_src2 = src2->GetSymbol();
 	    assert(s_src2 != NULL);
 
-	    if(s_src2->GetSymbolType() != stGlobal)
+	    if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray()))
 	      nodup_insert(blk_uses1, s_src2);
 	  }
 	}
@@ -261,7 +261,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	const CSymbol* s_dest = dest->GetSymbol();
 	assert(s_dest != NULL);
 
-	if(s_dest->GetSymbolType() != stGlobal)
+	if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray()))
 	  nodup_insert(blk_defs, s_dest);
       }
     }
@@ -278,7 +278,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_dest = dest->GetSymbol();
 	    assert(s_dest != NULL);
 
-	    if(s_dest->GetSymbolType() != stGlobal){
+	    if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray())){
 	      list<const CSymbol*>::iterator fit = find(blk_defs.begin(), blk_defs.end(),s_dest);
 	      if(fit == blk_defs.end()){
 		nodup_insert(blk_uses1, s_dest);
@@ -289,7 +289,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	  else{
 	    const CSymbol* s_dest = dest->GetSymbol();
 	    assert(s_dest != NULL);
-	    if(s_dest->GetSymbolType() != stGlobal){
+	    if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray())){
 	     nodup_insert(blk_defs, s_dest);
 	    }
 	  }
@@ -302,7 +302,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	  assert(s_src1 != NULL);
 
 	  if(dynamic_cast<const CSymProc*>(s_src1) == NULL ){
-	    if(s_src1->GetSymbolType() != stGlobal){
+	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray())){
 	      list<const CSymbol*>::iterator fit = find(blk_defs.begin(), blk_defs.end(), s_src1);
 	      if(fit == blk_defs.end()){
 		nodup_insert(blk_uses1, s_src1);
@@ -317,7 +317,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	if(src2 != NULL){
 	  const CSymbol* s_src2 = src2->GetSymbol();
 	  assert(s_src2 != NULL);
-	  if(s_src2->GetSymbolType() != stGlobal){
+	  if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray())){
 	    list<const CSymbol*>::iterator fit = find(blk_defs.begin(), blk_defs.end(),s_src2);
 	    if(fit == blk_defs.end()){
 	      nodup_insert(blk_uses1, s_src2);
@@ -451,7 +451,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	  assert(s_src1 != NULL);
 
 	  if(dynamic_cast<const CSymProc*>(s_src1) == NULL ){
-	    if(s_src1->GetSymbolType() != stGlobal){
+	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray())){
 
 	      nodup_insert(live_vars, s_src1);
 	      // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(), s_src1);
@@ -468,7 +468,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	if(src2 != NULL){
 	  const CSymbol* s_src2 = src2->GetSymbol();
 	  assert(s_src2 != NULL);
-	  if(s_src2->GetSymbolType() != stGlobal){
+	  if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray())){
 	    // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(),s_src2);
 	    // if(fit == live_vars.end()){
 	    //   nodup_insert(live_vars, s_src2);
@@ -485,7 +485,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    const CSymbol* s_dest = dest->GetSymbol();
 	    assert(s_dest != NULL);
 
-	    if(s_dest->GetSymbolType() != stGlobal){
+	    if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray())){
 	      // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(),s_dest);
 	      // if(fit == live_vars.end()){
 	      // 	nodup_insert(live_vars, s_dest);
@@ -496,7 +496,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	  else{
 	    const CSymbol* s_dest = dest->GetSymbol();
 	    assert(s_dest != NULL);
-	    if(s_dest->GetSymbolType() != stGlobal){
+	    if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray())){
 
 	      erase_success(live_vars, s_dest);
 
