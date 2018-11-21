@@ -206,6 +206,41 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
       }
     }
 
+    bool success = true;
+    while(success){
+      success = false;
+
+      map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
+      while (git != assign_graph.end()) {
+	const CSymbol* s1 = git->first;
+
+	list<const CSymbol*> &slist1 = git->second;
+	git++;
+	list<const CSymbol*>::const_iterator sit1 = slist1.begin();
+	while (sit1 != slist1.end()) {
+	  const CSymbol *s2 = *sit1++;
+
+	  list<const CSymbol*> &slist2 = assign_graph[s2];
+	  list<const CSymbol*>::const_iterator sit2 = slist2.begin();
+	  while (sit2 != slist2.end()) {
+	    const CSymbol *s3 = *sit2++;
+	    if(s1 != s3){
+	      list<const CSymbol*> &slist3 = assign_graph[s3];
+	      if(nodup_insert(slist1, s3) == 0){
+		success = true;
+		// cout << s1 << s2 << s3 << endl;
+	      }
+	      if(nodup_insert(slist3, s1) == 0){
+		success = true;
+		// cout << s1 << s2 << s3 << endl;
+	      }
+	    }
+	  }
+	}
+      }
+
+    }
+
     cout << "assign ---------------------------------------------" << endl;
     map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
     while (git != assign_graph.end()) {
