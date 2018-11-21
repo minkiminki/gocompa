@@ -115,8 +115,100 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
       }
     }
 
+    cout << "liveness ---------------------------------------------" << endl;
     map<const CSymbol*, list<const CSymbol*>>::iterator git = live_graph.begin();
     while (git != live_graph.end()) {
+      cout << (git->first->GetName()) << " -";
+      list<const CSymbol*> &slist = git->second;
+      list<const CSymbol*>::const_iterator sit = slist.begin();
+      while (sit != slist.end()) {
+	cout << " " << (*sit++)->GetName();
+      }
+      cout << endl;
+      git++;
+    }
+  }
+
+  {
+    Liveness *liveness = cbp->GetBlockTable()->GetLiveness();
+    assert(liveness != NULL);
+    map<const CSymbol*, list<const CSymbol*>> assign_graph;
+    list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
+    while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+      CBasicBlock* blk = *bit++;
+
+      list<CTacInstr*>::const_iterator it = blk->GetInstrs().begin();
+      while (it != blk->GetInstrs().end()) {
+	CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
+	assert(instr != NULL);
+	if(instr->GetOperation() != opAssign) continue;
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest == NULL) continue;
+	if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+	CTacName* src = dynamic_cast<CTacName*>(instr->GetSrc(1));
+        if(src == NULL) continue;
+	if(dynamic_cast<CTacReference*>(src) != NULL) continue;
+	const CSymbol* s_dest = dest->GetSymbol();
+	const CSymbol* s_src = src->GetSymbol();
+
+	if(assign_graph.find(s_dest) == assign_graph.end()){
+	  list<const CSymbol *> list_tmp;
+	  assign_graph[s_dest] = list_tmp;
+	}
+	if(assign_graph.find(s_src) == assign_graph.end()){
+	  list<const CSymbol *> list_tmp;
+	  assign_graph[s_src] = list_tmp;
+	}
+	list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+	list<const CSymbol*> &assign_src = assign_graph[s_src];
+	nodup_insert(assign_dest, s_src);
+	nodup_insert(assign_src, s_dest);
+      }
+
+      it = blk->GetPhis().begin();
+      while (it != blk->GetPhis().end()) {
+	CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
+	assert(instr != NULL);
+
+	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	if(dest == NULL) continue;
+	if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+	const CSymbol* s_dest = dest->GetSymbol();
+	list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+
+	{
+	  CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	  if(src1 != NULL && dynamic_cast<CTacReference*>(src1) == NULL) {
+	    const CSymbol* s_src1 = src1->GetSymbol();
+	    if(assign_graph.find(s_src1) == assign_graph.end()){
+	      list<const CSymbol *> list_tmp;
+	      assign_graph[s_src1] = list_tmp;
+	    }
+	    list<const CSymbol*> &assign_src1 = assign_graph[s_src1];
+	    nodup_insert(assign_dest, s_src1);
+	    nodup_insert(assign_src1, s_dest);
+	  }
+	}
+
+	{
+	  CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	  if(src2 != NULL && dynamic_cast<CTacReference*>(src2) == NULL) {
+	    const CSymbol* s_src2 = src2->GetSymbol();
+	    if(assign_graph.find(s_src2) == assign_graph.end()){
+	      list<const CSymbol *> list_tmp;
+	      assign_graph[s_src2] = list_tmp;
+	    }
+	    list<const CSymbol*> &assign_src2 = assign_graph[s_src2];
+	    nodup_insert(assign_dest, s_src2);
+	    nodup_insert(assign_src2, s_dest);
+	  }
+	}
+      }
+    }
+
+    cout << "assign ---------------------------------------------" << endl;
+    map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
+    while (git != assign_graph.end()) {
       cout << (git->first->GetName()) << " -";
       list<const CSymbol*> &slist = git->second;
       list<const CSymbol*>::const_iterator sit = slist.begin();
