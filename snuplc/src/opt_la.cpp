@@ -547,7 +547,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 
       instr->SetLiveVars(live_vars);
 
-      if(instr->GetOperation() == opCall || instr->GetOperation() == opTailCall){
+      if(instr->GetOperation() == opCall){
 	instr->GetLiveVars().push_back(caller_save1);
 	instr->GetLiveVars().push_back(caller_save2);
       }
