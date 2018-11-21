@@ -509,21 +509,28 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opMul:
     case opDiv:
       Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-      EmitInstruction(mnm, src2 + ", " + dst);
+      cmt = "";
+      EmitInstruction(mnm, src2 + ", " + dst, cmt);
       break;
     case opNeg:
     case opNot:
       Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-      EmitInstruction(mnm, src1 + ", " + dst);
+      cmt = "";
+      EmitInstruction(mnm, src1 + ", " + dst, cmt);
       break;
     case opAssign:
-      Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      if(is_mem[0]){
+        Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+        cmt = "";
+      }
       break;
     case opAddress:
-      EmitInstruction("leaq", src1 + ", " + dst);
+      EmitInstruction("leaq", src1 + ", " + dst, cmt);
+      cmt = "";
       break;
     case opGoto:
-      EmitInstruction("jmp", dst);
+      EmitInstruction("jmp", dst, cmt);
+      cmt = "";
       break;
     // conditional branching
     // if src1 relOp src2 then goto dst
@@ -533,12 +540,13 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opLessEqual:
     case opBiggerThan:
     case opBiggerEqual:
-      EmitInstruction("cmpq", src2 + ", " + src1);
+      EmitInstruction("cmpq", src2 + ", " + src1, cmt);
+      cmt = "";
       EmitInstruction("j" + Condition(op), dst);
       break;
   }
-  if(storeDest)
-    Store(dst, old_dst, "store operation result", OperandSize(i->GetDest()));
+  if(is_mem[2])
+    Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
   /* TODO::src, dst reg가 같을 때 바꾸기
      if(src1.strcmp(dst) == 0)
      EmitInstruction(mnm, src2 + ", " + dst, comment)
