@@ -44,6 +44,16 @@ string param_regs[6] = {"%rdi\0","%rsi\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
 static bool isTailCall = false;
+string all_regs[4][14] = {
+  {"%al", "%bl", "%cl", "%dl", "%sil", "%dil", "%r8b", "%r9b", "%r10b",
+    "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"},
+  {"%ax", "%bx", "%cx", "%dx", "%si", "%di", "%r8w", "%r91", "%r10w",
+    "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"},
+  {"%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi", "%r8d", "%r9d", "%r10d",
+    "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"},
+  {"%rax", "%rbx", "%rcx", "%rdx", "%rsi", "%rdi", "%r8", "%r9", "%r10",
+    "%r11", "%r12", "%r13", "%r14", "%r15"}
+};
 
 static int tmp_label_count = 0;
 
@@ -63,7 +73,41 @@ int GetAlign_prime (const CType* ct)
     return ct->GetAlign();
 }
 
-//------------------------------------------------------------------------------
+// find register type - 만든 이유는 Load 인자를 인티저로 바꾸기 귀찮았기 때문
+int getRegType(string reg)
+{
+  if(reg.compare("%rax") == 0) return 0;
+  if(reg.compare("%rbx") == 0) return 1;
+  if(reg.compare("%rcx") == 0) return 2;
+  if(reg.compare("%rdx") == 0) return 3;
+  if(reg.compare("%rsi") == 0) return 4;
+  if(reg.compare("%rdi") == 0) return 5;
+  if(reg.compare("%r8") == 0) return 6;
+  if(reg.compare("%r9") == 0) return 7;
+  if(reg.compare("%r10") == 0) return 8;
+  if(reg.compare("%r11") == 0) return 9;
+  if(reg.compare("%r12") == 0) return 10;
+  if(reg.compare("%r13") == 0) return 11;
+  if(reg.compare("%r14") == 0) return 12;
+  if(reg.compare("%r15") == 0) return 13;
+  if(reg.compare("%r16") == 0) return 14;
+  return stoi(reg);
+}
+
+// get register string based on operand's size
+// wow :(
+string getRegister(string reg, int size)
+{
+  int regNum = getRegType(reg);
+  switch(size){
+    case 1: return all_regs[0][regNum];
+    case 2: return all_regs[1][regNum];
+    case 4: return all_regs[2][regNum];
+    case 8: return all_regs[3][regNum];
+    default: return "";
+  }
+}
+
 // CBackendx86_64
 //
 CBackendx86_64::CBackendx86_64(ostream &out)
@@ -438,23 +482,27 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
                 break;
   }
 
-  // get operands and destination
-  // if destination is in memory, use a temporary register
-  // also if operation is division or neg/not, src1 should go into a register(%rax)
-  // 이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
+  /*
+   *  get operands and destination
+   *  if destination is in memory, use a temporary register
+   *  also if operation is division or neg/not, src1 should go into a register(%rax)
+   *  이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
+  */
+
   string src1, src2, dst, old_dst;
   if(get_src1) {
     src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
     
     if(is_ref) {
-      if(is_mem[0]) {// memory면 한번 주소 레지스터로 가져와야함
+      // memory면 한번 주소 레지스터로 가져와야함
+      if(is_mem[0]) {
         Load(src1, temp_regs[reg_count], cmt, 8); // 8 is for pointer size
         cmt = "";
       }
-        
-      Load("("+src1+")", temp_regs[reg_count++], cmt, OperandSize(i->GetSrc(1)));
+      // move address to reg
+      Load("("+src1+")", temp_regs[reg_count], cmt, 8);
       cmt = "";
-      src1 = temp_regs[reg_count++];
+      src1 = temp_regs[reg_count++]; //size will be 8
       is_mem[0] = false;
     } else if(isDiv || isNeg) {
       Load(src1, temp_regs[reg_count], cmt, OperandSize(i->GetSrc(1)));
@@ -475,7 +523,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       }
       Load("("+src2+")", temp_regs[reg_count], cmt, OperandSize(i->GetSrc(2)));
       cmt = "";
-      src2 = temp_regs[reg_count++];
+      src2 = temp_regs[reg_count++]; //size will be 8
       is_mem[1] = false;
     }
   }
@@ -514,6 +562,8 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       break;
     case opNeg:
     case opNot:
+      // convert dst with size
+      //string tempDst = getRegister(dst, OperandSize(i->GetDest()));
       Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
       cmt = "";
       EmitInstruction(mnm, src1 + ", " + dst, cmt);
@@ -522,6 +572,10 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       if(is_mem[0]){
         Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
         cmt = "";
+      } else {
+        Store(src1, old_dst, cmt, OperandSize(i->GetSrc(1)));
+        cmt = "";
+        return; // to avoid doing Store into old_dst
       }
       break;
     case opAddress:
@@ -545,8 +599,10 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       EmitInstruction("j" + Condition(op), dst);
       break;
   }
-  if(is_mem[2])
+  if(is_mem[2]){
+    dst = getRegister(dst, OperandSize(i->GetDest()));
     Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+  }
   /* TODO::src, dst reg가 같을 때 바꾸기
      if(src1.strcmp(dst) == 0)
      EmitInstruction(mnm, src2 + ", " + dst, comment)
@@ -740,9 +796,11 @@ void CBackendx86_64::Load(string src, string dst, string comment, int size)
   switch (size) {
     case 1: mod = "zbq"; break;
     case 2: mod = "zwq"; break;
-    case 4: mod = "l"; if(dst.substr(1,1).compare("r")==0) dst.replace(1, 1, "e"); break;
+    case 4: mod = "l"; dst = getRegister(dst, 4); break;
     case 8: mod = "q"; break;
   }
+
+//  dst = getRegister(dst, size);
 
   // emit the load instruction
   EmitInstruction(mnm + mod, src + ", " + dst, comment);
@@ -770,14 +828,14 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 void CBackendx86_64::Store(string src, string dst, string comment, int size)
 {
   string mod = "q";
-  /*
-     switch (size) {
-     case 1: mod = "b"; break;
-     case 2: mod = "w"; break; 
-     case 4: mod = "l"; break;
-     case 8: mod = "q"; break;
-     }
-     */
+  
+  switch (size) {
+    case 1: mod = "b"; break;
+    case 2: mod = "w"; break;
+    case 4: mod = "l"; break;
+    case 8: mod = "q"; break;
+  }
+
   EmitInstruction("mov" + mod, src + ", " + dst, comment);
 }
 
@@ -837,9 +895,8 @@ string CBackendx86_64::Operand(const CTac *op)
     }
 
     if (dynamic_cast<const CTacReference*>(n) != NULL) {
-      //operand = "("+temp_reg")";
-
-      operand = "(%rdi)";
+      Load(operand, "%rax", "", 8);
+      operand = "(%rax)";
     }
 
   }
