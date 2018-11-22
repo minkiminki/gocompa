@@ -376,7 +376,16 @@ class Liveness {
   const CSymbol* GetCallerSave(int index);
   map<CBasicBlock*, list<const CSymbol*>> & GetUses(int index);
 
+  const CSymbol* CreateDeadCalleeSave(int index);
+  const CSymbol* CreateDeadParam(int index);
+  const CSymbol* CreateArgReg(int index);
+  const CSymbol* CreateParamReg(int index);
+  // list<CSymbol*> GetDeadRegs(void);
+  list<CSymbol*>& GetTempRegs(void);
+
  protected:
+  // list<CSymbol*> & _deadregs;
+  list<CSymbol*> _tempregs;
   map<CBasicBlock*, list<const CSymbol*>> _uses1;
   map<CBasicBlock*, list<const CSymbol*>> _uses2;
   const CSymbol* _param_regs[6];

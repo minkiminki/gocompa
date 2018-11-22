@@ -54,3 +54,97 @@ map<CBasicBlock*, list<const CSymbol*>>& Liveness::GetUses(int index)
     return _uses2;
   }
 }
+
+const CSymbol* Liveness::CreateDeadCalleeSave(int index)
+{
+  CSymbol* s;
+  switch(index){
+  case 0:
+    s = new CSymbol("dead0_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 1:
+    s = new CSymbol("dead1_", stRegister, CTypeManager::Get()->GetNull()); break;
+  default:
+    assert(false);
+  }
+  _tempregs.push_back(s);
+  return s;
+}
+
+const CSymbol* Liveness::CreateDeadParam(int index)
+{
+  CSymbol* s;
+  switch(index){
+  case 0:
+    s = new CSymbol("dead_p0_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 1:
+    s = new CSymbol("dead_p1_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 2:
+    s = new CSymbol("dead_p2_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 3:
+    s = new CSymbol("dead_p3_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 4:
+    s = new CSymbol("dead_p4_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 5:
+    s = new CSymbol("dead_p5_", stRegister, CTypeManager::Get()->GetNull()); break;
+  default:
+    assert(false);
+  }
+  _tempregs.push_back(s);
+  return s;
+}
+
+const CSymbol* Liveness::CreateArgReg(int index)
+{
+  CSymbol* s;
+  switch(index){
+  case 0:
+    s = new CSymbol("arg0_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 1:
+    s = new CSymbol("arg1_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 2:
+    s = new CSymbol("arg2_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 3:
+    s = new CSymbol("arg3_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 4:
+    s = new CSymbol("arg4_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 5:
+    s = new CSymbol("arg5_", stRegister, CTypeManager::Get()->GetNull()); break;
+  default:
+    assert(false);
+  }
+  _tempregs.push_back(s);
+  return s;
+}
+
+const CSymbol* Liveness::CreateParamReg(int index)
+{
+  CSymbol* s;
+  switch(index){
+  case 0:
+    s = new CSymbol("param0_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 1:
+    s = new CSymbol("param1_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 2:
+    s = new CSymbol("param2_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 3:
+    s = new CSymbol("param3_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 4:
+    s = new CSymbol("param4_", stRegister, CTypeManager::Get()->GetNull()); break;
+  case 5:
+    s = new CSymbol("param5_", stRegister, CTypeManager::Get()->GetNull()); break;
+  default:
+    assert(false);
+  }
+  _tempregs.push_back(s);
+  return s;
+}
+
+// // list<CSymbol*>& Liveness::GetDeadRegs(void);
+// // {
+// //   return _deadregs;
+// // }
+
+list<CSymbol*>& Liveness::GetTempRegs(void)
+{
+  return _tempregs;
+}

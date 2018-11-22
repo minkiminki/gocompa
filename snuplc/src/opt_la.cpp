@@ -440,6 +440,8 @@ void liveness_analysis_block(CCodeBlock *cb) {
     CBasicBlock* blk = *bit++;
     list<const CSymbol*> live_vars = uses_below[blk];
 
+    const CSymbol* arg[6];
+
     list<CTacInstr*>::iterator it = blk->GetInstrs().end();
     while (it != blk->GetInstrs().begin()) {
       CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*--it);
@@ -530,26 +532,50 @@ void liveness_analysis_block(CCodeBlock *cb) {
         num = (num > 6) ? 6 : num;
 
 	switch(num){
-	case 6: nodup_insert(live_vars, param_regs[5]);
-	case 5: nodup_insert(live_vars, param_regs[4]);
-	case 4: nodup_insert(live_vars, param_regs[3]);
-	case 3: nodup_insert(live_vars, param_regs[2]);
-	case 2: nodup_insert(live_vars, param_regs[1]);
-	case 1: nodup_insert(live_vars, param_regs[0]);
+	case 6: arg[5] = liveness->CreateArgReg(5); nodup_insert(live_vars, arg[5]);
+	case 5: arg[4] = liveness->CreateArgReg(4); nodup_insert(live_vars, arg[4]);
+	case 4: arg[3] = liveness->CreateArgReg(3); nodup_insert(live_vars, arg[3]);
+	case 3: arg[2] = liveness->CreateArgReg(2); nodup_insert(live_vars, arg[2]);
+	case 2: arg[1] = liveness->CreateArgReg(1); nodup_insert(live_vars, arg[1]);
+	case 1: arg[0] = liveness->CreateArgReg(0); nodup_insert(live_vars, arg[0]);
+
+	  // case 6: nodup_insert(live_vars, param_regs[5]);
+	// case 5: nodup_insert(live_vars, param_regs[4]);
+	// case 4: nodup_insert(live_vars, param_regs[3]);
+	// case 3: nodup_insert(live_vars, param_regs[2]);
+        // case 2: nodup_insert(live_vars, param_regs[1]);
+	// case 1: nodup_insert(live_vars, param_regs[0]);
 	}
       }
       else if(instr->GetOperation() == opParam){
 	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
 	assert(n != NULL);
 	int num = n->GetValue();
-	assert(erase_success(live_vars, param_regs[num-1]) >= 0);
+
+	if(erase_success(live_vars, arg[num-1]) < 0){
+	  cout << instr << endl;
+	  _P2;
+	  // cout << arg[num-1];
+	  // _P1;
+	}
+
+	// assert(erase_success(live_vars, arg[num-1]) >= 0);
+
       }
 
       instr->SetLiveVars(live_vars);
 
       if(instr->GetOperation() == opCall){
-	instr->GetLiveVars().push_back(caller_save1);
-	instr->GetLiveVars().push_back(caller_save2);
+	instr->GetLiveVars().push_back(liveness->CreateDeadCalleeSave(0));
+	instr->GetLiveVars().push_back(liveness->CreateDeadCalleeSave(1));
+	instr->GetLiveVars().push_back(liveness->CreateDeadParam(0));
+	instr->GetLiveVars().push_back(liveness->CreateDeadParam(1));
+	instr->GetLiveVars().push_back(liveness->CreateDeadParam(2));
+	instr->GetLiveVars().push_back(liveness->CreateDeadParam(3));
+	instr->GetLiveVars().push_back(liveness->CreateDeadParam(4));
+	instr->GetLiveVars().push_back(liveness->CreateDeadParam(5));
+	// instr->GetLiveVars().push_back(caller_save1);
+	// instr->GetLiveVars().push_back(caller_save2);
       }
     }
 
