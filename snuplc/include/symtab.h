@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol table
-/// @author Bernhard Egger <bernhard@csap.snu.ac.kr>
+/// @author Bernhard Egger <bernhard@cssap.snu.ac.kr>
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
 ///
