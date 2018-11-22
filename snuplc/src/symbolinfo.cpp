@@ -29,6 +29,11 @@ void CSymbol::SetSymbolType(ESymbolType symbt)
   _symboltype = symbt;
 }
 
+void CSymbol::SetName(string name)
+{
+  _name = name;
+}
+
 bool CSymbol::isInReg(void) const
 {
   if( _rbase.compare("") == 0) return false;

@@ -380,6 +380,10 @@ int Liveness::Allocate(void)
 	if(find(cant.begin(), cant.end(), e) != cant.end()) continue;
 	if(e > max) max = e;
 	_allocated[s] = e;
+
+	// TODO : erase it
+	const_cast<CSymbol*>(s)->SetName(s->GetName() + "_" + ERegName[e]);
+
 	success = true;
       }
       if(success) continue;
@@ -398,6 +402,9 @@ int Liveness::Allocate(void)
       }
       if(e > max) max = e;
       _allocated[s] = e;
+      // TODO : erase it
+      const_cast<CSymbol*>(s)->SetName(s->GetName() + "_" + ERegName[e]);
+
     }
   }
 

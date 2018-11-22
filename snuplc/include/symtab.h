@@ -122,6 +122,9 @@ class CSymbol {
     /// @retval string name
     string GetName(void) const;
 
+    void SetName(string name);
+
+
     /// @brief return the symbol's type
     /// @retval ESymbolType symbol type
     ESymbolType GetSymbolType(void) const;
