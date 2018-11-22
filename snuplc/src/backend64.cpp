@@ -401,8 +401,9 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
 
       ostringstream dst;
       assert(!s->isInReg());
-      //      dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+      //dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
       dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
+      // since base reg is not assigned, put all local data into reg now
 
       ofs += 4;
 
@@ -555,10 +556,18 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opAnd: 
     case opOr:  
     case opMul:
-    case opDiv:
       Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
       cmt = "";
       EmitInstruction(mnm, src2 + ", " + dst, cmt);
+      break;
+    case opDiv:
+      EmitInstruction("cqo");
+      EmitInstruction(mnm, src2);
+      cmt = "";
+      //dst = getRegister(dst, OperandSize(i->GetDest()));
+      //src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+      //Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      EmitInstruction("movq", src1 + ", " + dst);
       break;
     case opNeg:
     case opNot:
@@ -723,7 +732,6 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitInstruction("jmp", Label("exit"));
       break;
 
-      //modified
     case opParam:
       {
         CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
