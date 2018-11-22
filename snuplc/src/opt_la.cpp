@@ -534,7 +534,9 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	//   // _P1;
 	// }
 
-	assert(erase_success(live_vars, arg[num-1]) >= 0);
+	// assert(erase_success(live_vars, arg[num-1]) >= 0);
+
+        erase_success(live_vars, arg[num-1]);
       }
 
       instr->SetLiveVars(live_vars);
