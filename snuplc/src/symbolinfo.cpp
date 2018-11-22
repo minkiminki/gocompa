@@ -32,6 +32,12 @@ bool CSymtab::RemoveSymbol(CSymbol *s)
   }
 }
 
+CSymRegister::CSymRegister(const string name, const CType *datatype)
+  : CSymbol(name, stRegister, datatype)
+{
+}
+
+
 // bool CSymtab::RemoveSymbol(const string name)
 // {
 //   map<string, CSymbol*>::iterator it = _symtab.find(name);

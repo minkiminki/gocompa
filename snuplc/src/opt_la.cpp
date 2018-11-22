@@ -174,7 +174,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
   uses1.clear();
   uses2.clear();
 
-  const CSymbol** param_regs = liveness->GetParamRegs();
+  // const CSymbol** param_regs = liveness->GetParamRegs();
   // param_regs[0] = new CSymbol("%rdi", stRegister, nulltyp);
   // param_regs[1] = new CSymbol("%rsi", stRegister, nulltyp);
   // param_regs[2] = new CSymbol("%rdx", stRegister, nulltyp);
@@ -182,8 +182,8 @@ void liveness_analysis_block(CCodeBlock *cb) {
   // param_regs[4] = new CSymbol("%r8", stRegister, nulltyp);
   // param_regs[5] = new CSymbol("%r9", stRegister, nulltyp);
 
-  const CSymbol* caller_save1 = liveness->GetCallerSave(1);
-  const CSymbol* caller_save2 = liveness->GetCallerSave(2);
+  // const CSymbol* caller_save1 = liveness->GetCallerSave(1);
+  // const CSymbol* caller_save2 = liveness->GetCallerSave(2);
   // const CSymbol* caller_save1 = new CSymbol("%r10", stRegister, nulltyp);
   // const CSymbol* caller_save2 = new CSymbol("%r11", stRegister, nulltyp);
 
@@ -442,9 +442,12 @@ void liveness_analysis_block(CCodeBlock *cb) {
 
     const CSymbol* arg[6];
 
+
+
     list<CTacInstr*>::iterator it = blk->GetInstrs().end();
     while (it != blk->GetInstrs().begin()) {
       CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*--it);
+
 
       {
 	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
@@ -552,14 +555,14 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	assert(n != NULL);
 	int num = n->GetValue();
 
-	if(erase_success(live_vars, arg[num-1]) < 0){
-	  cout << instr << endl;
-	  _P2;
-	  // cout << arg[num-1];
-	  // _P1;
-	}
+	// if(erase_success(live_vars, arg[num-1]) < 0){
+	//   cout << instr << endl;
+	//   _P2;
+	//   // cout << arg[num-1];
+	//   // _P1;
+	// }
 
-	// assert(erase_success(live_vars, arg[num-1]) >= 0);
+	assert(erase_success(live_vars, arg[num-1]) >= 0);
 
       }
 
@@ -577,6 +580,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	// instr->GetLiveVars().push_back(caller_save1);
 	// instr->GetLiveVars().push_back(caller_save2);
       }
+
     }
 
     it = blk->GetPhis().begin();
@@ -600,6 +604,7 @@ void liveness_analysis_block(CCodeBlock *cb) {
       // }
     }
   }
+
 }
 
 void liveness_analysis_scope(CScope *m) {

@@ -367,23 +367,25 @@ class CSymRegister : public CSymbol {
     ///
     /// @param name symbol name (identifier)
     /// @param type symbol type
-    CSymRegister(const CType *type);
-    CSymRegister(ERegister rg, const CType *type);
-  bool IsFixed();
-  bool IsAssigned();
-  void SetRegister(ERegister rg);
-  ERegister GetRegister(void);
+  CSymRegister(const string name, const CType *datatype);
+
+  // CSymRegister(const CType *type);
+  // CSymRegister(ERegister rg, const CType *type);
+  // bool IsFixed();
+  // bool IsAssigned();
+  // void SetRegister(ERegister rg);
+  // ERegister GetRegister(void);
 
     /// @}
 
     /// @brief print the symbol to an output stream
     /// @param out output stream
     /// @param indent indentation
-    virtual ostream&  print(ostream &out, int indent=0) const;
+  //   virtual ostream&  print(ostream &out, int indent=0) const;
 
-  private:
-    bool _fixed;
-    ERegister _rg;
+  // private:
+  //   bool _fixed;
+  //   ERegister _rg;
 };
 
 
