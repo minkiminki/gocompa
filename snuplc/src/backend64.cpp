@@ -451,7 +451,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
   int reg_count = 0;
   string mnm;
   string temp_regs[2] = {"%rax", "%rdx"};
-  bool is_ref = false, is_mem[3] = {false, false, false}, isDiv = false;
+  bool is_ref = false, is_mem[3] = {false}, isDiv = false;
   bool get_src1 = true, get_src2 = true, get_dst = true;
   bool isNeg = false, isAsg = false;
   string cmt = comment;
@@ -471,7 +471,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opNot: mnm = (op == opNeg ? "negq" : "notq");
                 get_src2 = false;
                 isNeg = true;
-                EmitInstruction("negq", "%rax");
                 break;
     case opAssign:
                 get_src2 = false;
@@ -479,7 +478,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
                 break;
     case opGoto:
                 get_src2 = false;
-                get_dst = false;
                 break;
   }
 
@@ -533,9 +531,10 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     is_ref = false;
     dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
 
-    if(is_mem[2]) {
+    if(is_mem[2] && !isNeg && !isDiv) {
       // register를 dest로 사용해야함
       // case which src1, src2 are both reference not exists
+      // for Neg, src1 is always load to reg
       old_dst = dst;
       dst = temp_regs[reg_count++];
       storeDest = true;
@@ -565,18 +564,22 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       EmitInstruction(mnm, src2);
       cmt = "";
       //dst = getRegister(dst, OperandSize(i->GetDest()));
-      //src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+      src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
       //Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-      EmitInstruction("movq", src1 + ", " + dst);
-      break;
+      Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      return;
     case opNeg:
     case opNot:
       // convert dst with size
-      //string tempDst = getRegister(dst, OperandSize(i->GetDest()));
-      Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      // string tempDst = getRegister(dst, OperandSize(i->GetDest()));
+      // Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      EmitInstruction(mnm, src1, cmt);
       cmt = "";
-      EmitInstruction(mnm, src1 + ", " + dst, cmt);
-      break;
+      src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+      if(is_mem[2]==false)
+        dst = getRegister(dst, OperandSize(i->GetDest()));
+      Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      return;
     case opAssign:
       if(is_mem[0]){
         Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
@@ -594,7 +597,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opGoto:
       EmitInstruction("jmp", dst, cmt);
       cmt = "";
-      break;
+      return;
     // conditional branching
     // if src1 relOp src2 then goto dst
     case opEqual:
@@ -606,7 +609,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       EmitInstruction("cmpq", src2 + ", " + src1, cmt);
       cmt = "";
       EmitInstruction("j" + Condition(op), dst);
-      break;
+      return;
   }
   if(is_mem[2]){
     dst = getRegister(dst, OperandSize(i->GetDest()));
@@ -934,7 +937,6 @@ string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
         case stGlobal:
         case stProcedure:
           operand = s->GetName();
-          *is_mem = true;
           break;
 
         case stLocal:
@@ -960,7 +962,6 @@ string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
 
     } else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
       operand = Label(l);
-      *is_mem = true;
     } else {
       operand = "?";
     }
