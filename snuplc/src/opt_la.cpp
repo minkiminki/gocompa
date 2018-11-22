@@ -850,6 +850,44 @@ void liveness_analysis_block(CCodeBlock *cb) {
 
   }
 
+  // TODO : insert move to initial parater
+
+  {
+    bit = cbp->GetBlockTable()->GetBlockList().begin();
+    list<const CSymbol*> & slist = cbt->GetLiveness()->GetSymbList();
+
+    while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+      CBasicBlock* blk = *bit++;
+
+      {
+	list<CTacInstr*>::const_iterator it = blk->GetPhis().begin();
+	while (it != blk->GetPhis().end()) {
+	  CTacInstr* instr = *it++;
+	  assert(instr != NULL);
+	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	  if(dest == NULL) continue;
+	  if(dynamic_cast<CTacReference*>(instr->GetDest()) != NULL) continue;
+	  if(dest->GetSymbol()->GetSymbolType() != stLocal &&
+	     dest->GetSymbol()->GetSymbolType() != stParam) continue;
+	  slist.push_back(dest->GetSymbol());
+	}
+      }
+
+      {
+	list<CTacInstr*>::const_iterator it = blk->GetInstrs().begin();
+	while (it != blk->GetInstrs().end()) {
+	  CTacInstr* instr = *it++;
+	  assert(instr != NULL);
+	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	  if(dest == NULL) continue;
+	  if(dynamic_cast<CTacReference*>(instr->GetDest()) != NULL) continue;
+	  if(dest->GetSymbol()->GetSymbolType() != stLocal &&
+	     dest->GetSymbol()->GetSymbolType() != stParam) continue;
+	  slist.push_back(dest->GetSymbol());
+	}
+      }
+    }
+  }
 
 }
 

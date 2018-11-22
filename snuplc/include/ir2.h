@@ -378,7 +378,7 @@ class Liveness {
   map<const CSymbol*, list<const CSymbol*>> & GetAssignGraph(void);
   map<const CSymbol*, list<const CSymbol*>> & GetLiveGraph(void);
   map<const CSymbol*, ERegister> & GetAllocated(void);
-  list<CSymbol*> & GetSymbList(void);
+  list<const CSymbol*> & GetSymbList(void);
 
   const CSymbol* GetDeadCalleeSave(int index);
   const CSymbol* GetDeadParam(int index);
@@ -387,11 +387,11 @@ class Liveness {
   const CSymbol* CreateArgReg(int index);
   const CSymbol* CreateParamReg(int index);
   // list<CSymbol*> GetDeadRegs(void);
-  list<CSymbol*>& GetTempRegs(void);
+  list<const CSymbol*>& GetTempRegs(void);
 
  protected:
   // list<CSymbol*> & _deadregs;
-  list<CSymbol*> _tempregs;
+  list<const CSymbol*> _tempregs;
   map<CBasicBlock*, list<const CSymbol*>> _uses1;
   map<CBasicBlock*, list<const CSymbol*>> _uses2;
   const CSymbol* _param_regs[6];
@@ -402,7 +402,7 @@ class Liveness {
   map<const CSymbol*, list<const CSymbol*>> _assign_graph;
   map<const CSymbol*, list<const CSymbol*>> _live_graph;
   map<const CSymbol*, ERegister> _allocated;
-  list<CSymbol*> _symblist;
+  list<const CSymbol*> _symblist;
 };
 
 #endif // __SnuPL_IR2_H__

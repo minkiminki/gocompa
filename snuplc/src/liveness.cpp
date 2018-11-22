@@ -221,7 +221,7 @@ const CSymbol* Liveness::CreateParamReg(int index)
 // //   return _deadregs;
 // // }
 
-list<CSymbol*>& Liveness::GetTempRegs(void)
+list<const CSymbol*>& Liveness::GetTempRegs(void)
 {
   return _tempregs;
 }
@@ -241,7 +241,7 @@ map<const CSymbol*, ERegister> & Liveness::GetAllocated(void)
   return _allocated;
 }
 
-list<CSymbol*> & Liveness::GetSymbList(void)
+list<const CSymbol*> & Liveness::GetSymbList(void)
 {
   return _symblist;
 }
