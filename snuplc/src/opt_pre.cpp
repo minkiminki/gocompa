@@ -111,20 +111,22 @@ void pointer_typing_scope(CScope *m){
 // ********************************************************************** /
 // give number for paramaters
 void param_numbering_function(CScope* owner, list<CTacInstr*> &instrs, list<CTacInstr*>::iterator &it, const CSymProc *proc){
-
   int max = proc->GetNParams();
-  list<CTacInstr*>::iterator it_next = next(it, 1);
+  // list<CTacInstr*>::iterator it_next = it;
   list<CTacTemp*> params;
-  for(int i = 1; i <= max; i++){
+  for(int i = 0; i < max; i++){
     params.push_front(owner->CreateTemp(proc->GetParam(i)->GetDataType()));
   }
+
   {
     int i = max;
     list<CTacTemp*>::iterator pit = params.begin();
     while(pit != params.end()){
-      instrs.insert(it_next, new CTacInstr(opParam, new CTacConst(i--), *pit++));
+      instrs.insert(it, new CTacInstr(opParam, new CTacConst(i--), *pit++));
+      --it;
     }
   }
+
 
   list<CTacTemp*>::iterator pit = params.begin();
   while(max > 0){
