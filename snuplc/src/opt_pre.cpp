@@ -119,10 +119,10 @@ void param_numbering_function(CScope* owner, list<CTacInstr*> &instrs, list<CTac
   }
 
   {
-    int i = max;
+    int i = 1;
     list<CTacTemp*>::iterator pit = params.begin();
     while(pit != params.end()){
-      instrs.insert(it, new CTacInstr(opParam, new CTacConst(i--), *pit++));
+      instrs.insert(it, new CTacInstr(opParam, new CTacConst(i++), *pit++));
       --it;
     }
   }
