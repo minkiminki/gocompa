@@ -495,17 +495,14 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     if(is_ref) {
       // memory면 한번 주소 레지스터로 가져와야함
       if(is_mem[0]) {
-        Load(src1, temp_regs[reg_count], cmt, 8); // 8 is for pointer size
-        cmt = "";
+        Load(src1, temp_regs[reg_count], &cmt, 8); // 8 is for pointer size
       }
       // move address to reg
-      Load("("+src1+")", temp_regs[reg_count], cmt, 8);
-      cmt = "";
+      Load("("+src1+")", temp_regs[reg_count], &cmt, 8);
       src1 = temp_regs[reg_count++]; //size will be 8
       is_mem[0] = false;
     } else if(isDiv || isNeg) {
-      Load(src1, temp_regs[reg_count], cmt, OperandSize(i->GetSrc(1)));
-      cmt = "";
+      Load(src1, temp_regs[reg_count], &cmt, OperandSize(i->GetSrc(1)));
       src1 = temp_regs[reg_count++];
       is_mem[0] = false;
     }
@@ -517,11 +514,9 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 
     if(is_ref) {
       if(is_mem[1]) {
-        Load(src2, temp_regs[reg_count], cmt, OperandSize(i->GetSrc(2)));
-        cmt = "";
+        Load(src2, temp_regs[reg_count], &cmt, OperandSize(i->GetSrc(2)));
       }
-      Load("("+src2+")", temp_regs[reg_count], cmt, OperandSize(i->GetSrc(2)));
-      cmt = "";
+      Load("("+src2+")", temp_regs[reg_count], &cmt, OperandSize(i->GetSrc(2)));
       src2 = temp_regs[reg_count++]; //size will be 8
       is_mem[1] = false;
     }
@@ -555,8 +550,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opAnd: 
     case opOr:  
     case opMul:
-      Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-      cmt = "";
+      Load(src1, dst, &cmt, OperandSize(i->GetDest()));
       EmitInstruction(mnm, src2 + ", " + dst, cmt);
       break;
     case opDiv:
@@ -566,7 +560,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       //dst = getRegister(dst, OperandSize(i->GetDest()));
       src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
       //Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-      Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      Store(src1, dst, cmt, OperandSize(i->GetDest()));
       return;
     case opNeg:
     case opNot:
@@ -578,14 +572,13 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
       if(is_mem[2]==false)
         dst = getRegister(dst, OperandSize(i->GetDest()));
-      Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      Store(src1, dst, cmt, OperandSize(i->GetDest()));
       return;
     case opAssign:
       if(is_mem[0]){
-        Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-        cmt = "";
+        Load(src1, dst, &cmt, OperandSize(i->GetDest()));
       } else {
-        Store(src1, old_dst, cmt, OperandSize(i->GetSrc(1)));
+        Store(src1, old_dst, cmt, OperandSize(i->GetDest()));
         cmt = "";
         return; // to avoid doing Store into old_dst
       }
@@ -606,7 +599,16 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opLessEqual:
     case opBiggerThan:
     case opBiggerEqual:
-      EmitInstruction("cmpq", src2 + ", " + src1, cmt);
+      int opsize = OperandSize(i->GetSrc(1));
+      string postfix = "";
+      switch(opsize) {
+        case 1: postfix = "b"; break;
+        case 2: postfix = "w"; break;
+        case 4: postfix = "l"; break;
+        case 8: postfix = "q"; break;
+      }
+
+      EmitInstruction("cmp" + postfix, src2 + ", " + src1, cmt);
       cmt = "";
       EmitInstruction("j" + Condition(op), dst);
       return;
@@ -798,7 +800,7 @@ void CBackendx86_64::EmitInstruction(string mnemonic, string args, string commen
   _out << endl;
 }
 
-void CBackendx86_64::Load(string src, string dst, string comment, int size)
+void CBackendx86_64::Load(string src, string dst, string* comment, int size)
 {
   string mnm = "mov";
   string mod = "";
@@ -814,7 +816,7 @@ void CBackendx86_64::Load(string src, string dst, string comment, int size)
 //  dst = getRegister(dst, size);
 
   // emit the load instruction
-  EmitInstruction(mnm + mod, src + ", " + dst, comment);
+  EmitInstruction(mnm + mod, src + ", " + dst, *comment);
 }
 
 
@@ -906,7 +908,8 @@ string CBackendx86_64::Operand(const CTac *op)
     }
 
     if (dynamic_cast<const CTacReference*>(n) != NULL) {
-      Load(operand, "%rax", "", 8);
+      string s = "";
+      Load(operand, "%rax", &s, 8);
       operand = "(%rax)";
     }
 
