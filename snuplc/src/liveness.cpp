@@ -5,6 +5,7 @@
 #include <list>
 #include <set>
 
+#include "symtab.h"
 #include "ir2.h"
 using namespace std;
 
@@ -302,21 +303,30 @@ void Liveness::debug_print(void){
     map<const CSymbol*, ERegister>::iterator git = _allocated.begin();
     while (git != _allocated.end()) {
       cout << (git->first->GetName()) << " - ";
-      switch(git->second){
-      case rgR9: cout << "R9"; break;
-      case rgR8: cout << "R8"; break;
-      case rgRCX: cout << "RCX"; break;
-      case rgRSI: cout << "RSI"; break;
-      case rgRDI: cout << "RDI"; break;
-      case rgRBX: cout << "RBX"; break;
-      case rgR12: cout << "R12"; break;
-      case rgR13: cout << "R13"; break;
-      case rgR14: cout << "R14"; break;
-      case rgR15: cout << "R15"; break;
-      case rgR10: cout << "R10"; break;
-      case rgR11: cout << "R11"; break;
-      default: cout << "in stack";
+
+      if((git->second) <= rgMAX){
+	cout << ERegName[git->second];
       }
+      else{
+	cout << "in stack";
+      }
+
+      // switch(git->second){
+      // case rgR9: cout << "R9"; break;
+      // case rgR8: cout << "R8"; break;
+      // case rgRCX: cout << "RCX"; break;
+      // case rgRSI: cout << "RSI"; break;
+      // case rgRDI: cout << "RDI"; break;
+      // case rgRBX: cout << "RBX"; break;
+      // case rgR12: cout << "R12"; break;
+      // case rgR13: cout << "R13"; break;
+      // case rgR14: cout << "R14"; break;
+      // case rgR15: cout << "R15"; break;
+      // case rgR10: cout << "R10"; break;
+      // case rgR11: cout << "R11"; break;
+      // default: cout << "in stack";
+      // }
+
       cout << endl;
       git++;
     }

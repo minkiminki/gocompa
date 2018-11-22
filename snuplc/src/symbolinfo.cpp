@@ -4,7 +4,23 @@
 #include <cassert>
 #include <map>
 
+const char ERegName[][5] = {
+  "%r9",
+  "%r8",
+  "%rcx",
+  "%rsi",
+  "%rdi",
+  "%rbx",
+  "%r12",
+  "%r13",
+  "%r10",
+  "%r11",
+  "%r14",
+  "%r15",
+};
+
 #include "backend.h"
+#include "symtab.h"
 using namespace std;
 
 

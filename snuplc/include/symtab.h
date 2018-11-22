@@ -60,6 +60,23 @@ enum ERegister {
 #define rgMIN rgR9
 #define rgMAX rgR15
 
+extern const char ERegName[][5];
+
+// char ERegName[rgMAX + 1][5] = {
+//   "%r9",
+//   "%r8",
+//   "%rcx",
+//   "%rsi",
+//   "%rdi",
+//   "%rbx",
+//   "%r12",
+//   "%r13",
+//   "%r10",
+//   "%r11",
+//   "%r14",
+//   "%r15",
+// };
+
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol types
 ///
