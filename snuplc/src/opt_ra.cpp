@@ -115,22 +115,23 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
       }
     }
 
-    cout << "liveness ---------------------------------------------" << endl;
-    map<const CSymbol*, list<const CSymbol*>>::iterator git = live_graph.begin();
-    while (git != live_graph.end()) {
-      if(git->first->GetSymbolType() == stRegister) {
-	git++;
-	continue;
-      }
-      cout << (git->first->GetName()) << " -";
-      list<const CSymbol*> &slist = git->second;
-      list<const CSymbol*>::const_iterator sit = slist.begin();
-      while (sit != slist.end()) {
-  	cout << " " << (*sit++)->GetName();
-      }
-      cout << endl;
-      git++;
-    }
+    // cout << "liveness ---------------------------------------------" << endl;
+    // map<const CSymbol*, list<const CSymbol*>>::iterator git = live_graph.begin();
+    // while (git != live_graph.end()) {
+    //   if(git->first->GetSymbolType() == stRegister) {
+    // 	git++;
+    // 	continue;
+    //   }
+    //   cout << (git->first->GetName()) << " -";
+    //   list<const CSymbol*> &slist = git->second;
+    //   list<const CSymbol*>::const_iterator sit = slist.begin();
+    //   while (sit != slist.end()) {
+    // 	cout << " " << (*sit++)->GetName();
+    //   }
+    //   cout << endl;
+    //   git++;
+    // }
+
   }
 
   {
@@ -245,22 +246,24 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
 
     }
 
-    cout << "assign ---------------------------------------------" << endl;
-    map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
-    while (git != assign_graph.end()) {
-      if(git->first->GetSymbolType() == stRegister) {
-	git++;
-	continue;
-      }
-      cout << (git->first->GetName()) << " -";
-      list<const CSymbol*> &slist = git->second;
-      list<const CSymbol*>::const_iterator sit = slist.begin();
-      while (sit != slist.end()) {
-  	cout << " " << (*sit++)->GetName();
-      }
-      cout << endl;
-      git++;
-    }
+    // cout << "assign ---------------------------------------------" << endl;
+    // map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
+    // while (git != assign_graph.end()) {
+    //   if(git->first->GetSymbolType() == stRegister) {
+    // 	git++;
+    // 	continue;
+    //   }
+    //   cout << (git->first->GetName()) << " -";
+    //   list<const CSymbol*> &slist = git->second;
+    //   list<const CSymbol*>::const_iterator sit = slist.begin();
+    //   while (sit != slist.end()) {
+    // 	cout << " " << (*sit++)->GetName();
+    //   }
+    //   cout << endl;
+    //   git++;
+    // }
+
+
   }
 
   // compute stack offset
