@@ -26,8 +26,8 @@ void full_optimize(int arch, CScope *m) {
   unused_elimination_scope(m);
   combine_blocks_scope(m);
   dead_store_elimination_scope(m);
-  liveness_analysis_scope(m);
   remove_var_scope(m);
+  liveness_analysis_scope(m);
   register_allocation_scope(arch, m);
   // base regiseter and offset set
   ssa_out_scope(m);

@@ -43,20 +43,18 @@ using namespace std;
 
 
 enum ERegister {
-  rgRAX,
-  rgRBX,
+  rgR9,
+  rgR8,
   rgRCX,
-  rgRDX,
   rgRSI,
   rgRDI,
-  rgR8,
-  rgR9,
-  rgR10,
-  rgR11,
+  rgRBX,
   rgR12,
   rgR13,
   rgR14,
   rgR15,
+  rgR10,
+  rgR11,
 };
 
 //------------------------------------------------------------------------------

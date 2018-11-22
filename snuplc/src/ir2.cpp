@@ -48,7 +48,6 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "  [---]";
   }
 
-
   {
     out << " <";
     out.flags(ios::right);
