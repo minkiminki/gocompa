@@ -51,11 +51,14 @@ enum ERegister {
   rgRBX,
   rgR12,
   rgR13,
-  rgR14,
-  rgR15,
   rgR10,
   rgR11,
+  rgR14,
+  rgR15,
 };
+
+#define rgMIN rgR9
+#define rgMAX rgR15
 
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol types

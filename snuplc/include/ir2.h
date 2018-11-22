@@ -350,6 +350,8 @@ class CCodeBlock_prime : public CCodeBlock {
     void SSA_out();
     void RemoveNop();
 
+  // TODO
+
     /// @name output
     /// @{
 
@@ -388,6 +390,8 @@ class Liveness {
   const CSymbol* CreateParamReg(int index);
   // list<CSymbol*> GetDeadRegs(void);
   list<const CSymbol*>& GetTempRegs(void);
+  void debug_print(void);
+  int Allocate(void);
 
  protected:
   // list<CSymbol*> & _deadregs;
@@ -403,6 +407,7 @@ class Liveness {
   map<const CSymbol*, list<const CSymbol*>> _live_graph;
   map<const CSymbol*, ERegister> _allocated;
   list<const CSymbol*> _symblist;
+
 };
 
 #endif // __SnuPL_IR2_H__

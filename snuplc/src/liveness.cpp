@@ -30,7 +30,7 @@ Liveness::Liveness()
   _param_regs[4] = new CSymRegister("%r8", CTypeManager::Get()->GetNull());
   _allocated[_param_regs[4]] = rgR8;
   _param_regs[5] = new CSymRegister("%r9", CTypeManager::Get()->GetNull());
-  _allocated[_param_regs[5]] = rgR8;
+  _allocated[_param_regs[5]] = rgR9;
 
   _caller_save1 = new CSymRegister("%r10", CTypeManager::Get()->GetNull());
   _allocated[_caller_save1] = rgR10;
@@ -244,4 +244,152 @@ map<const CSymbol*, ERegister> & Liveness::GetAllocated(void)
 list<const CSymbol*> & Liveness::GetSymbList(void)
 {
   return _symblist;
+}
+
+void Liveness::debug_print(void){
+
+  {
+    cout << "liveness ---------------------------------------------" << endl;
+    map<const CSymbol*, list<const CSymbol*>>::iterator git = _live_graph.begin();
+    while (git != _live_graph.end()) {
+      if(git->first->GetSymbolType() == stRegister) {
+	git++;
+	continue;
+      }
+      cout << (git->first->GetName()) << " -";
+      list<const CSymbol*> &slist = git->second;
+      list<const CSymbol*>::const_iterator sit = slist.begin();
+      while (sit != slist.end()) {
+	cout << " " << (*sit++)->GetName();
+      }
+      cout << endl;
+      git++;
+    }
+  }
+
+  {
+    cout << "assign ---------------------------------------------" << endl;
+    map<const CSymbol*, list<const CSymbol*>>::iterator git = _assign_graph.begin();
+    while (git != _assign_graph.end()) {
+      if(git->first->GetSymbolType() == stRegister) {
+  	git++;
+  	continue;
+      }
+      cout << (git->first->GetName()) << " -";
+      list<const CSymbol*> &slist = git->second;
+      list<const CSymbol*>::const_iterator sit = slist.begin();
+      while (sit != slist.end()) {
+  	cout << " " << (*sit++)->GetName();
+      }
+      cout << endl;
+      git++;
+    }
+  }
+
+  {
+    cout << "symbols ---------------------------------------------" << endl;
+    list<const CSymbol*>::iterator sit = _symblist.begin();
+    while (sit != _symblist.end()) {
+      cout << (*sit++)->GetName() << " ";
+    }
+    cout << endl;
+  }
+
+
+  {
+    cout << "allocated ---------------------------------------------" << endl;
+
+    map<const CSymbol*, ERegister>::iterator git = _allocated.begin();
+    while (git != _allocated.end()) {
+      cout << (git->first->GetName()) << " - ";
+      switch(git->second){
+      case rgR9: cout << "R9"; break;
+      case rgR8: cout << "R8"; break;
+      case rgRCX: cout << "RCX"; break;
+      case rgRSI: cout << "RSI"; break;
+      case rgRDI: cout << "RDI"; break;
+      case rgRBX: cout << "RBX"; break;
+      case rgR12: cout << "R12"; break;
+      case rgR13: cout << "R13"; break;
+      case rgR14: cout << "R14"; break;
+      case rgR15: cout << "R15"; break;
+      case rgR10: cout << "R10"; break;
+      case rgR11: cout << "R11"; break;
+      default: cout << "in stack";
+      }
+      cout << endl;
+      git++;
+    }
+  }
+
+}
+
+int Liveness::Allocate(void)
+{
+  int max = 0;
+  ERegister min = rgMIN;
+
+  list<const CSymbol*>::const_iterator sit = _symblist.begin();
+  while (sit != _symblist.end()) {
+    const CSymbol* s = *sit++;
+
+    list<const CSymbol*> & _assigns = _assign_graph[s];
+    list<const CSymbol*> & _lives = _live_graph[s];
+
+    list<ERegister> can;
+    {
+      list<const CSymbol*>::const_iterator cit = _assigns.begin();
+      while (cit != _assigns.end()) {
+	const CSymbol* c = *cit++;
+	if(_allocated.find(c) != _allocated.end()){
+	  nodup_insert(can, _allocated[c]);
+	}
+      }
+    }
+
+    list<ERegister> cant;
+    {
+      list<const CSymbol*>::const_iterator cit = _lives.begin();
+      while (cit != _lives.end()) {
+	const CSymbol* c = *cit++;
+	if(find(_assigns.begin(), _assigns.end(), c) != _assigns.end()) continue;
+	if(_allocated.find(c) != _allocated.end()){
+	  nodup_insert(cant, _allocated[c]);
+	}
+      }
+    }
+
+    {
+      bool success = false;
+      list<ERegister>::const_iterator eit = can.begin();
+      while (eit != can.end()) {
+        ERegister e = *eit++;
+	if(e > rgMAX){
+	  continue;
+	}
+	if(find(cant.begin(), cant.end(), e) != cant.end()) continue;
+	if(e > max) max = e;
+	_allocated[s] = e;
+	success = true;
+      }
+      if(success) continue;
+    }
+
+    {
+      ERegister e = min;
+      while(true){
+	if(find(cant.begin(), cant.end(), e) != cant.end()){
+	  e = (ERegister)((int)e + 1);
+	  continue;
+	}
+	else{
+	  break;
+	}
+      }
+      if(e > max) max = e;
+      _allocated[s] = e;
+    }
+  }
+
+  return max;
 }
