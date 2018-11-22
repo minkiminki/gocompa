@@ -442,12 +442,9 @@ void liveness_analysis_block(CCodeBlock *cb) {
 
     const CSymbol* arg[6];
 
-
-
     list<CTacInstr*>::iterator it = blk->GetInstrs().end();
     while (it != blk->GetInstrs().begin()) {
       CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*--it);
-
 
       {
 	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
@@ -525,6 +522,23 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	}
       }
 
+      if(instr->GetOperation() == opParam){
+	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
+	assert(n != NULL);
+	int num = n->GetValue();
+
+	// if(erase_success(live_vars, arg[num-1]) < 0){
+	//   cout << instr << endl;
+	//   _P2;
+	//   // cout << arg[num-1];
+	//   // _P1;
+	// }
+
+	assert(erase_success(live_vars, arg[num-1]) >= 0);
+      }
+
+      instr->SetLiveVars(live_vars);
+
       if(instr->GetOperation() == opCall || instr->GetOperation() == opTailCall){
 	CTacName *n = dynamic_cast<CTacName*>(instr->GetSrc(1));
 	assert(n != NULL);
@@ -541,46 +555,20 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	case 3: arg[2] = liveness->CreateArgReg(2); nodup_insert(live_vars, arg[2]);
 	case 2: arg[1] = liveness->CreateArgReg(1); nodup_insert(live_vars, arg[1]);
 	case 1: arg[0] = liveness->CreateArgReg(0); nodup_insert(live_vars, arg[0]);
-
-	  // case 6: nodup_insert(live_vars, param_regs[5]);
-	// case 5: nodup_insert(live_vars, param_regs[4]);
-	// case 4: nodup_insert(live_vars, param_regs[3]);
-	// case 3: nodup_insert(live_vars, param_regs[2]);
-        // case 2: nodup_insert(live_vars, param_regs[1]);
-	// case 1: nodup_insert(live_vars, param_regs[0]);
 	}
-      }
-      else if(instr->GetOperation() == opParam){
-	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
-	assert(n != NULL);
-	int num = n->GetValue();
 
-	// if(erase_success(live_vars, arg[num-1]) < 0){
-	//   cout << instr << endl;
-	//   _P2;
-	//   // cout << arg[num-1];
-	//   // _P1;
-	// }
-
-	assert(erase_success(live_vars, arg[num-1]) >= 0);
-
-      }
-
-      instr->SetLiveVars(live_vars);
-
-      if(instr->GetOperation() == opCall){
-	instr->GetLiveVars().push_back(liveness->CreateDeadCalleeSave(0));
-	instr->GetLiveVars().push_back(liveness->CreateDeadCalleeSave(1));
-	instr->GetLiveVars().push_back(liveness->CreateDeadParam(0));
-	instr->GetLiveVars().push_back(liveness->CreateDeadParam(1));
-	instr->GetLiveVars().push_back(liveness->CreateDeadParam(2));
-	instr->GetLiveVars().push_back(liveness->CreateDeadParam(3));
-	instr->GetLiveVars().push_back(liveness->CreateDeadParam(4));
-	instr->GetLiveVars().push_back(liveness->CreateDeadParam(5));
+	instr->GetLiveVars().push_back(liveness->GetDeadCalleeSave(1));
+	instr->GetLiveVars().push_back(liveness->GetDeadCalleeSave(2));
+	instr->GetLiveVars().push_back(liveness->GetDeadParam(0));
+	instr->GetLiveVars().push_back(liveness->GetDeadParam(1));
+	// third paramter is in edx!!
+	// instr->GetLiveVars().push_back(liveness->GetDeadParam(2));
+	instr->GetLiveVars().push_back(liveness->GetDeadParam(3));
+	instr->GetLiveVars().push_back(liveness->GetDeadParam(4));
+	instr->GetLiveVars().push_back(liveness->GetDeadParam(5));
 	// instr->GetLiveVars().push_back(caller_save1);
 	// instr->GetLiveVars().push_back(caller_save2);
       }
-
     }
 
     it = blk->GetPhis().begin();
