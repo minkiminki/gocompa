@@ -42,7 +42,9 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
     if(iit != instrs.rend()){
       instr0 = *iit++;
       if(instr0->GetOperation() == opReturn){
+
 	final_is_return = true;
+
 	while(iit != instrs.rend()){
 	  assert(*iit != NULL);
 	  if((*iit)->GetOperation() == opNop){
@@ -71,6 +73,7 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 	 else{
 	   continue;
 	 }
+
       }
       else if(instr0->GetOperation() == opCall){
 	instr1 = instr0;
@@ -83,6 +86,7 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
       continue;
     }
 
+
     CTacName *n = dynamic_cast<CTacName*>(instr1->GetSrc(1));
     assert(n != NULL);
     const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
@@ -93,8 +97,10 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
       continue;
     }
 
+
     bool exitloop = false;
     for(; i >= 1; i--){
+
       if(iit == instrs.rend()){
 	exitloop = true;
 	break;
@@ -103,6 +109,7 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
       assert(instr0 != NULL);
 
       if(instr0->GetOperation() == opParam){
+
         n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
 	if(n == NULL){
 	  assert(dynamic_cast<CTacConst*>(instr0->GetSrc(1))!= NULL);
@@ -113,7 +120,6 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 	assert(s != NULL);
         if((s->GetDataType()->IsPointer()) || (s->GetDataType()->IsArray())){
 	  if((s->GetSymbolType() != stGlobal) && (s->GetSymbolType() != stParam)){
-
 	    if(iit != instrs.rend()){
 	      instr0 = *iit;
 	      assert(instr0 != NULL);
@@ -136,6 +142,7 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 	}
 	i--;
       }
+
     }
 
     if(exitloop){
