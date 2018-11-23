@@ -82,9 +82,9 @@ void pointer_typing_block(CCodeBlock *cb) {
   while (it != (cb->GetInstr()).end()) {
     CTacInstr* instr = *(it++);
     assert(instr != NULL);
-    if(instr->GetOperation() == opAdd){
+    if(instr->GetOperation() == opAdd || instr->GetOperation() == opAssign){
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
-      assert(c_src != NULL);
+      if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())){
 	if(!(c_src->GetSymbol()->GetDataType()->IsArray())) continue;
       }
@@ -114,7 +114,7 @@ void param_numbering_function(CScope* owner, list<CTacInstr*> &instrs, list<CTac
   int max = proc->GetNParams();
   // list<CTacInstr*>::iterator it_next = it;
   list<CTacTemp*> params;
-  for(int i = 0; i < max; i++){
+  for(int i = max - 1; i >= 0; i--){
     params.push_front(owner->CreateTemp(proc->GetParam(i)->GetDataType()));
   }
 

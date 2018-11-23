@@ -4,10 +4,10 @@ using namespace std;
 
 
 void full_optimize(int arch, CScope *m) {
+  pointer_typing_scope(m);
   param_numbering_scope(m);
   // parameter get number
   clean_up_scope(m); // DO NOT execute this after bba
-  pointer_typing_scope(m);
   // now pointer variables have proper types
   dofs_inlining_scope(m);
   // DIM and DOFS inlined
