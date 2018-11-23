@@ -290,8 +290,8 @@ void CBackendx86_64::EmitEpilogue()
   //EmitInstruction("popq", "%rbx");
   // currently push/pop all regs
   int param_size = (param_num <= 6) ? param_num*8 : 6*8;
-  EmitCalleePop(callee_used_regs);
   EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+  EmitCalleePop(callee_used_regs);
   EmitInstruction("popq", "%rbp");
   if(isTailCall==false)
     EmitInstruction("ret");
@@ -524,9 +524,9 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
 
   Load(src1, dst, &cmt, OperandSize(i->GetDest()));
   mnm = mnm + GetOpPostfix(OperandSize(i->GetDest()));
+  dst = getRegister(dst, OperandSize(i->GetDest()));
   EmitInstruction(mnm, src2 + ", " + dst, cmt);
   if(storeDest) {
-    dst = getRegister(dst, OperandSize(i->GetDest()));
     Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
   }
   return;
