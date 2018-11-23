@@ -78,16 +78,28 @@ void dofs_inlining_scope(CScope *m){
 // ********************************************************************** /
 // fix wrong type
 void pointer_typing_block(CCodeBlock *cb) {
+  const CNullType* nulltyp = CTypeManager::Get()->GetNull();
+  const CType* ptr_null = CTypeManager::Get()->GetPointer(nulltyp);
+
   list<CTacInstr*>::const_iterator it = (cb->GetInstr()).begin();
   while (it != (cb->GetInstr()).end()) {
     CTacInstr* instr = *(it++);
     assert(instr != NULL);
-    if(instr->GetOperation() == opAdd || instr->GetOperation() == opAssign){
+    if(instr->GetOperation() == opAdd){
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
-      if(!(c_src->GetSymbol()->GetDataType()->IsPointer())){
-	if(!(c_src->GetSymbol()->GetDataType()->IsArray())) continue;
-      }
+      if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
+      CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
+      assert(c_dst != NULL);
+      CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());
+      assert(symb != NULL);
+      symb->SetDataType(ptr_null);
+      // symb->SetDataType(c_src->GetSymbol()->GetDataType());
+    }
+    else if(instr->GetOperation() == opAssign){
+      CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
+      if(c_src == NULL) continue;
+      if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
       CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
       assert(c_dst != NULL);
       CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());
