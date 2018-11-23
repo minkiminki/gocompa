@@ -17,7 +17,7 @@ using namespace boost;
 
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))
-#define opMov ((EOperation)((int)opNop + 3))
+#define opGetParam ((EOperation)((int)opNop + 3))
 #define opDIM ((EOperation)((int)opNop + 4))
 #define opDOFS ((EOperation)((int)opNop + 5))
 
@@ -350,6 +350,8 @@ class CCodeBlock_prime : public CCodeBlock {
     void SSA_out();
     void RemoveNop();
 
+  // TODO
+
     /// @name output
     /// @{
 
@@ -375,6 +377,10 @@ class Liveness {
   // const CSymbol** GetParamRegs(void);
   // const CSymbol* GetCallerSave(int index);
   map<CBasicBlock*, list<const CSymbol*>> & GetUses(int index);
+  map<const CSymbol*, list<const CSymbol*>> & GetAssignGraph(void);
+  map<const CSymbol*, list<const CSymbol*>> & GetLiveGraph(void);
+  map<const CSymbol*, ERegister> & GetAllocated(void);
+  list<const CSymbol*> & GetSymbList(void);
 
   const CSymbol* GetDeadCalleeSave(int index);
   const CSymbol* GetDeadParam(int index);
@@ -383,11 +389,14 @@ class Liveness {
   const CSymbol* CreateArgReg(int index);
   const CSymbol* CreateParamReg(int index);
   // list<CSymbol*> GetDeadRegs(void);
-  list<CSymbol*>& GetTempRegs(void);
+  list<const CSymbol*>& GetTempRegs(void);
+  void debug_print(void);
+  int Allocate(void);
+  int GetMax();
 
  protected:
   // list<CSymbol*> & _deadregs;
-  list<CSymbol*> _tempregs;
+  list<const CSymbol*> _tempregs;
   map<CBasicBlock*, list<const CSymbol*>> _uses1;
   map<CBasicBlock*, list<const CSymbol*>> _uses2;
   const CSymbol* _param_regs[6];
@@ -395,6 +404,12 @@ class Liveness {
   const CSymbol* _caller_save2;
   int deadnum;
   int tempnum;
+  int _max;
+  map<const CSymbol*, list<const CSymbol*>> _assign_graph;
+  map<const CSymbol*, list<const CSymbol*>> _live_graph;
+  map<const CSymbol*, ERegister> _allocated;
+  list<const CSymbol*> _symblist;
+
 };
 
 #endif // __SnuPL_IR2_H__

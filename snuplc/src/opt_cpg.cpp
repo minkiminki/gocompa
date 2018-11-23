@@ -12,6 +12,117 @@ using namespace std;
 // ********************************************************************** /
 // ********************************************************************** /
 // Constant Propagation
+int CalcDims(const CSymbol *s){
+  // cout << s << endl;
+  const CPointerType* tp = dynamic_cast<const CPointerType*>(s->GetDataType());
+  assert(tp != NULL);
+
+  const CArrayType* tbp = dynamic_cast<const CArrayType*>((dynamic_cast<const CPointerType*>(tp))->GetBaseType());
+  assert(tbp != NULL);
+
+  return tbp->GetNDim();
+}
+
+int CalcDOFS(const CSymbol *s){
+  int d = CalcDims(s);
+  if(d < 0){
+    return -1;
+  }
+  else if(d%2 == 0){
+    return (4*d + 8);
+  }
+  else{
+    return (4*d + 4);
+  }
+}
+
+int CalcDIM(const CSymbol *s, int index){
+  const CPointerType* tp = dynamic_cast<const CPointerType*>(s->GetDataType());
+  if(tp == NULL) return 0;
+
+  const CArrayType* tbp = dynamic_cast<const CArrayType*>((dynamic_cast<const CPointerType*>(tp))->GetBaseType());
+
+  for(; index > 1; index--){
+    if(tbp == NULL) return 0;
+    tbp = dynamic_cast<const CArrayType*>(tbp->GetInnerType());
+  }
+
+  return tbp->GetNElem();
+}
+
+
+// int CalcDOFS(const CSymbol *s){
+//   if(s == NULL) return -1;
+//   const CType* tp = s->GetDataType();
+//   assert(tp != NULL);
+//   assert(tp->IsPointer());
+
+//   const CArrayType* tbp = dynamic_cast<const CArrayType*>((dynamic_cast<const CPointerType*>(tp))->GetBaseType());
+//   Get
+//   assert(tbp != NULL);
+
+//   const CCArrayType
+
+//   GetBaseType
+
+//   while(true){
+//     if(tp->IsNull) return -1;
+//     if(tp->
+
+//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
+
+
+//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
+//     if(tp
+
+
+
+//   }
+
+//   const CPointerType CType* s->GetDataType();
+//   s
+
+//   assert(s != NULL)
+
+// }
+
+
+// int CalcDOFS(const CSymbol *s){
+//   if(s == NULL) return -1;
+//   const CType* tp = s->GetDataType();
+//   assert(tp != NULL);
+//   assert(tp->IsPointer());
+
+//   const CArrayType* tbp = dynamic_cast<const CArrayType*>((dynamic_cast<const CPointerType*>(tp))->GetBaseType());
+//   Get
+//   assert(tbp != NULL);
+
+//   const CCArrayType
+
+//   GetBaseType
+
+//   while(true){
+//     if(tp->IsNull) return -1;
+//     if(tp->
+
+//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
+
+
+//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
+//     if(tp
+
+
+
+//   }
+
+//   const CPointerType CType* s->GetDataType();
+//   s
+
+//   assert(s != NULL)
+
+// }
+
+
 int constant_propagation_block(CCodeBlock *cb) {
   int success = 0;
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
@@ -197,7 +308,7 @@ int constant_propagation_block(CCodeBlock *cb) {
       case opPos:
       case opNot:
       case opAssign:
-      case opMov:
+      case opGetParam:
       case opCast:
 	{
 	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
@@ -225,13 +336,65 @@ int constant_propagation_block(CCodeBlock *cb) {
 	      constants[s_dest] = ! c_src1; break;
 	    case opPos:
 	    case opAssign:
-	    case opMov:
+	    case opGetParam:
 	    case opCast:
 	      constants[s_dest] = c_src1; break;
 	    }
 	  }
 	}
 	break;
+
+      case opDIM:
+	{
+	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	  if(dest == NULL) continue;
+	  if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+
+	  const CSymbol* s_dest = dest->GetSymbol();
+	  if(s_dest == NULL) continue;
+	  if(s_dest->GetSymbolType() != stLocal) continue;
+
+	  const CSymbol* s_src1 = src1->GetSymbol();
+
+
+	  if(src2_constant){
+	    int d = CalcDIM(s_src1, c_src2);
+	    if(d != -1){
+	      success = true;
+	      instr->SetOperation(opNop);
+	      instr->SetDest(NULL);
+	      instr->SetSrc(0, NULL);
+	      instr->SetSrc(1, NULL);
+	      constants[s_dest] = d;
+	    }
+	  }
+	}
+	break;
+
+      case opDOFS:
+	{
+	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	  if(dest == NULL) continue;
+	  if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+
+	  const CSymbol* s_dest = dest->GetSymbol();
+	  if(s_dest == NULL) continue;
+	  if(s_dest->GetSymbolType() != stLocal) continue;
+
+	  const CSymbol* s_src1 = src1->GetSymbol();
+
+	  int d = CalcDOFS(s_src1);
+	  if(d != -1){
+	    success = true;
+	    instr->SetOperation(opNop);
+	    instr->SetDest(NULL);
+	    instr->SetSrc(0, NULL);
+	    instr->SetSrc(1, NULL);
+	    constants[s_dest] = d;
+	  }
+	}
+	break;
+
 
       case opEqual:
       case opNotEqual:

@@ -7,10 +7,10 @@ void full_optimize(int arch, CScope *m) {
   param_numbering_scope(m);
   // parameter get number
   clean_up_scope(m); // DO NOT execute this after bba
-  pointer_typing_scope(m);
   // now pointer variables have proper types
   dofs_inlining_scope(m);
   // DIM and DOFS inlined
+  pointer_typing_scope(m);
   register_promotion_scope(m);
   to_ir_prime_scope(m);
   // now it's ir_prime
@@ -26,8 +26,8 @@ void full_optimize(int arch, CScope *m) {
   unused_elimination_scope(m);
   combine_blocks_scope(m);
   dead_store_elimination_scope(m);
-  liveness_analysis_scope(m);
   remove_var_scope(m);
+  liveness_analysis_scope(m);
   register_allocation_scope(arch, m);
   // base regiseter and offset set
   ssa_out_scope(m);

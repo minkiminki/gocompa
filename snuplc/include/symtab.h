@@ -43,21 +43,39 @@ using namespace std;
 
 
 enum ERegister {
-  rgRAX,
-  rgRBX,
+  rgR9,
+  rgR8,
   rgRCX,
-  rgRDX,
   rgRSI,
   rgRDI,
-  rgR8,
-  rgR9,
-  rgR10,
-  rgR11,
+  rgRBX,
   rgR12,
   rgR13,
+  rgR10,
+  rgR11,
   rgR14,
   rgR15,
 };
+
+#define rgMIN rgR9
+#define rgMAX rgR15
+
+extern const char ERegName[][5];
+
+// char ERegName[rgMAX + 1][5] = {
+//   "%r9",
+//   "%r8",
+//   "%rcx",
+//   "%rsi",
+//   "%rdi",
+//   "%rbx",
+//   "%r12",
+//   "%r13",
+//   "%r10",
+//   "%r11",
+//   "%r14",
+//   "%r15",
+// };
 
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol types
@@ -103,6 +121,9 @@ class CSymbol {
     /// @brief return the symbol's identifier
     /// @retval string name
     string GetName(void) const;
+
+    void SetName(string name);
+
 
     /// @brief return the symbol's type
     /// @retval ESymbolType symbol type
