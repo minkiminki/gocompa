@@ -889,12 +889,9 @@ void liveness_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  int max = cbt->GetLiveness()->Allocate();
-  cout << "================================================" << endl;
-  cout << "max : " << max << endl;
-  cout << "================================================" << endl;
+  cbt->GetLiveness()->Allocate();
 
-  cbt->GetLiveness()->debug_print();
+  // cbt->GetLiveness()->debug_print();
 
 }
 

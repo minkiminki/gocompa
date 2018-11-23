@@ -249,6 +249,10 @@ list<const CSymbol*> & Liveness::GetSymbList(void)
 
 void Liveness::debug_print(void){
 
+  cout << "================================================" << endl;
+  cout << "max : " << _max << endl;
+  cout << "================================================" << endl;
+
   {
     cout << "liveness ---------------------------------------------" << endl;
     map<const CSymbol*, list<const CSymbol*>>::iterator git = _live_graph.begin();
@@ -415,5 +419,11 @@ int Liveness::Allocate(void)
     }
   }
 
+  _max = max;
   return max;
+}
+
+int Liveness::GetMax()
+{
+  return _max;
 }

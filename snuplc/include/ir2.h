@@ -392,6 +392,7 @@ class Liveness {
   list<const CSymbol*>& GetTempRegs(void);
   void debug_print(void);
   int Allocate(void);
+  int GetMax();
 
  protected:
   // list<CSymbol*> & _deadregs;
@@ -403,6 +404,7 @@ class Liveness {
   const CSymbol* _caller_save2;
   int deadnum;
   int tempnum;
+  int _max;
   map<const CSymbol*, list<const CSymbol*>> _assign_graph;
   map<const CSymbol*, list<const CSymbol*>> _live_graph;
   map<const CSymbol*, ERegister> _allocated;
