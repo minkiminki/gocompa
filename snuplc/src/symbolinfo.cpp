@@ -3,6 +3,10 @@
 #include <iomanip>
 #include <cassert>
 #include <map>
+#include "backend.h"
+#include "symtab.h"
+using namespace std;
+
 
 const char ERegName[][5] = {
   "%r9",
@@ -18,10 +22,6 @@ const char ERegName[][5] = {
   "%r14",
   "%r15",
 };
-
-#include "backend.h"
-#include "symtab.h"
-using namespace std;
 
 
 void CSymbol::SetSymbolType(ESymbolType symbt)

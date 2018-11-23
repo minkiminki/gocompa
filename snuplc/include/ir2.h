@@ -17,7 +17,7 @@ using namespace boost;
 
 #define opTailCall ((EOperation)((int)opNop + 1))
 #define opPhi ((EOperation)((int)opNop + 2))
-#define opMov ((EOperation)((int)opNop + 3))
+#define opGetParam ((EOperation)((int)opNop + 3))
 #define opDIM ((EOperation)((int)opNop + 4))
 #define opDOFS ((EOperation)((int)opNop + 5))
 

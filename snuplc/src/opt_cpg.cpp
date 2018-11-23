@@ -197,7 +197,7 @@ int constant_propagation_block(CCodeBlock *cb) {
       case opPos:
       case opNot:
       case opAssign:
-      case opMov:
+      case opGetParam:
       case opCast:
 	{
 	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
@@ -225,7 +225,7 @@ int constant_propagation_block(CCodeBlock *cb) {
 	      constants[s_dest] = ! c_src1; break;
 	    case opPos:
 	    case opAssign:
-	    case opMov:
+	    case opGetParam:
 	    case opCast:
 	      constants[s_dest] = c_src1; break;
 	    }
