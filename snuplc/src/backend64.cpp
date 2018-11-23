@@ -445,7 +445,94 @@ void CBackendx86_64::EmitCodeBlock(CCodeBlock *cb)
   while (it != instr.end()) EmitInstruction(*it++);
 }
 
-//working
+string CBackendx86_64::GetOpPostfix(int size)
+{
+  switch(size) {
+    case 1: return "b";
+    case 2: return "w";
+    case 4: return "l";
+    case 8: return "q";
+  }
+  return "";
+}
+
+string CBackendx86_64::SetSrcRegister(const CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
+{
+  string res = Operand(op, isRef, isMem);
+  if(*isRef) {
+    if(*isMem) {
+      Load(res, reg, cmt, 8); // 8 is for pointer size
+      res = reg;
+    }
+    Load("("+res+")", reg, cmt, 8);
+    res = reg;
+    *isMem = false;
+  }
+  return res;
+}
+
+string CBackendx86_64::SetDstRegister(const CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
+{
+  string res = Operand(op, isRef, isMem);
+  if(*isRef) {
+    if(*isMem) {
+      Load(res, reg, cmt, 8); // 8 is for pointer size
+      res = reg;
+    }
+    res = "(" + res + ")";
+  }
+  return res;
+}
+
+void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string mnm;
+  switch(op) {
+    case opAdd: mnm = "add"; break;
+    case opSub: mnm = "sub"; break;
+    case opAnd: mnm = "and"; break;
+    case opOr:  mnm = "or";  break;
+    case opMul: mnm = "imul"; break;
+  }
+
+  string src1, src2, dst, old_dst;
+  string cmt = comment;
+  string regs[2] = {"%rax", "%rdx"};
+  int rcount = 0;
+  bool isRef = false, isMem = false, storeDest = false;
+
+  string reg = regs[rcount];
+  src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    reg = regs[++rcount];
+    isRef = false;
+  }
+
+  src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    reg = regs[++rcount];
+    isRef = false;
+  }
+  
+  dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
+  if(isMem){
+    old_dst = dst;
+    dst = regs[rcount];
+    storeDest = true;
+  }
+
+  Load(src1, dst, &cmt, OperandSize(i->GetDest()));
+  mnm = mnm + GetOpPostfix(OperandSize(i->GetDest()));
+  EmitInstruction(mnm, src2 + ", " + dst, cmt);
+  if(storeDest) {
+    dst = getRegister(dst, OperandSize(i->GetDest()));
+    Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+  }
+  return;
+}
+
+// TODO:: 오퍼레이션 별로 분리하기
 void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 {
   int reg_count = 0;
@@ -460,11 +547,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
   string operand;
 
   switch (op) {
-    case opAdd: mnm = "addq"; break;
-    case opSub: mnm = "subq"; break;
-    case opAnd: mnm = "andq"; break;
-    case opOr:  mnm = "orq";  break;
-    case opMul: mnm = "imulq"; break;
     case opDiv: mnm = "idivq";
                 isDiv = true; break;
     case opNeg:
@@ -644,6 +726,8 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opAnd:
     case opOr:
     case opMul:
+      EmitOpBinary(i, cmt.str());
+      break;
     case opDiv:
     case opNeg:
     case opNot:
@@ -922,7 +1006,7 @@ string CBackendx86_64::Operand(const CTac *op)
 
   return operand;
 }
-string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
+string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
 {
   const CTacName *n;
   const CTacConst *c;
@@ -951,7 +1035,7 @@ string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
             }
             else{
               o << s->GetOffset() << "(" << "%rbp" << ")";
-              *is_mem = true;
+              *isMem = true;
             }
             operand = o.str();
           }
@@ -959,8 +1043,7 @@ string CBackendx86_64::Operand(const CTac *op, bool* is_ref, bool* is_mem)
       }
 
       if (dynamic_cast<const CTacReference*>(n) != NULL) {
-        *is_ref = true;
-        //operand = "("+temp_reg")";
+        *isRef = true;
       }
 
     } else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
