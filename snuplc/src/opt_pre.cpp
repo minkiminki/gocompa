@@ -78,16 +78,28 @@ void dofs_inlining_scope(CScope *m){
 // ********************************************************************** /
 // fix wrong type
 void pointer_typing_block(CCodeBlock *cb) {
+  const CNullType* nulltyp = CTypeManager::Get()->GetNull();
+  const CType* ptr_null = CTypeManager::Get()->GetPointer(nulltyp);
+
   list<CTacInstr*>::const_iterator it = (cb->GetInstr()).begin();
   while (it != (cb->GetInstr()).end()) {
     CTacInstr* instr = *(it++);
     assert(instr != NULL);
     if(instr->GetOperation() == opAdd){
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
-      assert(c_src != NULL);
-      if(!(c_src->GetSymbol()->GetDataType()->IsPointer())){
-	if(!(c_src->GetSymbol()->GetDataType()->IsArray())) continue;
-      }
+      if(c_src == NULL) continue;
+      if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
+      CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
+      assert(c_dst != NULL);
+      CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());
+      assert(symb != NULL);
+      symb->SetDataType(ptr_null);
+      // symb->SetDataType(c_src->GetSymbol()->GetDataType());
+    }
+    else if(instr->GetOperation() == opAssign){
+      CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
+      if(c_src == NULL) continue;
+      if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
       CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
       assert(c_dst != NULL);
       CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());
@@ -110,29 +122,87 @@ void pointer_typing_scope(CScope *m){
 // ********************************************************************** /
 // ********************************************************************** /
 // give number for paramaters
-void param_numbering_block(CCodeBlock *cb) {
-  list<CTacInstr*>::const_iterator it = (cb->GetInstr()).end();
-  int number = 0;
-  while (it != (cb->GetInstr()).begin()) {
+void param_numbering_function(CScope* owner, list<CTacInstr*> &instrs, list<CTacInstr*>::iterator &it, const CSymProc *proc){
+  int max = proc->GetNParams();
+  // list<CTacInstr*>::iterator it_next = it;
+  list<CTacTemp*> params;
+  for(int i = max - 1; i >= 0; i--){
+    params.push_front(owner->CreateTemp(proc->GetParam(i)->GetDataType()));
+  }
+
+  {
+    int i = 1;
+    list<CTacTemp*>::iterator pit = params.begin();
+    while(pit != params.end()){
+      instrs.insert(it, new CTacInstr(opParam, new CTacConst(i++), *pit++));
+      --it;
+    }
+  }
+
+
+  list<CTacTemp*>::iterator pit = params.begin();
+  while(max > 0){
+    assert (it != instrs.begin());
     CTacInstr* instr = *(--it);
     assert(instr != NULL);
     switch(instr->GetOperation()){
     case opCall :
-      number = 0;
-      break;
+      {
+	CTacName *n = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	assert(n != NULL);
+	const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
+	assert(proc != NULL);
+	param_numbering_function(owner, instrs, it, proc);
+	break;
+      }
     case opParam :
-      CTacConst *c = dynamic_cast<CTacConst*>(instr->GetDest());
-      assert(c != NULL);
-      c->SetValue(++number);
-      break;
+      {
+	instr->SetOperation(opAssign);
+	instr->SetDest(new CTacName((*pit++)->GetSymbol()));
+	max --; break;
+      }
     }
   }
 }
 
-void param_numbering_scope(CScope *m){
-  param_numbering_block(m->GetCodeBlock());
+void param_numbering_block(CScope* owner, CCodeBlock *cb) {
+  list<CTacInstr*> &instrs = const_cast<list<CTacInstr*>&>(cb->GetInstr());
+  list<CTacInstr*>::iterator it = instrs.end();
+  while (it != instrs.begin()) {
+    CTacInstr* instr = *(--it);
+    assert(instr != NULL);
+    if(instr->GetOperation() == opCall){
+      CTacName *n = dynamic_cast<CTacName*>(instr->GetSrc(1));
+      assert(n != NULL);
+      const CSymProc *proc = dynamic_cast<const CSymProc*>(n->GetSymbol());
+      assert(proc != NULL);
+      param_numbering_function(owner, instrs, it, proc);
+    }
+  }
 
-  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  // list<CTacInstr*>::const_iterator it = (cb->GetInstr()).end();
+  // int number = 0;
+  // while (it != (cb->GetInstr()).begin()) {
+  //   CTacInstr* instr = *(--it);
+  //   assert(instr != NULL);
+  //   switch(instr->GetOperation()){
+  //   case opCall :
+  //     number = 0;
+  //     break;
+  //   case opParam :
+  //     CTacConst *c = dynamic_cast<CTacConst*>(instr->GetDest());
+  //     assert(c != NULL);
+  //     c->SetValue(++number);
+  //     break;
+  //   }
+  // }
+
+}
+
+void param_numbering_scope(CScope *m){
+  param_numbering_block(m, m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit = m->GetSubscopes().begin();
   while (sit != m->GetSubscopes().end()) {
     param_numbering_scope(*sit++);
   }

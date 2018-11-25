@@ -3,14 +3,35 @@
 #include <iomanip>
 #include <cassert>
 #include <map>
-
 #include "backend.h"
+#include "symtab.h"
 using namespace std;
+
+
+const char ERegName[][5] = {
+  "%r9",
+  "%r8",
+  "%rcx",
+  "%rsi",
+  "%rdi",
+  "%rbx",
+  "%r12",
+  "%r13",
+  "%r10",
+  "%r11",
+  "%r14",
+  "%r15",
+};
 
 
 void CSymbol::SetSymbolType(ESymbolType symbt)
 {
   _symboltype = symbt;
+}
+
+void CSymbol::SetName(string name)
+{
+  _name = name;
 }
 
 bool CSymbol::isInReg(void) const
@@ -31,6 +52,12 @@ bool CSymtab::RemoveSymbol(CSymbol *s)
     return true;
   }
 }
+
+CSymRegister::CSymRegister(const string name, const CType *datatype)
+  : CSymbol(name, stRegister, datatype)
+{
+}
+
 
 // bool CSymtab::RemoveSymbol(const string name)
 // {

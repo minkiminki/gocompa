@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol table
-/// @author Bernhard Egger <bernhard@csap.snu.ac.kr>
+/// @author Bernhard Egger <bernhard@cssap.snu.ac.kr>
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
 ///
@@ -43,21 +43,39 @@ using namespace std;
 
 
 enum ERegister {
-  rgRAX,
-  rgRBX,
+  rgR9,
+  rgR8,
   rgRCX,
-  rgRDX,
   rgRSI,
   rgRDI,
-  rgR8,
-  rgR9,
-  rgR10,
-  rgR11,
+  rgRBX,
   rgR12,
   rgR13,
+  rgR10,
+  rgR11,
   rgR14,
   rgR15,
 };
+
+#define rgMIN rgR9
+#define rgMAX rgR15
+
+extern const char ERegName[][5];
+
+// char ERegName[rgMAX + 1][5] = {
+//   "%r9",
+//   "%r8",
+//   "%rcx",
+//   "%rsi",
+//   "%rdi",
+//   "%rbx",
+//   "%r12",
+//   "%r13",
+//   "%r10",
+//   "%r11",
+//   "%r14",
+//   "%r15",
+// };
 
 //------------------------------------------------------------------------------
 /// @brief SnuPL symbol types
@@ -103,6 +121,9 @@ class CSymbol {
     /// @brief return the symbol's identifier
     /// @retval string name
     string GetName(void) const;
+
+    void SetName(string name);
+
 
     /// @brief return the symbol's type
     /// @retval ESymbolType symbol type
@@ -367,23 +388,25 @@ class CSymRegister : public CSymbol {
     ///
     /// @param name symbol name (identifier)
     /// @param type symbol type
-    CSymRegister(const CType *type);
-    CSymRegister(ERegister rg, const CType *type);
-  bool IsFixed();
-  bool IsAssigned();
-  void SetRegister(ERegister rg);
-  ERegister GetRegister(void);
+  CSymRegister(const string name, const CType *datatype);
+
+  // CSymRegister(const CType *type);
+  // CSymRegister(ERegister rg, const CType *type);
+  // bool IsFixed();
+  // bool IsAssigned();
+  // void SetRegister(ERegister rg);
+  // ERegister GetRegister(void);
 
     /// @}
 
     /// @brief print the symbol to an output stream
     /// @param out output stream
     /// @param indent indentation
-    virtual ostream&  print(ostream &out, int indent=0) const;
+  //   virtual ostream&  print(ostream &out, int indent=0) const;
 
-  private:
-    bool _fixed;
-    ERegister _rg;
+  // private:
+  //   bool _fixed;
+  //   ERegister _rg;
 };
 
 
