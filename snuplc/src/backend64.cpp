@@ -458,13 +458,14 @@ string CBackendx86_64::GetOpPostfix(int size)
 
 string CBackendx86_64::SetSrcRegister(const CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
 {
+  string _cmt = *cmt;
   string res = Operand(op, isRef, isMem);
   if(*isRef) {
     if(*isMem) {
-      Load(res, reg, cmt, 8); // 8 is for pointer size
+      Load(res, reg, &_cmt, 8); // 8 is for pointer size
       res = reg;
     }
-    Load("("+res+")", reg, cmt, 8);
+    Load("("+res+")", reg, &_cmt, 8);
     res = reg;
     *isMem = false;
   }
@@ -498,9 +499,62 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
 
   string src1, src2, dst, old_dst;
   string cmt = comment;
-  string regs[2] = {"%rax", "%rdx"};
+  string regs[3] = {"%rax", "%rdx", ""};
   int rcount = 0;
   bool isRef = false, isMem = false, storeDest = false;
+  //cout << cmt << endl;
+
+  string reg = regs[rcount];
+  src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    reg = regs[++rcount];
+    isRef = false;
+  }
+
+  src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+    reg = regs[++rcount];
+    isRef = false;
+  }
+  
+  dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
+  if(isMem){
+    // if rcount == 2 : src1, src2 are in regs
+    if(rcount < 2) {
+      old_dst = dst;
+      dst = regs[rcount];
+      storeDest = true;
+      isMem = false;
+    }
+    else
+      isMem = true;
+  }
+
+  Load(src1, dst, &cmt, OperandSize(i->GetDest()));
+  mnm = mnm + GetOpPostfix(OperandSize(i->GetSrc(2)));
+  string tempdst = dst;
+  // if size of operand2 and destination is different,
+  // use different reg for op and store
+  if(isMem == false) {
+    tempdst = getRegister(dst, OperandSize(i->GetSrc(2)));
+    dst = getRegister(dst, OperandSize(i->GetDest()));
+  }
+  EmitInstruction(mnm, src2 + ", " + tempdst, cmt);
+  if(storeDest) {
+    Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+  }
+  return;
+}
+
+void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string mnm, src1, src2, dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isMem = false;
 
   string reg = regs[rcount];
   src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
@@ -516,22 +570,55 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
   }
   
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
-  if(isMem){
-    old_dst = dst;
-    dst = regs[rcount];
-    storeDest = true;
+
+  if(rcount == 0) {
+    Load(src1, "%rax", &cmt, OperandSize(i->GetSrc(1)));
+    src1 = "%rax";
+    src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
   }
 
-  Load(src1, dst, &cmt, OperandSize(i->GetDest()));
-  mnm = mnm + GetOpPostfix(OperandSize(i->GetDest()));
-  dst = getRegister(dst, OperandSize(i->GetDest()));
-  EmitInstruction(mnm, src2 + ", " + dst, cmt);
-  if(storeDest) {
-    Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
-  }
+  string postfix = GetOpPostfix(OperandSize(i->GetDest()));
+  EmitInstruction("cmp" + postfix, src2 + ", " + src1, cmt);
+  cmt = "";
+  EmitInstruction("j" + Condition(op), dst);
   return;
 }
 
+void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string src, dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isSrcMem = false, isDstMem = false;
+
+  string reg = regs[rcount];
+  src = SetSrcRegister(i->GetSrc(1), &isRef, &isSrcMem, reg, &cmt);
+  if(isRef) {
+    reg = regs[++rcount];
+    isRef = false;
+    isSrcMem = false;
+    src = getRegister(reg, OperandSize(i->GetSrc(1)));
+  }
+
+  dst = SetDstRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
+
+  // if dst, src are in memory, we should move src(mem) into reg
+  if(isDstMem) {
+    if(isSrcMem) {
+      reg = regs[++rcount];
+      Load(src, reg, &cmt, OperandSize(i->GetSrc(1)));
+      src = getRegister(reg, OperandSize(i->GetSrc(1)));
+    }
+  }
+  else
+    dst = getRegister(dst, OperandSize(i->GetDest()));
+
+  string postfix = GetOpPostfix(OperandSize(i->GetSrc(1)));
+  EmitInstruction("mov" + postfix, src + ", " + dst, cmt);
+  return;
+}
 // TODO:: 오퍼레이션 별로 분리하기
 void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 {
@@ -673,27 +760,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
       EmitInstruction("jmp", dst, cmt);
       cmt = "";
       return;
-    // conditional branching
-    // if src1 relOp src2 then goto dst
-    case opEqual:
-    case opNotEqual:
-    case opLessThan:
-    case opLessEqual:
-    case opBiggerThan:
-    case opBiggerEqual:
-      int opsize = OperandSize(i->GetSrc(1));
-      string postfix = "";
-      switch(opsize) {
-        case 1: postfix = "b"; break;
-        case 2: postfix = "w"; break;
-        case 4: postfix = "l"; break;
-        case 8: postfix = "q"; break;
-      }
-
-      EmitInstruction("cmp" + postfix, src2 + ", " + src1, cmt);
-      cmt = "";
-      EmitInstruction("j" + Condition(op), dst);
-      return;
   }
   if(is_mem[2]){
     dst = getRegister(dst, OperandSize(i->GetDest()));
@@ -731,16 +797,12 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opDiv:
     case opNeg:
     case opNot:
-    case opAssign:
     case opAddress:
     case opGoto:
-    case opEqual:
-    case opNotEqual:
-    case opLessThan:
-    case opLessEqual:
-    case opBiggerThan:
-    case opBiggerEqual:
       EmitOperation(i, cmt.str());
+      break;
+    case opAssign:
+      EmitOpAssign(i, cmt.str());
       break;
       /*
       // memory operations
@@ -770,6 +832,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
       break;
 
+    */
       // conditional branching
       // if src1 relOp src2 then goto dst
     case opEqual:
@@ -778,14 +841,10 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opLessEqual:
     case opBiggerThan:
     case opBiggerEqual:
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("cmpq", "%rbx, %rax");
-      EmitInstruction("j" + Condition(op), Operand(i->GetDest()));
+      EmitOpConditional(i, cmt.str());
       break;
 
 
-    */
       // function call-related operations
     case opTailCall:
       {
@@ -897,10 +956,9 @@ void CBackendx86_64::Load(string src, string dst, string* comment, int size)
     case 8: mod = "q"; break;
   }
 
-//  dst = getRegister(dst, size);
-
   // emit the load instruction
   EmitInstruction(mnm + mod, src + ", " + dst, *comment);
+  *comment = "";
 }
 
 
