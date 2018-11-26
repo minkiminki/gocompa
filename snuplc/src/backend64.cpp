@@ -91,7 +91,7 @@ int getRegType(string reg)
   if(reg.compare("%r14") == 0) return 12;
   if(reg.compare("%r15") == 0) return 13;
   if(reg.compare("%r16") == 0) return 14;
-  return stoi(reg);
+  return -1;
 }
 
 // get register string based on operand's size
@@ -99,6 +99,9 @@ int getRegType(string reg)
 string getRegister(string reg, int size)
 {
   int regNum = getRegType(reg);
+  if(regNum == -1)
+    return reg;
+
   switch(size){
     case 1: return all_regs[0][regNum];
     case 2: return all_regs[1][regNum];
@@ -456,7 +459,7 @@ string CBackendx86_64::GetOpPostfix(int size)
   return "";
 }
 
-string CBackendx86_64::SetSrcRegister(const CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
+string CBackendx86_64::SetSrcRegister(CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
 {
   string _cmt = *cmt;
   string res = Operand(op, isRef, isMem);
@@ -465,7 +468,7 @@ string CBackendx86_64::SetSrcRegister(const CTac* op, bool* isRef, bool* isMem, 
       Load(res, reg, &_cmt, 8); // 8 is for pointer size
       res = reg;
     }
-    Load("("+res+")", reg, &_cmt, 8);
+    Load("("+res+")", reg, &_cmt, OperandSize(op));
     res = reg;
     *isMem = false;
   }
@@ -489,8 +492,9 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
 {
   EOperation op = i->GetOperation();
   string mnm;
+  bool isAdd = false;
   switch(op) {
-    case opAdd: mnm = "add"; break;
+    case opAdd: mnm = "add"; isAdd = true; break;
     case opSub: mnm = "sub"; break;
     case opAnd: mnm = "and"; break;
     case opOr:  mnm = "or";  break;
@@ -507,15 +511,18 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
   string reg = regs[rcount];
   src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
   if(isRef) {
+    cmt = "";
     reg = regs[++rcount];
     isRef = false;
+    src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
   }
 
   src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
   if(isRef) {
-    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+    cmt = "";
     reg = regs[++rcount];
     isRef = false;
+    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
   }
   
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
@@ -527,22 +534,42 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
       storeDest = true;
       isMem = false;
     }
-    else
-      isMem = true;
   }
 
-  Load(src1, dst, &cmt, OperandSize(i->GetDest()));
-  mnm = mnm + GetOpPostfix(OperandSize(i->GetSrc(2)));
-  string tempdst = dst;
-  // if size of operand2 and destination is different,
-  // use different reg for op and store
-  if(isMem == false) {
-    tempdst = getRegister(dst, OperandSize(i->GetSrc(2)));
-    dst = getRegister(dst, OperandSize(i->GetDest()));
+  int src2Size = OperandSize(i->GetSrc(2));
+  int src1Size = OperandSize(i->GetSrc(1));
+
+  // if src1, src2 are in %rax, %rdx
+  if (rcount >= 2) {
+    mnm = mnm + GetOpPostfix(src1Size);
+
+    EmitInstruction(mnm, src2 + ", " + src1, cmt);
+
+    // if Destination is reference(pointer)
+    if(isRef) {
+      Load(dst, "%rax", &cmt, 8);
+      dst = "(%rax)";
+    }
+    Store(src1, dst, cmt, src2Size);
   }
-  EmitInstruction(mnm, src2 + ", " + tempdst, cmt);
-  if(storeDest) {
-    Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+  else {
+    if(isAdd) { // change src1 and src2 for pointer + integer case
+      src2Size = src1Size;
+      src1Size = OperandSize(i->GetSrc(2));
+      string temp = src2;
+      src2 = src1;
+      src1 = temp;
+    }
+
+    Load(src1, dst, &cmt, src1Size);
+    mnm = mnm + GetOpPostfix(src2Size);
+    if(isMem == false)
+      dst = getRegister(dst, OperandSize(i->GetDest()));
+    src2 = getRegister(src2, src2Size);
+    EmitInstruction(mnm, src2 + ", " + dst, cmt);
+    if(storeDest) {
+      Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+    }
   }
   return;
 }
@@ -619,6 +646,47 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
   EmitInstruction("mov" + postfix, src + ", " + dst, cmt);
   return;
 }
+
+void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string mnm = "idiv";
+
+  string src1, src2, dst, old_dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isMem = false, storeDest = false;
+
+  string reg = regs[rcount];
+  src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(!isRef) {
+    Load(src1, reg, &cmt, OperandSize(i->GetSrc(1)));
+    reg = regs[rcount];
+    src1 = getRegister(reg, OperandSize(i->GetSrc(1)));
+  }
+  rcount++;
+  isRef = false;
+
+  src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    cmt = "";
+    reg = regs[++rcount];
+    isRef = false;
+    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+  }
+  
+  dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
+
+  mnm = mnm + GetOpPostfix(OperandSize(i->GetSrc(1)));
+  EmitInstruction("cqo");
+  EmitInstruction(mnm, src2);
+  src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  Store(src1, dst, cmt, OperandSize(i->GetDest()));
+
+  return;
+}
+
 // TODO:: 오퍼레이션 별로 분리하기
 void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
 {
@@ -640,10 +708,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
     case opNot: mnm = (op == opNeg ? "negq" : "notq");
                 get_src2 = false;
                 isNeg = true;
-                break;
-    case opAssign:
-                get_src2 = false;
-                isAsg = true;
                 break;
     case opGoto:
                 get_src2 = false;
@@ -795,6 +859,8 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       EmitOpBinary(i, cmt.str());
       break;
     case opDiv:
+      EmitOpDivision(i, cmt.str());
+      break;
     case opNeg:
     case opNot:
     case opAddress:
@@ -973,7 +1039,7 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
   switch (OperandSize(src)) {
     case 1: mod = "zbq"; break;
     case 2: mod = "zwq"; break;
-    case 4: mod = "l"; if(dst.substr(1,1).compare("r")==0) dst.replace(1, 1, "e"); break;
+    case 4: mod = "l"; dst = getRegister(dst, 4); break;
     case 8: mod = "q"; break;
   }
 
