@@ -586,12 +586,14 @@ void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
   string reg = regs[rcount];
   src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
   if(isRef) {
+    cmt = "";
     reg = regs[++rcount];
     isRef = false;
   }
 
   src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
   if(isRef) {
+    cmt = "";
     reg = regs[++rcount];
     isRef = false;
   }
@@ -601,10 +603,11 @@ void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
   if(rcount == 0) {
     Load(src1, "%rax", &cmt, OperandSize(i->GetSrc(1)));
     src1 = "%rax";
-    src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
   }
 
-  string postfix = GetOpPostfix(OperandSize(i->GetDest()));
+  src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+  string postfix = GetOpPostfix(OperandSize(i->GetSrc(1)));
   EmitInstruction("cmp" + postfix, src2 + ", " + src1, cmt);
   cmt = "";
   EmitInstruction("j" + Condition(op), dst);
@@ -623,6 +626,7 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
   string reg = regs[rcount];
   src = SetSrcRegister(i->GetSrc(1), &isRef, &isSrcMem, reg, &cmt);
   if(isRef) {
+    cmt = "";
     reg = regs[++rcount];
     isRef = false;
     isSrcMem = false;

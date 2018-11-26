@@ -86,6 +86,7 @@ void pointer_typing_block(CCodeBlock *cb) {
     CTacInstr* instr = *(it++);
     assert(instr != NULL);
     if(instr->GetOperation() == opAdd){
+      if(dynamic_cast<CTacReference*>(instr->GetSrc(1)) != NULL) continue;
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
@@ -97,6 +98,7 @@ void pointer_typing_block(CCodeBlock *cb) {
       // symb->SetDataType(c_src->GetSymbol()->GetDataType());
     }
     else if(instr->GetOperation() == opAssign){
+      if(dynamic_cast<CTacReference*>(instr->GetSrc(1)) != NULL) continue;
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
