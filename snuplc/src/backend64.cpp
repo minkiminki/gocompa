@@ -191,24 +191,25 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   // clear stack
   //modified
-  size_t lsize = size/8;
-  if (lsize > 4) {
-    _out << endl;
-    EmitInstruction("cld", "", "memset local stack area to 0");
-    EmitInstruction("xorq", "%rax, %rax");
-    EmitInstruction("mov", Imm(lsize) + ", %rcx");
-    EmitInstruction("mov", "%rsp, %rdi");
-    EmitInstruction("rep", "stosq");
-  } else if (lsize > 0) {
-    _out << endl;
-    EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
-    do {
-      lsize--;
-      ostringstream o;
-      o << "%rax, " << dec << lsize*8 << "(%rsp)";
-      EmitInstruction("movq", o.str());
-    } while (lsize > 0);
-  }
+
+  // size_t lsize = size/8;
+  // if (lsize > 4) {
+  //   _out << endl;
+  //   EmitInstruction("cld", "", "memset local stack area to 0");
+  //   EmitInstruction("xorq", "%rax, %rax");
+  //   EmitInstruction("mov", Imm(lsize) + ", %rcx");
+  //   EmitInstruction("mov", "%rsp, %rdi");
+  //   EmitInstruction("rep", "stosq");
+  // } else if (lsize > 0) {
+  //   _out << endl;
+  //   EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
+  //   do {
+  //     lsize--;
+  //     ostringstream o;
+  //     o << "%rax, " << dec << lsize*8 << "(%rsp)";
+  //     EmitInstruction("movq", o.str());
+  //   } while (lsize > 0);
+  // }
 
   // initialize local arrays
   EmitLocalData(scope);
