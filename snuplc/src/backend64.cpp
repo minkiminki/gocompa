@@ -181,7 +181,9 @@ void CBackendx86_64::EmitScope(CScope *scope)
   // currently push/pop all regs
   const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
   EmitCalleePush(callee_used_regs);
-  EmitParamPush(param_num);
+
+  // EmitParamPush(param_num);
+
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
   //EmitInstruction("pushl", "%rsi");
   //EmitInstruction("pushl", "%rdi");
@@ -247,7 +249,9 @@ void CBackendx86_64::EmitEpilogue()
   // currently push/pop all regs
   int param_size = (param_num <= 6) ? param_num*8 : 6*8;
   EmitCalleePop(callee_used_regs);
-  EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+
+  // EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+
   EmitInstruction("popq", "%rbp");
   if(isTailCall==false)
     EmitInstruction("ret");
@@ -547,6 +551,31 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       }
     } //EmitInstruction("pushq", "%rax");
     break;
+
+  case opGetParam:
+    {
+      CTacConst *t = dynamic_cast<CTacConst*>(i->GetSrc(1));
+      int paramIndex = t->GetValue();
+
+      // cout << t << " - " << paramIndex << endl;
+      // _P1;
+
+      if(paramIndex > 6) {
+	// TODO
+	// Load(i->GetSrc(1), "%rax", cmt.str());
+	// EmitInstruction("pushq", "%rax");
+      }
+      else {
+	// Load(param_regs[paramIndex-1], i->GetDest(), cmt.str());
+
+	EmitInstruction("movq", param_regs[paramIndex]+", %rax", cmt.str());
+	// Load(i->GetSrc(1), "%rax", cmt.str());
+	Store(i->GetDest(), 'a');
+      }
+    } //EmitInstruction("pushq", "%rax");
+  break;
+
+
 
     // special
   case opLabel:

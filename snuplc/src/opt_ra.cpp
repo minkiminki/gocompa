@@ -25,26 +25,29 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
   size_t size = 0;
   int param_num = 0;
 
-  // for first iteration, assign regs for param(<6) and compute param number
-  for (size_t i=0; i<slist.size(); i++) {
-    CSymbol *s = slist[i];
-    const CType *t = s->GetDataType();
 
-    ESymbolType st = s->GetSymbolType();
+  // // for first iteration, assign regs for param(<6) and compute param number
+  // for (size_t i=0; i<slist.size(); i++) {
+  //   CSymbol *s = slist[i];
+  //   const CType *t = s->GetDataType();
 
-    if (st == stParam) {
-      if(++param_num > 6){
-      } else {
-	CSymParam *p = dynamic_cast<CSymParam*>(s);
-	assert(p != NULL);
+  //   ESymbolType st = s->GetSymbolType();
 
-	p->SetBaseRegister("");
+  //   if (st == stParam) {
+  //     if(++param_num > 6){
+  //     }
+  //     else {
+  // 	CSymParam *p = dynamic_cast<CSymParam*>(s);
+  // 	assert(p != NULL);
 
-	// p->SetBaseRegister("%rbp");
-	p->SetOffset(param_ofs - (p->GetIndex()+1)*8);
-      }
-    }
-  }
+  // 	p->SetBaseRegister("");
+
+  // 	// p->SetBaseRegister("%rbp");
+  // 	p->SetOffset(param_ofs - (p->GetIndex()+1)*8);
+  //     }
+  //   }
+  // }
+  param_num = cbp->GetBlockTable()->GetLiveness()->GetParamNum();
 
   //set locals after param values, set param>6 on eariler stack :) :(
   if(param_num > 6){
@@ -66,7 +69,7 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
 
     ESymbolType st = s->GetSymbolType();
 
-    if (st == stLocal) {
+    if (st == stLocal || st == stParam) {
 
       if(s->GetDataType()->IsArray()){
 	int ssize = GetSize_prime(t);
@@ -124,16 +127,17 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
 	}
       }
 
-    } else if (st == stParam) {
-      if(param_num > 6){
-	CSymParam *p = dynamic_cast<CSymParam*>(s);
-	assert(p != NULL);
-
-	p->SetBaseRegister("");
-	// p->SetBaseRegister("%rbp");
-	p->SetOffset(param_ofs - (p->GetIndex()-5)*8);
-      }
     }
+    // else if (st == stParam) {
+    //   if(param_num > 6){
+    // 	CSymParam *p = dynamic_cast<CSymParam*>(s);
+    // 	assert(p != NULL);
+
+    // 	p->SetBaseRegister("");
+    // 	// p->SetBaseRegister("%rbp");
+    // 	p->SetOffset(param_ofs - (p->GetIndex()-5)*8);
+    //   }
+    // }
 
     // cout << s << endl;
     // cout << local_ofs << endl;
