@@ -216,7 +216,8 @@ const CSymbol* Liveness::CreateParamReg(int index)
   }
   _param_numb++;
   _tempregs.push_back(s);
-  _arg_regs.push_back(s);
+  _arg_regs[index] = s;
+  // _arg_regs.push_back(s);
   return s;
 }
 
@@ -436,7 +437,7 @@ int Liveness::GetParamNum()
   return _param_numb;
 }
 
-vector<const CSymbol*> & Liveness::GetArgRegs(void)
+map<int, const CSymbol*> & Liveness::GetArgRegs(void)
 {
   return _arg_regs;
 }

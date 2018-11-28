@@ -37,18 +37,26 @@ void assign_param_block(CSymtab* symtab, CCodeBlock *cb) {
   // list<CTacInstr*>::iterator init_instr_global = next(cb->GetInstr().begin(), 1) =
   //   next(const_cast<list<CTacInstr*>&>(cb->GetInstr()).begin(), 1);
 
-  int param_num = 0;
-
   for (size_t i=0; i<slist.size(); i++) {
     CSymbol *s = slist[i];
     ESymbolType st = s->GetSymbolType();
 
     if (st == stParam) {
 
-      if(param_num != 2) liveness->CreateParamReg(param_num);
+      CSymParam *p = dynamic_cast<CSymParam*>(s);
+      assert(p != NULL);
 
-      CTacInstr_prime* new_instr = new CTacInstr_prime(opGetParam, new CTacName(s), new CTacConst(param_num++), NULL);
+      int num = p->GetIndex();
+
+      if(num != 2) liveness->CreateParamReg(num);
+
+      // if(param_num != 2) liveness->CreateParamReg(param_num);
+
+      CTacInstr_prime* new_instr = new CTacInstr_prime(opGetParam, new CTacName(s), new CTacConst(num), NULL);
       new_instr->SetFromBlock(init_blk);
+
+      // CTacInstr_prime* new_instr = new CTacInstr_prime(opGetParam, new CTacName(s), new CTacConst(param_num++), NULL);
+      // new_instr->SetFromBlock(init_blk);
 
       instrs_blk.insert(init_instr_blk, new_instr);
       instrs_global.insert(init_instr_global, new_instr);
