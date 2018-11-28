@@ -627,10 +627,10 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
   src = SetSrcRegister(i->GetSrc(1), &isRef, &isSrcMem, reg, &cmt);
   if(isRef) {
     cmt = "";
-    reg = regs[++rcount];
     isRef = false;
     isSrcMem = false;
-    src = getRegister(reg, OperandSize(i->GetSrc(1)));
+    src = getRegister(src, OperandSize(i->GetSrc(1)));
+    reg = regs[++rcount]; //reg used in SetSrcRegister, assign new
   }
 
   dst = SetDstRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
@@ -638,7 +638,7 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
   // if dst, src are in memory, we should move src(mem) into reg
   if(isDstMem) {
     if(isSrcMem) {
-      reg = regs[++rcount];
+      reg = regs[++rcount]; //previous reg already used in SetDstRegister
       Load(src, reg, &cmt, OperandSize(i->GetSrc(1)));
       src = getRegister(reg, OperandSize(i->GetSrc(1)));
     }
@@ -671,15 +671,21 @@ void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
   }
   rcount++;
   isRef = false;
+  isMem = false;
 
   src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  //if src2 is reference or not in memeory and register
   if(isRef) {
     cmt = "";
     reg = regs[++rcount];
     isRef = false;
     src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+  } else if((isMem!=1) && (src2[0] != '%')) {
+    Load(src2, reg, &cmt, OperandSize(i->GetSrc(2)));
+    src2 = getRegister(reg, OperandSize(i->GetSrc(2)));
+    reg = regs[++rcount];
   }
-  
+
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
 
   mnm = mnm + GetOpPostfix(OperandSize(i->GetSrc(1)));
