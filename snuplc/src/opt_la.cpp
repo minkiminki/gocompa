@@ -38,48 +38,59 @@ void dead_store_elimination_block(CCodeBlock *cb) {
 	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
 
 	if(dest != NULL){
+
 	  if(dynamic_cast<CTacReference*>(instr->GetDest()) != NULL){
-	    if(dest->GetSymbol()->GetSymbolType() == stLocal){
+	    if(dest->GetSymbol()->GetSymbolType() == stLocal ||
+	       dest->GetSymbol()->GetSymbolType() == stParam){
 	      if(needed.insert(dest->GetSymbol()).second)
 		success = true;
 	    }
-	    if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+				src1->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src1->GetSymbol()).second)
 		success = true;
 	    }
-	    if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+				src2->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src2->GetSymbol()).second)
 		success = true;
 	    }
 	  }
 	  else if(dest->GetSymbol()->GetSymbolType() == stGlobal || needed.find(dest->GetSymbol()) != needed.end()){
-	    if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+				src1->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src1->GetSymbol()).second)
 		success = true;
 	    }
-	    if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+				src2->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src2->GetSymbol()).second)
 		success = true;
 	    }
 	  }
 	}
 	else if(instr->GetOperation() == opParam || instr->GetOperation() == opReturn){
-	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+			      src1->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src1->GetSymbol()).second)
 	      success = true;
 	  }
 	}
 	else if(instr->IsBranch()){
-	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+
+	  if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+			      src1->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src1->GetSymbol()).second)
 	      success = true;
 	  }
-	  if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+			      src2->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src2->GetSymbol()).second)
 	      success = true;
 	  }
 	}
       }
+
 
       it = blk->GetPhis().rbegin();
       while (it != blk->GetPhis().rend()) {
@@ -91,11 +102,13 @@ void dead_store_elimination_block(CCodeBlock *cb) {
 	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
 
 	if(needed.find(dest->GetSymbol()) != needed.end()){
-	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+			      src1->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src1->GetSymbol()).second)
 	      success = true;
 	  }
-	  if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+			      src2->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src2->GetSymbol()).second)
 	      success = true;
 	  }
@@ -114,7 +127,10 @@ void dead_store_elimination_block(CCodeBlock *cb) {
       assert(instr != NULL);
 
       CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
-      if(dest != NULL && dest->GetSymbol()->GetSymbolType() == stLocal && needed.find(dest->GetSymbol()) == needed.end()){
+      if(dest != NULL &&
+	 (dest->GetSymbol()->GetSymbolType() == stLocal ||
+	  dest->GetSymbol()->GetSymbolType() == stParam) &&
+	 needed.find(dest->GetSymbol()) == needed.end()){
 	// cout << instr << endl;
 	// _P1;
 	if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){

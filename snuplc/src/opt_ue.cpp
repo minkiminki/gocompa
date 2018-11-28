@@ -74,7 +74,7 @@ void remove_var_block(CSymtab* symtab, CCodeBlock *cb) {
   while (sit != symbs.end()) {
     CSymbol *s = *sit++;
     assert(s != NULL);
-    if(s->GetSymbolType() != stLocal) continue;
+    if(s->GetSymbolType() != stLocal && s->GetSymbolType() != stParam) continue;
 
     set<const CSymbol*>::iterator fit = occurs.find(s);
     if(fit == occurs.end()){
