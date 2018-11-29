@@ -36,6 +36,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cassert>
+#include <map>
 
 #include "backend.h"
 using namespace std;
@@ -44,6 +45,17 @@ string param_regs[6] = {"%rdi\0","%rsi\0","%rdx\0","%rcx\0","%r8\0","%r9\0"};
 string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
 static bool isTailCall = false;
+string all_regs[4][14] = {
+  {"%al", "%bl", "%cl", "%dl", "%sil", "%dil", "%r8b", "%r9b", "%r10b",
+    "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"},
+  {"%ax", "%bx", "%cx", "%dx", "%si", "%di", "%r8w", "%r91", "%r10w",
+    "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"},
+  {"%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi", "%r8d", "%r9d", "%r10d",
+    "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"},
+  {"%rax", "%rbx", "%rcx", "%rdx", "%rsi", "%rdi", "%r8", "%r9", "%r10",
+    "%r11", "%r12", "%r13", "%r14", "%r15"}
+};
+map<const CSymbol*, ERegister> symb_to_reg;
 
 static int tmp_label_count = 0;
 
@@ -63,7 +75,44 @@ int GetAlign_prime (const CType* ct)
     return ct->GetAlign();
 }
 
-//------------------------------------------------------------------------------
+// find register type - 만든 이유는 Load 인자를 인티저로 바꾸기 귀찮았기 때문
+int getRegType(string reg)
+{
+  if(reg.compare("%rax") == 0) return 0;
+  if(reg.compare("%rbx") == 0) return 1;
+  if(reg.compare("%rcx") == 0) return 2;
+  if(reg.compare("%rdx") == 0) return 3;
+  if(reg.compare("%rsi") == 0) return 4;
+  if(reg.compare("%rdi") == 0) return 5;
+  if(reg.compare("%r8") == 0) return 6;
+  if(reg.compare("%r9") == 0) return 7;
+  if(reg.compare("%r10") == 0) return 8;
+  if(reg.compare("%r11") == 0) return 9;
+  if(reg.compare("%r12") == 0) return 10;
+  if(reg.compare("%r13") == 0) return 11;
+  if(reg.compare("%r14") == 0) return 12;
+  if(reg.compare("%r15") == 0) return 13;
+  if(reg.compare("%r16") == 0) return 14;
+  return -1;
+}
+
+// get register string based on operand's size
+// wow :(
+string getRegister(string reg, int size)
+{
+  int regNum = getRegType(reg);
+  if(regNum == -1)
+    return reg;
+
+  switch(size){
+    case 1: return all_regs[0][regNum];
+    case 2: return all_regs[1][regNum];
+    case 4: return all_regs[2][regNum];
+    case 8: return all_regs[3][regNum];
+    default: return "";
+  }
+}
+
 // CBackendx86_64
 //
 CBackendx86_64::CBackendx86_64(ostream &out)
@@ -79,29 +128,29 @@ CBackendx86_64::~CBackendx86_64(void)
 void CBackendx86_64::EmitHeader(void)
 {
   _out << "##################################################" << endl
-       << "# " << _m->GetName() << endl
-       << "#" << endl
-       << endl;
+    << "# " << _m->GetName() << endl
+    << "#" << endl
+    << endl;
 }
 
 void CBackendx86_64::EmitCode(void)
 {
   _out << _ind << "#-----------------------------------------" << endl
-       << _ind << "# text section" << endl
-       << _ind << "#" << endl
-       << _ind << ".text" << endl
-       << _ind << ".align 4" << endl
-       << endl
-       << _ind << "# entry point and pre-defined functions" << endl
-       << _ind << ".global main" << endl
-       << _ind << ".extern DIM" << endl
-       << _ind << ".extern DOFS" << endl
-       << _ind << ".extern ReadInt" << endl
-       << _ind << ".extern WriteInt" << endl
-       << _ind << ".extern WriteStr" << endl
-       << _ind << ".extern WriteChar" << endl
-       << _ind << ".extern WriteLn" << endl
-       << endl;
+    << _ind << "# text section" << endl
+    << _ind << "#" << endl
+    << _ind << ".text" << endl
+    << _ind << ".align 4" << endl
+    << endl
+    << _ind << "# entry point and pre-defined functions" << endl
+    << _ind << ".global main" << endl
+    << _ind << ".extern DIM" << endl
+    << _ind << ".extern DOFS" << endl
+    << _ind << ".extern ReadInt" << endl
+    << _ind << ".extern WriteInt" << endl
+    << _ind << ".extern WriteStr" << endl
+    << _ind << ".extern WriteChar" << endl
+    << _ind << ".extern WriteLn" << endl
+    << endl;
 
   // emit subscopes (=procedures/functions) first
   vector<CScope*>::const_iterator sit = _m->GetSubscopes().begin();
@@ -110,30 +159,30 @@ void CBackendx86_64::EmitCode(void)
   EmitScope(_m);
 
   _out << _ind << "# end of text section" << endl
-       << _ind << "#-----------------------------------------" << endl
-       << endl;
+    << _ind << "#-----------------------------------------" << endl
+    << endl;
 }
 
 void CBackendx86_64::EmitData(void)
 {
   _out << _ind << "#-----------------------------------------" << endl
-       << _ind << "# global data section" << endl
-       << _ind << "#" << endl
-       << _ind << ".data" << endl
-       << _ind << ".align 4" << endl
-       << endl;
+    << _ind << "# global data section" << endl
+    << _ind << "#" << endl
+    << _ind << ".data" << endl
+    << _ind << ".align 4" << endl
+    << endl;
 
   EmitGlobalData(_m);
 
   _out << _ind << "# end of global data section" << endl
-       << _ind << "#-----------------------------------------" << endl
-       << endl;
+    << _ind << "#-----------------------------------------" << endl
+    << endl;
 }
 
 void CBackendx86_64::EmitFooter(void)
 {
   _out << _ind << ".end" << endl
-       << "##################################################" << endl;
+    << "##################################################" << endl;
 }
 
 void CBackendx86_64::SetScope(CScope *scope)
@@ -157,7 +206,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   // label
   _out << _ind << "# scope " << scope->GetName() << endl
-       << label << ":" << endl;
+    << label << ":" << endl;
 
   // compute the size of locals
   CSymtab *st = scope->GetSymbolTable();
@@ -165,6 +214,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   CCodeBlock_prime *cb = dynamic_cast<CCodeBlock_prime*>(scope->GetCodeBlock());
   assert(cb != NULL);
+  symb_to_reg = cb->GetBlockTable()->GetLiveness()->GetAllocated();
   // cb->SetStackSize(ComputeStackOffsets(st, 8, -12));
 
   size_t size = cb->GetStackSize();
@@ -181,7 +231,9 @@ void CBackendx86_64::EmitScope(CScope *scope)
   // currently push/pop all regs
   const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
   EmitCalleePush(callee_used_regs);
-  EmitParamPush(param_num);
+
+  // EmitParamPush(param_num);
+
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
   //EmitInstruction("pushl", "%rsi");
   //EmitInstruction("pushl", "%rdi");
@@ -189,31 +241,32 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   // clear stack
   //modified
-  size_t lsize = size/8;
-  if (lsize > 4) {
-    _out << endl;
-    EmitInstruction("cld", "", "memset local stack area to 0");
-    EmitInstruction("xorq", "%rax, %rax");
-    EmitInstruction("mov", Imm(lsize) + ", %rcx");
-    EmitInstruction("mov", "%rsp, %rdi");
-    EmitInstruction("rep", "stosq");
-  } else if (lsize > 0) {
-    _out << endl;
-    EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
-    do {
-      lsize--;
-      ostringstream o;
-      o << "%rax, " << dec << lsize*8 << "(%rsp)";
-      EmitInstruction("movq", o.str());
-    } while (lsize > 0);
-  }
+
+  // size_t lsize = size/8;
+  // if (lsize > 4) {
+  //   _out << endl;
+  //   EmitInstruction("cld", "", "memset local stack area to 0");
+  //   EmitInstruction("xorq", "%rax, %rax");
+  //   EmitInstruction("mov", Imm(lsize) + ", %rcx");
+  //   EmitInstruction("mov", "%rsp, %rdi");
+  //   EmitInstruction("rep", "stosq");
+  // } else if (lsize > 0) {
+  //   _out << endl;
+  //   EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
+  //   do {
+  //     lsize--;
+  //     ostringstream o;
+  //     o << "%rax, " << dec << lsize*8 << "(%rsp)";
+  //     EmitInstruction("movq", o.str());
+  //   } while (lsize > 0);
+  // }
 
   // initialize local arrays
   EmitLocalData(scope);
 
   // emit code
   _out << endl
-       << _ind << "# function body" << endl;
+    << _ind << "# function body" << endl;
 
   SetScope(scope);
   // CCodeBlock *cb = scope->GetCodeBlock();
@@ -247,7 +300,8 @@ void CBackendx86_64::EmitEpilogue()
   // currently push/pop all regs
   int param_size = (param_num <= 6) ? param_num*8 : 6*8;
   EmitCalleePop(callee_used_regs);
-  EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+  // EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+
   EmitInstruction("popq", "%rbp");
   if(isTailCall==false)
     EmitInstruction("ret");
@@ -285,7 +339,7 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
       if ((GetAlign_prime(t) > 1) && (size % GetAlign_prime(t) != 0)) {
         size += GetAlign_prime(t) - size % GetAlign_prime(t);
         _out << setw(4) << " " << ".align "
-             << right << setw(3) << GetAlign_prime(t) << endl;
+          << right << setw(3) << GetAlign_prime(t) << endl;
       }
 
       _out << left << setw(36) << s->GetName() + ":" << "# " << t << endl;
@@ -296,13 +350,13 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
         int dim = a->GetNDim();
 
         _out << setw(4) << " "
-	     << ".long " << right << setw(4) << dim << endl;
+          << ".long " << right << setw(4) << dim << endl;
 
         for (int d=0; d<dim; d++) {
           assert(a != NULL);
 
           _out << setw(4) << " "
-	       << ".long " << right << setw(4) << a->GetNElem() << endl;
+            << ".long " << right << setw(4) << a->GetNElem() << endl;
 
           a = dynamic_cast<const CArrayType*>(a->GetInnerType());
         }
@@ -314,11 +368,11 @@ void CBackendx86_64::EmitGlobalData(CScope *scope)
         assert(sdi != NULL);  // only support string data initializers for now
 
         _out << left << setw(4) << " "
-	     << ".asciz " << '"' << sdi->GetData() << '"' << endl;
+          << ".asciz " << '"' << sdi->GetData() << '"' << endl;
       } else {
         _out  << left << setw(4) << " "
-	      << ".skip " << dec << right << setw(4) << t->GetDataSize()
-	      << endl;
+          << ".skip " << dec << right << setw(4) << t->GetDataSize()
+          << endl;
       }
 
       size += GetSize_prime(t);
@@ -357,14 +411,15 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
 
       ostringstream dst;
       assert(!s->isInReg());
-      //      dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+      //dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
       dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
+      // since base reg is not assigned, put all local data into reg now
 
       ofs += 4;
 
       ostringstream comment;
       comment << "local array '" << s->GetName() << "': "
-              << dim << " dimensions";
+        << dim << " dimensions";
 
       EmitInstruction("movq", Imm(dim) + "," + dst.str(), comment.str());
 
@@ -372,17 +427,17 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
         assert(a != NULL);
 
         ostringstream dst;
-	assert(!s->isInReg());
-	dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
-	//        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
+        assert(!s->isInReg());
+        dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
+        //        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
         ofs += 4;
 
         ostringstream comment;
         comment << "  dimension " << d+1 << ": "
-                << a->GetNElem() << " elements";
+          << a->GetNElem() << " elements";
 
         EmitInstruction("movq", Imm(a->GetNElem()) + "," + dst.str(),
-			comment.str());
+            comment.str());
 
         a = dynamic_cast<const CArrayType*>(a->GetInnerType());
       }
@@ -400,6 +455,404 @@ void CBackendx86_64::EmitCodeBlock(CCodeBlock *cb)
   while (it != instr.end()) EmitInstruction(*it++);
 }
 
+string CBackendx86_64::GetOpPostfix(int size)
+{
+  switch(size) {
+    case 1: return "b";
+    case 2: return "w";
+    case 4: return "l";
+    case 8: return "q";
+  }
+  return "";
+}
+
+string CBackendx86_64::SetSrcRegister(CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
+{
+  string _cmt = *cmt;
+  string res = Operand(op, isRef, isMem);
+  if(*isRef) {
+    if(*isMem) {
+      Load(res, reg, &_cmt, 8); // 8 is for pointer size
+      res = reg;
+    }
+    Load("("+res+")", reg, &_cmt, OperandSize(op));
+    res = reg;
+    *isMem = false;
+  }
+  return res;
+}
+
+string CBackendx86_64::SetDstRegister(const CTac* op, bool* isRef, bool* isMem, string reg, string* cmt)
+{
+  string res = Operand(op, isRef, isMem);
+  if(*isRef) {
+    if(*isMem) {
+      Load(res, reg, cmt, 8); // 8 is for pointer size
+      res = reg;
+    }
+    res = "(" + res + ")";
+  }
+  return res;
+}
+
+void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string mnm;
+  bool isAdd = false;
+  switch(op) {
+    case opAdd: mnm = "add"; isAdd = true; break;
+    case opSub: mnm = "sub"; break;
+    case opAnd: mnm = "and"; break;
+    case opOr:  mnm = "or";  break;
+    case opMul: mnm = "imul"; break;
+  }
+
+  string src1, src2, dst, old_dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isMem = false, storeDest = false;
+  //cout << cmt << endl;
+
+  string reg = regs[rcount];
+  src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    cmt = "";
+    reg = regs[++rcount];
+    isRef = false;
+    src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  }
+
+  src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    cmt = "";
+    reg = regs[++rcount];
+    isRef = false;
+    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+  }
+  
+  dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
+  if(isMem){
+    // if rcount == 2 : src1, src2 are in regs
+    if(rcount < 2) {
+      old_dst = dst;
+      dst = regs[rcount];
+      storeDest = true;
+      isMem = false;
+    }
+  }
+
+  int src2Size = OperandSize(i->GetSrc(2));
+  int src1Size = OperandSize(i->GetSrc(1));
+
+  // if src1, src2 are in %rax, %rdx
+  if (rcount >= 2) {
+    mnm = mnm + GetOpPostfix(src1Size);
+
+    EmitInstruction(mnm, src2 + ", " + src1, cmt);
+
+    // if Destination is reference(pointer)
+    if(isRef) {
+      Load(dst, "%rax", &cmt, 8);
+      dst = "(%rax)";
+    }
+    Store(src1, dst, cmt, src2Size);
+  }
+  else {
+    if(isAdd) { // change src1 and src2 for pointer + integer case
+      src2Size = src1Size;
+      src1Size = OperandSize(i->GetSrc(2));
+      string temp = src2;
+      src2 = src1;
+      src1 = temp;
+    }
+
+    Load(src1, dst, &cmt, src1Size);
+    mnm = mnm + GetOpPostfix(src2Size);
+    if(isMem == false)
+      dst = getRegister(dst, OperandSize(i->GetDest()));
+    src2 = getRegister(src2, src2Size);
+    EmitInstruction(mnm, src2 + ", " + dst, cmt);
+    if(storeDest) {
+      Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+    }
+  }
+  return;
+}
+
+void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string mnm, src1, src2, dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isMem = false;
+
+  string reg = regs[rcount];
+  src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    cmt = "";
+    reg = regs[++rcount];
+    isRef = false;
+  }
+
+  src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  if(isRef) {
+    cmt = "";
+    reg = regs[++rcount];
+    isRef = false;
+  }
+  
+  dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
+
+  if(rcount == 0) {
+    Load(src1, "%rax", &cmt, OperandSize(i->GetSrc(1)));
+    src1 = "%rax";
+  }
+
+  src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+  string postfix = GetOpPostfix(OperandSize(i->GetSrc(1)));
+  EmitInstruction("cmp" + postfix, src2 + ", " + src1, cmt);
+  cmt = "";
+  EmitInstruction("j" + Condition(op), dst);
+  return;
+}
+
+void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string src, dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isSrcMem = false, isDstMem = false;
+
+  string reg = regs[rcount];
+  src = SetSrcRegister(i->GetSrc(1), &isRef, &isSrcMem, reg, &cmt);
+  if(isRef) {
+    cmt = "";
+    isRef = false;
+    isSrcMem = false;
+    src = getRegister(src, OperandSize(i->GetSrc(1)));
+    reg = regs[++rcount]; //reg used in SetSrcRegister, assign new
+  }
+
+  dst = SetDstRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
+
+  // if dst, src are in memory, we should move src(mem) into reg
+  if(isDstMem) {
+    if(isSrcMem) {
+      reg = regs[++rcount]; //previous reg already used in SetDstRegister
+      Load(src, reg, &cmt, OperandSize(i->GetSrc(1)));
+      src = getRegister(reg, OperandSize(i->GetSrc(1)));
+    }
+  }
+  else
+    dst = getRegister(dst, OperandSize(i->GetDest()));
+
+  string postfix = GetOpPostfix(OperandSize(i->GetSrc(1)));
+  EmitInstruction("mov" + postfix, src + ", " + dst, cmt);
+  return;
+}
+
+void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string mnm = "idiv";
+
+  string src1, src2, dst, old_dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isMem = false, storeDest = false;
+
+  string reg = regs[rcount];
+  src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(!isRef) {
+    Load(src1, reg, &cmt, OperandSize(i->GetSrc(1)));
+    src1 = getRegister(reg, OperandSize(i->GetSrc(1)));
+  }
+  reg = regs[++rcount];
+  isRef = false;
+  isMem = false;
+
+  src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  //if src2 is reference or not in memeory and register
+  if(isRef) {
+    cmt = "";
+    isRef = false;
+    src2 = getRegister(reg, OperandSize(i->GetSrc(2)));
+  } else if((isMem!=1) && (src2[0] != '%')) {
+    Load(src2, reg, &cmt, OperandSize(i->GetSrc(2)));
+    src2 = getRegister(reg, OperandSize(i->GetSrc(2)));
+  }
+
+  dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
+
+  mnm = mnm + GetOpPostfix(OperandSize(i->GetSrc(1)));
+  EmitInstruction("cqo");
+  EmitInstruction(mnm, src2);
+  src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  Store(src1, dst, cmt, OperandSize(i->GetDest()));
+
+  return;
+}
+
+// TODO:: 오퍼레이션 별로 분리하기
+void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
+{
+  int reg_count = 0;
+  string mnm;
+  string temp_regs[2] = {"%rax", "%rdx"};
+  bool is_ref = false, is_mem[3] = {false}, isDiv = false;
+  bool get_src1 = true, get_src2 = true, get_dst = true;
+  bool isNeg = false, isAsg = false;
+  string cmt = comment;
+  EOperation op = i->GetOperation();
+
+  string operand;
+
+  switch (op) {
+    case opDiv: mnm = "idivq";
+                isDiv = true; break;
+    case opNeg:
+    case opNot: mnm = (op == opNeg ? "negq" : "notq");
+                get_src2 = false;
+                isNeg = true;
+                break;
+    case opGoto:
+                get_src2 = false;
+                break;
+  }
+
+  /*
+   *  get operands and destination
+   *  if destination is in memory, use a temporary register
+   *  also if operation is division or neg/not, src1 should go into a register(%rax)
+   *  이 코드를 짠 사람을 죽이고 싶다고요? 저도 그렇습니다..
+  */
+
+  string src1, src2, dst, old_dst;
+  if(get_src1) {
+    src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
+    
+    if(is_ref) {
+      // memory면 한번 주소 레지스터로 가져와야함
+      if(is_mem[0]) {
+        Load(src1, temp_regs[reg_count], &cmt, 8); // 8 is for pointer size
+      }
+      // move address to reg
+      Load("("+src1+")", temp_regs[reg_count], &cmt, 8);
+      src1 = temp_regs[reg_count++]; //size will be 8
+      is_mem[0] = false;
+    } else if(isDiv || isNeg) {
+      Load(src1, temp_regs[reg_count], &cmt, OperandSize(i->GetSrc(1)));
+      src1 = temp_regs[reg_count++];
+      is_mem[0] = false;
+    }
+  }
+  // for op which need only one operand, do not execute it
+  if(get_src2) {
+    is_ref = false;
+    src2 = Operand(i->GetSrc(2), &is_ref, &is_mem[1]);
+
+    if(is_ref) {
+      if(is_mem[1]) {
+        Load(src2, temp_regs[reg_count], &cmt, OperandSize(i->GetSrc(2)));
+      }
+      Load("("+src2+")", temp_regs[reg_count], &cmt, OperandSize(i->GetSrc(2)));
+      src2 = temp_regs[reg_count++]; //size will be 8
+      is_mem[1] = false;
+    }
+  }
+  bool storeDest = false;
+  if(get_dst) {
+    is_ref = false;
+    dst = Operand(i->GetDest(), &is_ref, &is_mem[2]);
+
+    if(is_mem[2] && !isNeg && !isDiv) {
+      // register를 dest로 사용해야함
+      // case which src1, src2 are both reference not exists
+      // for Neg, src1 is always load to reg
+      old_dst = dst;
+      dst = temp_regs[reg_count++];
+      storeDest = true;
+    }
+  }
+
+  /* Debugging
+     for(int i=0; i<3; i++){
+     if(is_mem[i])
+     cmt = cmt + "1";
+     else
+     cmt = cmt + "0";
+     }
+  */
+  switch (op) {
+    case opAdd: 
+    case opSub: 
+    case opAnd: 
+    case opOr:  
+    case opMul:
+      Load(src1, dst, &cmt, OperandSize(i->GetDest()));
+      EmitInstruction(mnm, src2 + ", " + dst, cmt);
+      break;
+    case opDiv:
+      EmitInstruction("cqo");
+      EmitInstruction(mnm, src2);
+      cmt = "";
+      //dst = getRegister(dst, OperandSize(i->GetDest()));
+      src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+      //Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      Store(src1, dst, cmt, OperandSize(i->GetDest()));
+      return;
+    case opNeg:
+    case opNot:
+      // convert dst with size
+      // string tempDst = getRegister(dst, OperandSize(i->GetDest()));
+      // Load(src1, dst, cmt, OperandSize(i->GetSrc(1)));
+      EmitInstruction(mnm, src1, cmt);
+      cmt = "";
+      src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+      if(is_mem[2]==false)
+        dst = getRegister(dst, OperandSize(i->GetDest()));
+      Store(src1, dst, cmt, OperandSize(i->GetDest()));
+      return;
+    case opAssign:
+      if(is_mem[0]){
+        Load(src1, dst, &cmt, OperandSize(i->GetDest()));
+      } else {
+        Store(src1, old_dst, cmt, OperandSize(i->GetDest()));
+        cmt = "";
+        return; // to avoid doing Store into old_dst
+      }
+      break;
+    case opAddress:
+      EmitInstruction("leaq", src1 + ", " + dst, cmt);
+      cmt = "";
+      break;
+    case opGoto:
+      EmitInstruction("jmp", dst, cmt);
+      cmt = "";
+      return;
+  }
+  if(is_mem[2]){
+    dst = getRegister(dst, OperandSize(i->GetDest()));
+    Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
+  }
+  /* TODO::src, dst reg가 같을 때 바꾸기
+     if(src1.strcmp(dst) == 0)
+     EmitInstruction(mnm, src2 + ", " + dst, comment)
+     }
+     else if((op != opSub) && src2.strcmp(dst)){
+     }
+     */
+
+}
+
 void CBackendx86_64::EmitInstruction(CTacInstr *i)
 {
   assert(i != NULL);
@@ -412,190 +865,205 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
   switch (op) {
     // binary operators
-  case opAdd:
-  case opSub:
-  case opAnd:
-  case opOr:
-    switch (op) {
-    case opAdd: mnm = "addq"; break;
-    case opSub: mnm = "subq"; break;
-    case opAnd: mnm = "andq"; break;
-    case opOr:  mnm = "orq";  break;
-    }
-
-    Load(i->GetSrc(1), "%rax", cmt.str());
-    Load(i->GetSrc(2), "%rbx");
-    EmitInstruction(mnm, "%rbx, %rax");
-    Store(i->GetDest(), 'a');
-    break;
-
-  case opMul:
-    Load(i->GetSrc(1), "%rax", cmt.str());
-    Load(i->GetSrc(2), "%rbx");
-    EmitInstruction("imulq", "%rbx");
-    Store(i->GetDest(), 'a');
-    break;
-
-  case opDiv:
-    Load(i->GetSrc(1), "%rax", cmt.str());
-    Load(i->GetSrc(2), "%rbx");
-    EmitInstruction("cdq");
-    EmitInstruction("idivq","%rbx");
-    Store(i->GetDest(), 'a');
-    break;
-
-
-    // unary operators
-  case opNeg:
-  case opNot:
-    mnm = (op == opNeg ? "negq" : "notq");
-
-    Load(i->GetSrc(1), "%rax", cmt.str());
-    EmitInstruction("negq", "%rax");
-    Store(i->GetDest(), 'a');
-    break;
-
-
-    // memory operations
-    // dst = src1
-  case opAssign:
-    Load(i->GetSrc(1), "%rax", cmt.str());
-    Store(i->GetDest(), 'a');
-    break;
-
-    // pointer operations
-    // dst = &src1
-  case opAddress:
-    EmitInstruction("leaq", Operand(i->GetSrc(1)) + ", %rax", cmt.str());
-    EmitInstruction("movq", "%rax, " + Operand(i->GetDest()));
-    break;
-    // dst = *src1
-  case opDeref:
-    // opDeref are not generated for now
-    EmitInstruction("# opDeref", "not implemented", cmt.str());
-    break;
-
-
-    // unconditional branching
-    // goto dst
-  case opGoto:
-    EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
-    break;
-
-
-    // conditional branching
-    // if src1 relOp src2 then goto dst
-  case opEqual:
-  case opNotEqual:
-  case opLessThan:
-  case opLessEqual:
-  case opBiggerThan:
-  case opBiggerEqual:
-    Load(i->GetSrc(1), "%rax", cmt.str());
-    Load(i->GetSrc(2), "%rbx");
-    EmitInstruction("cmpq", "%rbx, %rax");
-    EmitInstruction("j" + Condition(op), Operand(i->GetDest()));
-    break;
-
-
-    // function call-related operations
-  case opTailCall:
-    {
-      isTailCall = true;
-      EmitEpilogue();
-      EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
+    case opAdd:
+    case opSub:
+    case opAnd:
+    case opOr:
+    case opMul:
+      EmitOpBinary(i, cmt.str());
       break;
-    }
-
-  case opCall:
-    {
-      EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
-
-      // fix stack pointer
-      CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
-      assert(n != NULL);
-      int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
-      //modified
-      if (npar > 6) EmitInstruction("addq", Imm((npar-6)*8) + ", %rsp");
-
-      // function result
-      CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
-      if (t != NULL) {
-	Store(i->GetDest(), 'a');
-      }
-    }
-    break;
-
-  case opReturn:
-    if (i->GetSrc(1) != NULL) {
+    case opDiv:
+      EmitOpDivision(i, cmt.str());
+      break;
+    case opNeg:
+    case opNot:
+    case opAddress:
+    case opGoto:
+      EmitOperation(i, cmt.str());
+      break;
+    case opAssign:
+      EmitOpAssign(i, cmt.str());
+      break;
+      /*
+      // memory operations
+      // dst = src1
+      case opAssign:
       Load(i->GetSrc(1), "%rax", cmt.str());
-    }
-    EmitInstruction("jmp", Label("exit"));
-    break;
-
-    //modified
-  case opParam:
-    {
-      CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
-      int paramIndex = t->GetValue();
-      if(paramIndex > 6) {
-	Load(i->GetSrc(1), "%rax", cmt.str());
-	EmitInstruction("pushq", "%rax");
-      }
-      else {
-	Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
-      }
-    } //EmitInstruction("pushq", "%rax");
-    break;
-
-    // special
-  case opLabel:
-    _out << Label(dynamic_cast<CTacLabel_prime*>(i)) << ":" << endl;
-    break;
-
-  case opNop:
-    EmitInstruction("nop", "", cmt.str());
-    break;
-
-  case opDIM:
-    {
-      Load(i->GetSrc(1), "%rax", cmt.str());
-      Load(i->GetSrc(2), "%rbx");
-      EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
       Store(i->GetDest(), 'a');
       break;
-    }
 
-  case opDOFS:
-    {
-      string s = ".done_" + to_string(tmp_label_count++);
-      Load(i->GetSrc(1), "%rax", cmt.str());
-
-      EmitInstruction("movl", "(%rax), %eax");
-      EmitInstruction("leal", "4(,%eax,4), %eax");
-      EmitInstruction("testl", "$4, %eax");
-      EmitInstruction("jz", s);
-      EmitInstruction("addl", "$4, %eax");
-      _out << s << ":" << endl;
-
-      Store(i->GetDest(), 'a');
+      // pointer operations
+      // dst = &src1
+    case opAddress:
+      EmitInstruction("leaq", Operand(i->GetSrc(1)) + ", %rax", cmt.str());
+      EmitInstruction("movq", "%rax, " + Operand(i->GetDest()));
       break;
-    }
+      */
+      // dst = *src1
+    case opDeref:
+      // opDeref are not generated for now
+      EmitInstruction("# opDeref", "not implemented", cmt.str());
+      break;
 
-  default:
-    EmitInstruction("# ???", "not implemented", cmt.str());
+    /*
+      // unconditional branching
+      // goto dst
+    case opGoto:
+      EmitInstruction("jmp", Operand(i->GetDest()), cmt.str());
+      break;
+
+    */
+      // conditional branching
+      // if src1 relOp src2 then goto dst
+    case opEqual:
+    case opNotEqual:
+    case opLessThan:
+    case opLessEqual:
+    case opBiggerThan:
+    case opBiggerEqual:
+      EmitOpConditional(i, cmt.str());
+      break;
+
+
+      // function call-related operations
+    case opTailCall:
+      {
+        isTailCall = true;
+        EmitEpilogue();
+        EmitInstruction("jmp", Operand(i->GetSrc(1)), cmt.str());
+        break;
+      }
+
+    case opCall:
+      {
+        EmitInstruction("call", Operand(i->GetSrc(1)), cmt.str());
+
+        // fix stack pointer
+        CTacName *n = dynamic_cast<CTacName*>(i->GetSrc(1));
+        assert(n != NULL);
+        int npar = dynamic_cast<const CSymProc*>(n->GetSymbol())->GetNParams();
+        //modified
+        if (npar > 6) EmitInstruction("addq", Imm((npar-6)*8) + ", %rsp");
+
+        // function result
+        CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
+        if (t != NULL) {
+          Store(i->GetDest(), 'a');
+        }
+      }
+      break;
+
+    case opReturn:
+      if (i->GetSrc(1) != NULL) {
+        Load(i->GetSrc(1), "%rax", cmt.str());
+      }
+      EmitInstruction("jmp", Label("exit"));
+      break;
+
+    case opParam:
+      {
+        CTacConst *t = dynamic_cast<CTacConst*>(i->GetDest());
+        int paramIndex = t->GetValue();
+        if(paramIndex > 6) {
+          Load(i->GetSrc(1), "%rax", cmt.str());
+          EmitInstruction("pushq", "%rax");
+        }
+        else {
+          Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
+        }
+      } //EmitInstruction("pushq", "%rax");
+      break;
+
+    case opGetParam:
+      {
+        CTacConst *t = dynamic_cast<CTacConst*>(i->GetSrc(1));
+        int paramIndex = t->GetValue();
+
+        // cout << t << " - " << paramIndex << endl;
+        // _P1;
+
+        if(paramIndex > 6) {
+          // TODO
+          // Load(i->GetSrc(1), "%rax", cmt.str());
+          // EmitInstruction("pushq", "%rax");
+        }
+        else {
+          // Load(param_regs[paramIndex-1], i->GetDest(), cmt.str());
+
+          EmitInstruction("movq", param_regs[paramIndex]+", %rax", cmt.str());
+          // Load(i->GetSrc(1), "%rax", cmt.str());
+          Store(i->GetDest(), 'a');
+        }
+      } //EmitInstruction("pushq", "%rax");
+      break;
+
+      // special
+    case opLabel:
+      _out << Label(dynamic_cast<CTacLabel_prime*>(i)) << ":" << endl;
+      break;
+
+    case opNop:
+      EmitInstruction("nop", "", cmt.str());
+      break;
+
+    case opDIM:
+      {
+        Load(i->GetSrc(1), "%rax", cmt.str());
+        Load(i->GetSrc(2), "%rbx");
+        EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
+        Store(i->GetDest(), 'a');
+        break;
+      }
+
+    case opDOFS:
+      {
+        string s = ".done_" + to_string(tmp_label_count++);
+        Load(i->GetSrc(1), "%rax", cmt.str());
+
+        EmitInstruction("movl", "(%rax), %eax");
+        EmitInstruction("leal", "4(,%eax,4), %eax");
+        EmitInstruction("testl", "$4, %eax");
+        EmitInstruction("jz", s);
+        EmitInstruction("addl", "$4, %eax");
+        _out << s << ":" << endl;
+
+        Store(i->GetDest(), 'a');
+        break;
+      }
+
+    default:
+      EmitInstruction("# ???", "not implemented", cmt.str());
   }
 }
 
 void CBackendx86_64::EmitInstruction(string mnemonic, string args, string comment)
 {
   _out << left
-       << _ind
-       << setw(7) << mnemonic << " "
-       << setw(23) << args;
+    << _ind
+    << setw(7) << mnemonic << " "
+    << setw(23) << args;
   if (comment != "") _out << " # " << comment;
   _out << endl;
 }
+
+void CBackendx86_64::Load(string src, string dst, string* comment, int size)
+{
+  string mnm = "mov";
+  string mod = "";
+
+  // set operator modifier based on the operand size
+  switch (size) {
+    case 1: mod = "zbq"; break;
+    case 2: mod = "zwq"; break;
+    case 4: mod = "l"; dst = getRegister(dst, 4); break;
+    case 8: mod = "q"; break;
+  }
+
+  // emit the load instruction
+  EmitInstruction(mnm + mod, src + ", " + dst, *comment);
+  *comment = "";
+}
+
 
 void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 {
@@ -606,14 +1074,27 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 
   // set operator modifier based on the operand size
   switch (OperandSize(src)) {
-  case 1: mod = "zbq"; break;
-  case 2: mod = "zwq"; break;
-  case 4: mod = "l"; dst.replace(1, 1, "e"); break;
-  case 8: mod = "q"; break;
+    case 1: mod = "zbq"; break;
+    case 2: mod = "zwq"; break;
+    case 4: mod = "l"; dst = getRegister(dst, 4); break;
+    case 8: mod = "q"; break;
   }
 
   // emit the load instruction
   EmitInstruction(mnm + mod, Operand(src) + ", " + dst, comment);
+}
+void CBackendx86_64::Store(string src, string dst, string comment, int size)
+{
+  string mod = "q";
+  
+  switch (size) {
+    case 1: mod = "b"; break;
+    case 2: mod = "w"; break;
+    case 4: mod = "l"; break;
+    case 8: mod = "q"; break;
+  }
+
+  EmitInstruction("mov" + mod, src + ", " + dst, comment);
 }
 
 void CBackendx86_64::Store(CTac *dst, char src_base, string comment)
@@ -626,10 +1107,10 @@ void CBackendx86_64::Store(CTac *dst, char src_base, string comment)
 
   // compose the source register name based on the operand size
   switch (OperandSize(dst)) {
-  case 1: mod = "b"; src += string(1, src_base) + "l"; break;
-  case 2: mod = "w"; src += string(1, src_base) + "x"; break;
-  case 4: mod = "l"; src += "e" + string(1, src_base) + "x"; break;
-  case 8: mod = "q"; src += "r" + string(1, src_base) + "x"; break;
+    case 1: mod = "b"; src += string(1, src_base) + "l"; break;
+    case 2: mod = "w"; src += string(1, src_base) + "x"; break;
+    case 4: mod = "l"; src += "e" + string(1, src_base) + "x"; break;
+    case 8: mod = "q"; src += "r" + string(1, src_base) + "x"; break;
   }
 
   // emit the store instruction
@@ -646,15 +1127,12 @@ string CBackendx86_64::Operand(const CTac *op)
 
   if ((c = dynamic_cast<const CTacConst*>(op)) != NULL) {
     operand = Imm(c->GetValue());
-  } else
-    if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
-      const CSymbol *s = n->GetSymbol();
+  }
+  else if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
+    const CSymbol *s = n->GetSymbol();
 
-      switch (s->GetSymbolType()) {
+    switch (s->GetSymbolType()) {
       case stGlobal:
-        operand = s->GetName();
-        break;
-
       case stProcedure:
         operand = s->GetName();
         break;
@@ -662,43 +1140,82 @@ string CBackendx86_64::Operand(const CTac *op)
       case stLocal:
       case stParam:
         {
-	  ostringstream o;
-	  if(s->isInReg()){
-	    o << s->GetBaseRegister();
-	  }
-	  else{
-	    o << s->GetOffset() << "(" << "%rbp" << ")";
-	    // o << s->GetOffset() << "(" << s->GetBaseRegister() << ")";
-	  }
-	  operand = o.str();
+          ostringstream o;
+          /*int regN = symb_to_reg.find(s);
+          if(regN < 13) {
+            o << getRegister(13);
+          }*/
+          if(s->isInReg()){
+            o << s->GetBaseRegister();
+          }
+          else{
+            o << s->GetOffset() << "(" << "%rbp" << ")";
+          }
+          operand = o.str();
         }
         break;
+    }
+
+    if (dynamic_cast<const CTacReference*>(n) != NULL) {
+      string s = "";
+      Load(operand, "%rax", &s, 8);
+      operand = "(%rax)";
+    }
+
+  }
+  else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
+    operand = Label(l);
+  } else {
+    operand = "?";
+  }
+
+  return operand;
+}
+string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
+{
+  const CTacName *n;
+  const CTacConst *c;
+  const CTacLabel_prime *l;
+
+  string operand;
+
+  if ((c = dynamic_cast<const CTacConst*>(op)) != NULL) {
+    operand = Imm(c->GetValue());
+  } else
+    if ((n = dynamic_cast<const CTacName*>(op)) != NULL) {
+      const CSymbol *s = n->GetSymbol();
+
+      switch (s->GetSymbolType()) {
+        case stGlobal:
+        case stProcedure:
+          operand = s->GetName();
+          break;
+
+        case stLocal:
+        case stParam:
+          {
+            ostringstream o;
+            if(s->isInReg()){
+              o << s->GetBaseRegister();
+            }
+            else{
+              o << s->GetOffset() << "(" << "%rbp" << ")";
+              *isMem = true;
+            }
+            operand = o.str();
+          }
+          break;
       }
 
       if (dynamic_cast<const CTacReference*>(n) != NULL) {
-	switch (GetSize_prime(s->GetDataType())) {
-	case 1:
-	  EmitInstruction("movzbq", operand + ", %rdi");
-	  break;
-	case 2:
-	  EmitInstruction("movzwq", operand + ", %rdi");
-	  break;
-	case 4:
-	  EmitInstruction("movl", operand + ", %edi");
-	  break;
-	case 8:
-	  EmitInstruction("movq", operand + ", %rdi");
-	}
-
-	operand = "(%rdi)";
+        *isRef = true;
       }
 
-    } else
-      if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
-	operand = Label(l);
-      } else {
-	operand = "?";
-      }
+    } else if ((l = dynamic_cast<const CTacLabel_prime*>(op)) != NULL) {
+      operand = Label(l);
+    } else {
+      operand = "?";
+    }
 
   return operand;
 }
@@ -732,13 +1249,13 @@ string CBackendx86_64::Label(string label) const
 string CBackendx86_64::Condition(EOperation cond) const
 {
   switch (cond) {
-  case opEqual:       return "e";
-  case opNotEqual:    return "ne";
-  case opLessThan:    return "l";
-  case opLessEqual:   return "le";
-  case opBiggerThan:  return "g";
-  case opBiggerEqual: return "ge";
-  default:            assert(false); break;
+    case opEqual:       return "e";
+    case opNotEqual:    return "ne";
+    case opLessThan:    return "l";
+    case opLessEqual:   return "le";
+    case opBiggerThan:  return "g";
+    case opBiggerEqual: return "ge";
+    default:            assert(false); break;
   }
 }
 
@@ -800,23 +1317,23 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
     if ((st == stLocal) || (st == stParam)) {
       ostringstream loc;
       if(s->isInReg()){
-	loc << right << setw(4) << s->GetBaseRegister();
-	// << "(" << "" << ")";
-	_out << _ind << "#   "
-	     << left << setw(10) << loc.str() << "  "
-	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
-	     << s
-	     << endl;
+        loc << right << setw(4) << s->GetBaseRegister();
+        // << "(" << "" << ")";
+        _out << _ind << "#   "
+          << left << setw(10) << loc.str() << "  "
+          << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
+          << s
+          << endl;
 
       }
       else{
-	loc << right << setw(4) << s->GetOffset()
-	    << "(" << "%rbp" << ")";
-	_out << _ind << "#   "
-	     << left << setw(10) << loc.str() << "  "
-	     << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
-	     << s
-	     << endl;
+        loc << right << setw(4) << s->GetOffset()
+          << "(" << "%rbp" << ")";
+        _out << _ind << "#   "
+          << left << setw(10) << loc.str() << "  "
+          << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
+          << s
+          << endl;
 
       }
 

@@ -50,78 +50,122 @@ int CalcDIM(const CSymbol *s, int index){
   return tbp->GetNElem();
 }
 
+int uninitialized_vars_block(CCodeBlock *cb) {
+  int success = 0;
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
 
-// int CalcDOFS(const CSymbol *s){
-//   if(s == NULL) return -1;
-//   const CType* tp = s->GetDataType();
-//   assert(tp != NULL);
-//   assert(tp->IsPointer());
+  set<const CSymbol*> defs;
 
-//   const CArrayType* tbp = dynamic_cast<const CArrayType*>((dynamic_cast<const CPointerType*>(tp))->GetBaseType());
-//   Get
-//   assert(tbp != NULL);
+  list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
 
-//   const CCArrayType
+    list<CTacInstr*>::const_iterator it = blk->GetPhis().begin();
+    while (it != blk->GetPhis().end()) {
+      CTacInstr* instr = *it++;
+      assert(instr != NULL);
 
-//   GetBaseType
+      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+      assert(dest != NULL);
+      assert(dynamic_cast<CTacReference*>(dest) == NULL);
+      const CSymbol* s_dest = dest->GetSymbol();
+      assert(s_dest != NULL);
+      defs.insert(s_dest);
+    }
 
-//   while(true){
-//     if(tp->IsNull) return -1;
-//     if(tp->
+    it = blk->GetInstrs().begin();
+    while (it != blk->GetInstrs().end()) {
+      CTacInstr* instr = *it++;
+      assert(instr != NULL);
+      CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+      if(dest == NULL) continue;
+      if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+      const CSymbol* s_dest = dest->GetSymbol();
+      assert(s_dest != NULL);
+      defs.insert(s_dest);
+    }
+  }
 
-//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
+  bit = cbp->GetBlockTable()->GetBlockList().begin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
 
+    list<CTacInstr*>::const_iterator it = blk->GetPhis().begin();
+    while (it != blk->GetPhis().end()) {
+      CTacInstr* instr = *it++;
+      assert(instr != NULL);
+      {
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	if(src1 != NULL){
+	  const CSymbol* s_src1 = src1->GetSymbol();
+	  assert(s_src1 != NULL);
+	  if(s_src1->GetSymbolType() == stLocal &&
+	     (!s_src1->GetDataType()->IsArray()) &&
+	     defs.find(s_src1) == defs.end()){
+	    success = true;
+	    instr->SetSrc(0, new CTacConst(0));
+	  }
+	}
+      }
+      {
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	if(src2 != NULL){
+	  const CSymbol* s_src2 = src2->GetSymbol();
+	  assert(s_src2 != NULL);
+	  if(s_src2->GetSymbolType() == stLocal &&
+	     (!s_src2->GetDataType()->IsArray()) &&
+	     defs.find(s_src2) == defs.end()){
+	    success = true;
+	    instr->SetSrc(1, new CTacConst(0));
+	  }
+	}
+      }
+    }
 
-//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
-//     if(tp
+    it = blk->GetInstrs().begin();
+    while (it != blk->GetInstrs().end()) {
+      CTacInstr* instr = *it++;
+      assert(instr != NULL);
+      {
+	CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	if(src1 != NULL){
+	  const CSymbol* s_src1 = src1->GetSymbol();
+	  assert(s_src1 != NULL);
+	  if(s_src1->GetSymbolType() == stLocal &&
+	     (!s_src1->GetDataType()->IsArray()) &&
+	     defs.find(s_src1) == defs.end()){
+	    success = 1;
+	    instr->SetSrc(0, new CTacConst(0));
+	  }
+	}
+      }
+      {
+	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	if(src2 != NULL){
+	  const CSymbol* s_src2 = src2->GetSymbol();
+	  assert(s_src2 != NULL);
+	  if(s_src2->GetSymbolType() == stLocal &&
+	     (!s_src2->GetDataType()->IsArray()) &&
+	     defs.find(s_src2) == defs.end()){
+	    success = 1;
+	    instr->SetSrc(1, new CTacConst(0));
+	  }
+	}
+      }
+    }
+  }
+  return success;
+}
 
-
-
-//   }
-
-//   const CPointerType CType* s->GetDataType();
-//   s
-
-//   assert(s != NULL)
-
-// }
-
-
-// int CalcDOFS(const CSymbol *s){
-//   if(s == NULL) return -1;
-//   const CType* tp = s->GetDataType();
-//   assert(tp != NULL);
-//   assert(tp->IsPointer());
-
-//   const CArrayType* tbp = dynamic_cast<const CArrayType*>((dynamic_cast<const CPointerType*>(tp))->GetBaseType());
-//   Get
-//   assert(tbp != NULL);
-
-//   const CCArrayType
-
-//   GetBaseType
-
-//   while(true){
-//     if(tp->IsNull) return -1;
-//     if(tp->
-
-//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
-
-
-//     const CPointerType* = dynamic_cast<const CPointerType*>(tp);
-//     if(tp
-
-
-
-//   }
-
-//   const CPointerType CType* s->GetDataType();
-//   s
-
-//   assert(s != NULL)
-
-// }
-
+void uninitialized_vars_scope(CScope *m) {
+  uninitialized_vars_block(m->GetCodeBlock());
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    uninitialized_vars_scope(*sit++);
+  }
+  return;
+}
 
 int constant_propagation_block(CCodeBlock *cb) {
   int success = 0;

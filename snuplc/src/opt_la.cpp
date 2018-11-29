@@ -10,6 +10,74 @@ using namespace std;
 
 // ********************************************************************** /
 // ********************************************************************** /
+// Initially Assign Parameters
+void assign_param_block(CSymtab* symtab, CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+  CBlockTable *cbt = cbp->GetBlockTable();
+  assert(cbt != NULL);
+
+  Liveness *liveness = cbt->GetLiveness();
+  assert(liveness != NULL);
+
+  vector<CSymbol*> slist = symtab->GetSymbols();
+
+
+  CBasicBlock* init_blk = cbt->GetInitBlock();
+  assert(init_blk != NULL);
+
+  list<CTacInstr*> & instrs_blk = const_cast<list<CTacInstr*>&>(init_blk->GetInstrs());
+  list<CTacInstr*> & instrs_global = const_cast<list<CTacInstr*>&>(cb->GetInstr());
+
+  list<CTacInstr*>::iterator init_instr_blk = next(instrs_blk.begin(), 1);
+  list<CTacInstr*>::iterator init_instr_global = next(instrs_global.begin(), 1);
+
+  // next(const_cast<list<CTacInstr*>&>(init_blk->GetInstrs()).begin(), 1);
+  // list<CTacInstr*>::iterator init_instr_global = next(cb->GetInstr().begin(), 1) =
+  //   next(const_cast<list<CTacInstr*>&>(cb->GetInstr()).begin(), 1);
+
+  for (size_t i=0; i<slist.size(); i++) {
+    CSymbol *s = slist[i];
+    ESymbolType st = s->GetSymbolType();
+
+    if (st == stParam) {
+
+      CSymParam *p = dynamic_cast<CSymParam*>(s);
+      assert(p != NULL);
+
+      int num = p->GetIndex();
+
+      if(num != 2) liveness->CreateParamReg(num);
+
+      // if(param_num != 2) liveness->CreateParamReg(param_num);
+
+      CTacInstr_prime* new_instr = new CTacInstr_prime(opGetParam, new CTacName(s), new CTacConst(num), NULL);
+      new_instr->SetFromBlock(init_blk);
+
+      // CTacInstr_prime* new_instr = new CTacInstr_prime(opGetParam, new CTacName(s), new CTacConst(param_num++), NULL);
+      // new_instr->SetFromBlock(init_blk);
+
+      instrs_blk.insert(init_instr_blk, new_instr);
+      instrs_global.insert(init_instr_global, new_instr);
+    }
+  }
+}
+
+void assign_param_scope(CScope *m){
+  assign_param_block(m->GetSymbolTable(), m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit = m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    assign_param_scope(*sit++);
+  }
+  return;
+}
+
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // Dead Store Elimination
 void dead_store_elimination_block(CCodeBlock *cb) {
   CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
@@ -38,48 +106,59 @@ void dead_store_elimination_block(CCodeBlock *cb) {
 	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
 
 	if(dest != NULL){
+
 	  if(dynamic_cast<CTacReference*>(instr->GetDest()) != NULL){
-	    if(dest->GetSymbol()->GetSymbolType() == stLocal){
+	    if(dest->GetSymbol()->GetSymbolType() == stLocal ||
+	       dest->GetSymbol()->GetSymbolType() == stParam){
 	      if(needed.insert(dest->GetSymbol()).second)
 		success = true;
 	    }
-	    if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+				src1->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src1->GetSymbol()).second)
 		success = true;
 	    }
-	    if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+				src2->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src2->GetSymbol()).second)
 		success = true;
 	    }
 	  }
 	  else if(dest->GetSymbol()->GetSymbolType() == stGlobal || needed.find(dest->GetSymbol()) != needed.end()){
-	    if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+				src1->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src1->GetSymbol()).second)
 		success = true;
 	    }
-	    if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	    if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+				src2->GetSymbol()->GetSymbolType() == stParam)){
 	      if(needed.insert(src2->GetSymbol()).second)
 		success = true;
 	    }
 	  }
 	}
 	else if(instr->GetOperation() == opParam || instr->GetOperation() == opReturn){
-	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+			      src1->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src1->GetSymbol()).second)
 	      success = true;
 	  }
 	}
 	else if(instr->IsBranch()){
-	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+
+	  if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+			      src1->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src1->GetSymbol()).second)
 	      success = true;
 	  }
-	  if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+			      src2->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src2->GetSymbol()).second)
 	      success = true;
 	  }
 	}
       }
+
 
       it = blk->GetPhis().rbegin();
       while (it != blk->GetPhis().rend()) {
@@ -91,11 +170,13 @@ void dead_store_elimination_block(CCodeBlock *cb) {
 	CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
 
 	if(needed.find(dest->GetSymbol()) != needed.end()){
-	  if(src1 != NULL && src1->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src1 != NULL && (src1->GetSymbol()->GetSymbolType() == stLocal ||
+			      src1->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src1->GetSymbol()).second)
 	      success = true;
 	  }
-	  if(src2 != NULL && src2->GetSymbol()->GetSymbolType() == stLocal){
+	  if(src2 != NULL && (src2->GetSymbol()->GetSymbolType() == stLocal ||
+			      src2->GetSymbol()->GetSymbolType() == stParam)){
 	    if(needed.insert(src2->GetSymbol()).second)
 	      success = true;
 	  }
@@ -114,7 +195,10 @@ void dead_store_elimination_block(CCodeBlock *cb) {
       assert(instr != NULL);
 
       CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
-      if(dest != NULL && dest->GetSymbol()->GetSymbolType() == stLocal && needed.find(dest->GetSymbol()) == needed.end()){
+      if(dest != NULL &&
+	 (dest->GetSymbol()->GetSymbolType() == stLocal ||
+	  dest->GetSymbol()->GetSymbolType() == stParam) &&
+	 needed.find(dest->GetSymbol()) == needed.end()){
 	// cout << instr << endl;
 	// _P1;
 	if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){
@@ -435,6 +519,8 @@ void liveness_analysis_block(CCodeBlock *cb) {
   // cout << "------------------------------------" << endl;
 
 
+  map<const CSymbol*, list<const CSymbol*>> &assign_graph = liveness->GetAssignGraph();
+
   bit = cbp->GetBlockTable()->GetBlockList().begin();
   while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
     CBasicBlock* blk = *bit++;
@@ -522,7 +608,45 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	}
       }
 
-      if(instr->GetOperation() == opParam){
+
+      if(instr->GetOperation() == opGetParam){
+
+	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetSrc(1));
+	assert(n != NULL);
+	int num = n->GetValue();
+
+	if(num != 2 && num <= 5){
+	  nodup_insert(live_vars, (liveness->GetArgRegs())[num]);
+
+	  {
+
+	    CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	    assert(dest != NULL);
+	    assert(dynamic_cast<CTacReference*>(dest) == NULL);
+	    const CSymbol* s_dest = dest->GetSymbol();
+
+	    const CSymbol* s_src = (liveness->GetArgRegs())[num];
+
+	    if(assign_graph.find(s_dest) == assign_graph.end()){
+	      list<const CSymbol *> list_tmp;
+	      assign_graph[s_dest] = list_tmp;
+	    }
+	    if(assign_graph.find(s_src) == assign_graph.end()){
+	      list<const CSymbol *> list_tmp;
+	      assign_graph[s_src] = list_tmp;
+	    }
+	    list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+	    list<const CSymbol*> &assign_src = assign_graph[s_src];
+	    nodup_insert(assign_dest, s_src);
+	    nodup_insert(assign_src, s_dest);
+	  }
+
+	}
+
+      }
+
+
+      else if(instr->GetOperation() == opParam){
 	CTacConst *n = dynamic_cast<CTacConst*>(instr->GetDest());
 	assert(n != NULL);
 	int num = n->GetValue();
@@ -538,6 +662,32 @@ void liveness_analysis_block(CCodeBlock *cb) {
 
 
         if(num != 3 && num <= 6){
+
+	  {
+	    CTacName* src = dynamic_cast<CTacName*>(instr->GetSrc(1));
+
+	    if(src != NULL) {
+	      assert(dynamic_cast<CTacReference*>(src) == NULL);
+
+	      const CSymbol* s_dest = arg[num-1];
+
+	      const CSymbol* s_src = src->GetSymbol();
+
+	      if(assign_graph.find(s_dest) == assign_graph.end()){
+		list<const CSymbol *> list_tmp;
+		assign_graph[s_dest] = list_tmp;
+	      }
+	      if(assign_graph.find(s_src) == assign_graph.end()){
+		list<const CSymbol *> list_tmp;
+		assign_graph[s_src] = list_tmp;
+	      }
+	      list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+	      list<const CSymbol*> &assign_src = assign_graph[s_src];
+	      nodup_insert(assign_dest, s_src);
+	      nodup_insert(assign_src, s_dest);
+	    }
+	  }
+
 	  erase_success(live_vars, arg[num-1]);
 	}
       }
@@ -598,7 +748,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
       // }
     }
   }
-
 
   {
     Liveness *liveness = cbp->GetBlockTable()->GetLiveness();
@@ -721,7 +870,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
   {
     Liveness *liveness = cbp->GetBlockTable()->GetLiveness();
     assert(liveness != NULL);
-    map<const CSymbol*, list<const CSymbol*>> &assign_graph = liveness->GetAssignGraph();
     list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
     while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
       CBasicBlock* blk = *bit++;
@@ -730,28 +878,66 @@ void liveness_analysis_block(CCodeBlock *cb) {
       while (it != blk->GetInstrs().end()) {
   	CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
   	assert(instr != NULL);
-  	if(instr->GetOperation() != opAssign) continue;
-  	CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
-  	if(dest == NULL) continue;
-  	if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
-  	CTacName* src = dynamic_cast<CTacName*>(instr->GetSrc(1));
-        if(src == NULL) continue;
-  	if(dynamic_cast<CTacReference*>(src) != NULL) continue;
-  	const CSymbol* s_dest = dest->GetSymbol();
-  	const CSymbol* s_src = src->GetSymbol();
+  	if(instr->GetOperation() == opAssign){
+	  CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
+	  if(dest == NULL) continue;
+	  if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
+	  CTacName* src = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	  if(src == NULL) continue;
+	  if(dynamic_cast<CTacReference*>(src) != NULL) continue;
+	  const CSymbol* s_dest = dest->GetSymbol();
+	  const CSymbol* s_src = src->GetSymbol();
 
-  	if(assign_graph.find(s_dest) == assign_graph.end()){
-  	  list<const CSymbol *> list_tmp;
-  	  assign_graph[s_dest] = list_tmp;
-  	}
-  	if(assign_graph.find(s_src) == assign_graph.end()){
-  	  list<const CSymbol *> list_tmp;
-  	  assign_graph[s_src] = list_tmp;
-  	}
-  	list<const CSymbol*> &assign_dest = assign_graph[s_dest];
-  	list<const CSymbol*> &assign_src = assign_graph[s_src];
-  	nodup_insert(assign_dest, s_src);
-  	nodup_insert(assign_src, s_dest);
+	  if(assign_graph.find(s_dest) == assign_graph.end()){
+	    list<const CSymbol *> list_tmp;
+	    assign_graph[s_dest] = list_tmp;
+	  }
+	  if(assign_graph.find(s_src) == assign_graph.end()){
+	    list<const CSymbol *> list_tmp;
+	    assign_graph[s_src] = list_tmp;
+	  }
+	  list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+	  list<const CSymbol*> &assign_src = assign_graph[s_src];
+	  nodup_insert(assign_dest, s_src);
+	  nodup_insert(assign_src, s_dest);
+	}
+	else if(instr->GetOperation() == opParam){
+
+	  // CTacConst* dest = dynamic_cast<CTacConst*>(instr->GetDest());
+	  // assert(dest == NULL);
+	  // int num = dest->GetValue();
+	  // if(num == 3 || num > 6) continue;
+
+	  // CTacName* src = dynamic_cast<CTacName*>(instr->GetSrc(1));
+
+	  // if(src == NULL) continue;
+	  // if(dynamic_cast<CTacReference*>(src) != NULL) continue;
+
+	  // const CSymbol* s_dest = liveness-> TODO
+
+	  // const CSymbol* s_src = src->GetSymbol();
+
+	  // if(assign_graph.find(s_dest) == assign_graph.end()){
+	  //   list<const CSymbol *> list_tmp;
+	  //   assign_graph[s_dest] = list_tmp;
+	  // }
+	  // if(assign_graph.find(s_src) == assign_graph.end()){
+	  //   list<const CSymbol *> list_tmp;
+	  //   assign_graph[s_src] = list_tmp;
+	  // }
+	  // list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+	  // list<const CSymbol*> &assign_src = assign_graph[s_src];
+	  // nodup_insert(assign_dest, s_src);
+	  // nodup_insert(assign_src, s_dest);
+
+
+	}
+	else if(instr->GetOperation() == opGetParam){
+
+	}
+	else{
+	  continue;
+	}
       }
 
       it = blk->GetPhis().begin();

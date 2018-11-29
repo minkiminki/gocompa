@@ -238,6 +238,20 @@ class CBackendx86_64 : public CBackend {
     /// @brief emit code for code block @cb
     virtual void EmitCodeBlock(CCodeBlock *cb);
 
+    /// @brief helper functions for EmitOperation
+    virtual string GetOpPostfix(int size=0);
+    virtual string SetSrcRegister(CTac* op, bool* isRef, bool* isMem, string reg="",
+        string *cmt = new string(""));
+    virtual string SetDstRegister(const CTac* op, bool* isRef, bool* isMem, string reg="",
+        string *cmt = new string(""));
+    virtual void EmitOpBinary(CTacInstr *i, string comment="");
+    virtual void EmitOpConditional(CTacInstr *i, string comment="");
+    virtual void EmitOpAssign(CTacInstr *i, string comment="");
+    virtual void EmitOpDivision(CTacInstr *i, string comment="");
+
+    /// @brief emit opertion op
+		virtual void EmitOperation(CTacInstr *i, string comment);
+    
     /// @brief emit instruction @i
     virtual void EmitInstruction(CTacInstr *i);
 
@@ -249,13 +263,16 @@ class CBackendx86_64 : public CBackend {
 
     /// @brief emit a load instruction
     void Load(CTacAddr *src, string dst, string comment="");
+		void Load(string src, string dst, string* comment, int size=0);
 
     /// @brief emit a store instruction
     void Store(CTac *dst, char src_base, string comment="");
+		void Store(string src="", string dst="", string comment="", int size=0);
 
     /// @brief return an operand string for @a op
     /// @param op the operand
     string Operand(const CTac *op);
+    string Operand(const CTac *op, bool *is_ref, bool *is_mem);
 
     /// @brief return an immediate for @a value
     string Imm(int value) const;

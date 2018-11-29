@@ -4,7 +4,7 @@ is64=true
 %: %.mod
 ifeq ($(is64),true)
 	$(ROOT)/snuplc/snuplc 64 --ast --tac $<
-	cp $<.s $<_64.s
+#	cp $<.s $<_64.s
 	cp $<.tac $<_64.tac
 	gcc -static -o $@ $<.s $(ROOT)/rte/AMD64/IO.s $(ROOT)/rte/AMD64/ARRAY.s
 else
@@ -21,5 +21,5 @@ all:
 
 clean:
 	@for i in *.mod; do \
-		rm -f $${i%%.mod} $${i}.s $${i}.tac $${i}.ast $${i}.*.dot $${i}.*.pdf; \
+		rm -f $${i%%.mod} $${i}.s $${i}.tac $${i}.ast $${i}.*.dot $${i}.*.pdf $${i}_64.s $${i}_32.s $${i}_64.tac; \
 	done

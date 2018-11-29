@@ -76,6 +76,73 @@ void dofs_inlining_scope(CScope *m){
 
 // ********************************************************************** /
 // ********************************************************************** /
+// reference division
+void div_ref_block(CScope *m, CCodeBlock *cb) {
+  CCodeBlock_prime *cbp = dynamic_cast<CCodeBlock_prime*>(cb);
+  assert(cbp != NULL);
+
+
+  const CType* inttyp = CTypeManager::Get()->GetInt();
+  list<CBasicBlock*>::const_iterator bit = cbp->GetBlockTable()->GetBlockList().begin();
+  while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+    CBasicBlock* blk = *bit++;
+    list<CTacInstr*> & instrs = const_cast<list<CTacInstr*> &>(blk->GetInstrs());
+
+    list<CTacInstr*>::iterator it = instrs.begin();
+
+
+    while (it != instrs.end()) {
+      list<CTacInstr*>::iterator it_temp = it++;
+      CTacInstr* instr = *it_temp;
+      assert(instr != NULL);
+
+      if(instr->GetOperation() == opDiv){
+
+	CTacAddr *c_src = instr->GetSrc(2);
+	if(dynamic_cast<CTacName*>(c_src) == NULL){
+	  if(dynamic_cast<CTacConst*>(c_src) == NULL) continue;
+	}
+	else{
+	  if(dynamic_cast<CTacReference*>(c_src) == NULL) continue;
+	}
+	CTacTemp* _s_new = m->CreateTemp(inttyp);
+	CTacInstr_prime* instr_new = new CTacInstr_prime(opAssign, _s_new, c_src,
+						       NULL);
+	instr_new->SetFromBlock(blk);
+	instr->SetSrc(1, _s_new);
+
+	{
+	  list<CTacInstr*> & instrs_global = const_cast<list<CTacInstr*> &>(cb->GetInstr());
+	  list<CTacInstr*>::iterator fit = find(instrs_global.begin(), instrs_global.end(), instr);
+	  assert(fit != instrs_global.end());
+	  instrs_global.insert(fit, instr_new);
+	}
+
+	instrs.insert(it_temp, instr_new);
+      }
+      else {
+
+      }
+
+    }
+  }
+
+
+}
+
+void div_ref_scope(CScope *m){
+  div_ref_block(m, m->GetCodeBlock());
+
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    div_ref_scope(*sit++);
+  }
+  return;
+}
+
+
+// ********************************************************************** /
+// ********************************************************************** /
 // fix wrong type
 void pointer_typing_block(CCodeBlock *cb) {
   const CNullType* nulltyp = CTypeManager::Get()->GetNull();
@@ -86,9 +153,11 @@ void pointer_typing_block(CCodeBlock *cb) {
     CTacInstr* instr = *(it++);
     assert(instr != NULL);
     if(instr->GetOperation() == opAdd){
+      if(dynamic_cast<CTacReference*>(instr->GetSrc(1)) != NULL) continue;
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
+      if(dynamic_cast<CTacReference*>(c_src) != NULL) continue;
       CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
       assert(c_dst != NULL);
       CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());
@@ -97,9 +166,11 @@ void pointer_typing_block(CCodeBlock *cb) {
       // symb->SetDataType(c_src->GetSymbol()->GetDataType());
     }
     else if(instr->GetOperation() == opAssign){
+      if(dynamic_cast<CTacReference*>(instr->GetSrc(1)) != NULL) continue;
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
+      if(dynamic_cast<CTacReference*>(c_src) != NULL) continue;
       CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
       assert(c_dst != NULL);
       CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());

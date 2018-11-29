@@ -22,7 +22,10 @@ void full_optimize(int arch, CScope *m) {
   remove_nop_scope(m);
   ssa_in_scope(m);
   // in ssa form
+  uninitialized_vars_scope(m);
+  assign_param_scope(m);
   constant_propagation_scope(m);
+  div_ref_scope(m);
   unused_elimination_scope(m);
   combine_blocks_scope(m);
   dead_store_elimination_scope(m);
