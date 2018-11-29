@@ -1141,6 +1141,10 @@ string CBackendx86_64::Operand(const CTac *op)
       case stParam:
         {
           ostringstream o;
+          /*int regN = symb_to_reg.find(s);
+          if(regN < 13) {
+            o << getRegister(13);
+          }*/
           if(s->isInReg()){
             o << s->GetBaseRegister();
           }
