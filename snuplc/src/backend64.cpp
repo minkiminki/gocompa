@@ -36,6 +36,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cassert>
+#include <map>
 
 #include "backend.h"
 using namespace std;
@@ -54,6 +55,7 @@ string all_regs[4][14] = {
   {"%rax", "%rbx", "%rcx", "%rdx", "%rsi", "%rdi", "%r8", "%r9", "%r10",
     "%r11", "%r12", "%r13", "%r14", "%r15"}
 };
+map<const CSymbol*, ERegister> symb_to_reg;
 
 static int tmp_label_count = 0;
 
@@ -212,6 +214,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   CCodeBlock_prime *cb = dynamic_cast<CCodeBlock_prime*>(scope->GetCodeBlock());
   assert(cb != NULL);
+  symb_to_reg = cb->GetBlockTable()->GetLiveness()->GetAllocated();
   // cb->SetStackSize(ComputeStackOffsets(st, 8, -12));
 
   size_t size = cb->GetStackSize();
@@ -296,15 +299,9 @@ void CBackendx86_64::EmitEpilogue()
   //EmitInstruction("popq", "%rbx");
   // currently push/pop all regs
   int param_size = (param_num <= 6) ? param_num*8 : 6*8;
-<<<<<<< HEAD
-  EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
   EmitCalleePop(callee_used_regs);
-=======
-  EmitCalleePop(callee_used_regs);
-
   // EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
 
->>>>>>> 6586ccdaaf1cbe3c232b513a966cd786d4d62487
   EmitInstruction("popq", "%rbp");
   if(isTailCall==false)
     EmitInstruction("ret");
@@ -676,10 +673,9 @@ void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
   src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
   if(!isRef) {
     Load(src1, reg, &cmt, OperandSize(i->GetSrc(1)));
-    reg = regs[rcount];
     src1 = getRegister(reg, OperandSize(i->GetSrc(1)));
   }
-  rcount++;
+  reg = regs[++rcount];
   isRef = false;
   isMem = false;
 
@@ -687,13 +683,11 @@ void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
   //if src2 is reference or not in memeory and register
   if(isRef) {
     cmt = "";
-    reg = regs[++rcount];
     isRef = false;
-    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
+    src2 = getRegister(reg, OperandSize(i->GetSrc(2)));
   } else if((isMem!=1) && (src2[0] != '%')) {
     Load(src2, reg, &cmt, OperandSize(i->GetSrc(2)));
     src2 = getRegister(reg, OperandSize(i->GetSrc(2)));
-    reg = regs[++rcount];
   }
 
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
