@@ -11,6 +11,9 @@ void full_optimize(int arch, CScope *m) {
   dofs_inlining_scope(m);
   // DIM and DOFS inlined
   pointer_typing_scope(m);
+
+  // inlining
+
   register_promotion_scope(m);
   to_ir_prime_scope(m);
   // now it's ir_prime
