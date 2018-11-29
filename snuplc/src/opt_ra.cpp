@@ -50,13 +50,14 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
   param_num = cbp->GetBlockTable()->GetLiveness()->GetParamNum();
 
   //set locals after param values, set param>6 on eariler stack :) :(
+  /*
   if(param_num > 6){
     local_ofs -= 6 * 8;
     param_ofs = 16 + (param_num - 6)*8;
   }
   else
     local_ofs -= param_num * 8;
-
+  */
 
   /* testing ... */
   map<ERegister, int> reg_to_stack;
@@ -72,59 +73,59 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
     if (st == stLocal || st == stParam) {
 
       if(s->GetDataType()->IsArray()){
-	int ssize = GetSize_prime(t);
-	int align = GetAlign_prime(t);
-	local_ofs -= ssize;
+        int ssize = GetSize_prime(t);
+        int align = GetAlign_prime(t);
+        local_ofs -= ssize;
 
-	if ((align > 1) && (local_ofs % align != 0)) {
-	  // align towards smaller addresses
-	  align = (local_ofs - align +1) / align * align - local_ofs;
-	} else {
-	  align = 0;
-	}
+        if ((align > 1) && (local_ofs % align != 0)) {
+          // align towards smaller addresses
+          align = (local_ofs - align +1) / align * align - local_ofs;
+        } else {
+          align = 0;
+        }
 
-	size += ssize - align;      // align is negative
-	local_ofs += align;
+        size += ssize - align;      // align is negative
+        local_ofs += align;
 
-	s->SetBaseRegister("");
-	// s->SetBaseRegister("%rbp");
-	s->SetOffset(local_ofs);
+        s->SetBaseRegister("");
+        // s->SetBaseRegister("%rbp");
+        s->SetOffset(local_ofs);
       }
       else{
 
-	if(symb_to_reg.find(s) == symb_to_reg.end()){
-	  cout << s << endl;
-	  _P1;
-	}
-	ERegister e = symb_to_reg[s];
+        if(symb_to_reg.find(s) == symb_to_reg.end()){
+          cout << s << endl;
+          _P1;
+        }
+        ERegister e = symb_to_reg[s];
 
-	if(reg_to_stack.find(e) == reg_to_stack.end()){
-	  int ssize = 8;
-	  int align = 8;
-	  local_ofs -= ssize;
+        if(reg_to_stack.find(e) == reg_to_stack.end()){
+          int ssize = 8;
+          int align = 8;
+          local_ofs -= ssize;
 
-	  if ((align > 1) && (local_ofs % align != 0)) {
-	    // align towards smaller addresses
-	    align = (local_ofs - align +1) / align * align - local_ofs;
-	  } else {
-	    align = 0;
-	  }
+          if ((align > 1) && (local_ofs % align != 0)) {
+            // align towards smaller addresses
+            align = (local_ofs - align +1) / align * align - local_ofs;
+          } else {
+            align = 0;
+          }
 
-	  size += ssize - align;      // align is negative
-	  local_ofs += align;
+          size += ssize - align;      // align is negative
+          local_ofs += align;
 
-	  s->SetBaseRegister("");
-	  // s->SetBaseRegister("%rbp");
-	  s->SetOffset(local_ofs);
-	  // cout << ERegName[e] << " : " << local_ofs << endl;
-	  reg_to_stack[e] = local_ofs;
-	}
-	else{
-	  // local_ofs = reg_to_stack[e];
-	  s->SetBaseRegister("");
-	  // s->SetBaseRegister("%rbp");
-	  s->SetOffset(reg_to_stack[e]);
-	}
+          s->SetBaseRegister("");
+          // s->SetBaseRegister("%rbp");
+          s->SetOffset(local_ofs);
+          // cout << ERegName[e] << " : " << local_ofs << endl;
+          reg_to_stack[e] = local_ofs;
+        }
+        else{
+          // local_ofs = reg_to_stack[e];
+          s->SetBaseRegister("");
+          // s->SetBaseRegister("%rbp");
+          s->SetOffset(reg_to_stack[e]);
+        }
       }
 
     }
