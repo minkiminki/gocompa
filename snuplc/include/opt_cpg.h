@@ -9,6 +9,7 @@
 #include "symtab.h"
 
 
+void uninitialized_vars_scope(CScope *m);
 void constant_propagation_scope(CScope *m);
 
 #endif // __SnuPL_OPT_CPG_H__

@@ -228,7 +228,9 @@ void CBackendx86_64::EmitScope(CScope *scope)
   // currently push/pop all regs
   const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
   EmitCalleePush(callee_used_regs);
-  EmitParamPush(param_num);
+
+  // EmitParamPush(param_num);
+
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
   //EmitInstruction("pushl", "%rsi");
   //EmitInstruction("pushl", "%rdi");
@@ -236,24 +238,25 @@ void CBackendx86_64::EmitScope(CScope *scope)
 
   // clear stack
   //modified
-  size_t lsize = size/8;
-  if (lsize > 4) {
-    _out << endl;
-    EmitInstruction("cld", "", "memset local stack area to 0");
-    EmitInstruction("xorq", "%rax, %rax");
-    EmitInstruction("mov", Imm(lsize) + ", %rcx");
-    EmitInstruction("mov", "%rsp, %rdi");
-    EmitInstruction("rep", "stosq");
-  } else if (lsize > 0) {
-    _out << endl;
-    EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
-    do {
-      lsize--;
-      ostringstream o;
-      o << "%rax, " << dec << lsize*8 << "(%rsp)";
-      EmitInstruction("movq", o.str());
-    } while (lsize > 0);
-  }
+
+  // size_t lsize = size/8;
+  // if (lsize > 4) {
+  //   _out << endl;
+  //   EmitInstruction("cld", "", "memset local stack area to 0");
+  //   EmitInstruction("xorq", "%rax, %rax");
+  //   EmitInstruction("mov", Imm(lsize) + ", %rcx");
+  //   EmitInstruction("mov", "%rsp, %rdi");
+  //   EmitInstruction("rep", "stosq");
+  // } else if (lsize > 0) {
+  //   _out << endl;
+  //   EmitInstruction("xorq", "%rax, %rax", "memset local stack area to 0");
+  //   do {
+  //     lsize--;
+  //     ostringstream o;
+  //     o << "%rax, " << dec << lsize*8 << "(%rsp)";
+  //     EmitInstruction("movq", o.str());
+  //   } while (lsize > 0);
+  // }
 
   // initialize local arrays
   EmitLocalData(scope);
@@ -293,8 +296,15 @@ void CBackendx86_64::EmitEpilogue()
   //EmitInstruction("popq", "%rbx");
   // currently push/pop all regs
   int param_size = (param_num <= 6) ? param_num*8 : 6*8;
+<<<<<<< HEAD
   EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
   EmitCalleePop(callee_used_regs);
+=======
+  EmitCalleePop(callee_used_regs);
+
+  // EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+
+>>>>>>> 6586ccdaaf1cbe3c232b513a966cd786d4d62487
   EmitInstruction("popq", "%rbp");
   if(isTailCall==false)
     EmitInstruction("ret");
@@ -966,6 +976,29 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         }
         else {
           Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
+        }
+      } //EmitInstruction("pushq", "%rax");
+      break;
+
+    case opGetParam:
+      {
+        CTacConst *t = dynamic_cast<CTacConst*>(i->GetSrc(1));
+        int paramIndex = t->GetValue();
+
+        // cout << t << " - " << paramIndex << endl;
+        // _P1;
+
+        if(paramIndex > 6) {
+          // TODO
+          // Load(i->GetSrc(1), "%rax", cmt.str());
+          // EmitInstruction("pushq", "%rax");
+        }
+        else {
+          // Load(param_regs[paramIndex-1], i->GetDest(), cmt.str());
+
+          EmitInstruction("movq", param_regs[paramIndex]+", %rax", cmt.str());
+          // Load(i->GetSrc(1), "%rax", cmt.str());
+          Store(i->GetDest(), 'a');
         }
       } //EmitInstruction("pushq", "%rax");
       break;

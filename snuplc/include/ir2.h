@@ -393,12 +393,16 @@ class Liveness {
   void debug_print(void);
   int Allocate(void);
   int GetMax();
+  int GetParamNum(void);
+  map<int, const CSymbol*> & GetArgRegs(void);
 
  protected:
   // list<CSymbol*> & _deadregs;
   list<const CSymbol*> _tempregs;
   map<CBasicBlock*, list<const CSymbol*>> _uses1;
   map<CBasicBlock*, list<const CSymbol*>> _uses2;
+  // vector<const CSymbol*> _arg_regs;
+  map<int, const CSymbol*> _arg_regs;
   const CSymbol* _param_regs[6];
   const CSymbol* _caller_save1;
   const CSymbol* _caller_save2;
@@ -409,6 +413,7 @@ class Liveness {
   map<const CSymbol*, list<const CSymbol*>> _live_graph;
   map<const CSymbol*, ERegister> _allocated;
   list<const CSymbol*> _symblist;
+  int _param_numb;
 
 };
 

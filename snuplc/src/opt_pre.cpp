@@ -90,6 +90,7 @@ void pointer_typing_block(CCodeBlock *cb) {
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
+      if(dynamic_cast<CTacReference*>(c_src) != NULL) continue;
       CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
       assert(c_dst != NULL);
       CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());
@@ -102,6 +103,7 @@ void pointer_typing_block(CCodeBlock *cb) {
       CTacName *c_src = dynamic_cast<CTacName*>(instr->GetSrc(1));
       if(c_src == NULL) continue;
       if(!(c_src->GetSymbol()->GetDataType()->IsPointer())) continue;
+      if(dynamic_cast<CTacReference*>(c_src) != NULL) continue;
       CTacName *c_dst = dynamic_cast<CTacName*>(instr->GetDest());
       assert(c_dst != NULL);
       CSymbol* symb = const_cast<CSymbol*>(c_dst->GetSymbol());

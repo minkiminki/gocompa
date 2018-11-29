@@ -183,6 +183,7 @@ const CSymbol* Liveness::CreateArgReg(int index)
 
 const CSymbol* Liveness::CreateParamReg(int index)
 {
+
   CSymbol* s;
   switch(index){
   case 0:
@@ -213,7 +214,10 @@ const CSymbol* Liveness::CreateParamReg(int index)
   default:
     assert(false);
   }
+  _param_numb++;
   _tempregs.push_back(s);
+  _arg_regs[index] = s;
+  // _arg_regs.push_back(s);
   return s;
 }
 
@@ -426,4 +430,14 @@ int Liveness::Allocate(void)
 int Liveness::GetMax()
 {
   return _max;
+}
+
+int Liveness::GetParamNum()
+{
+  return _param_numb;
+}
+
+map<int, const CSymbol*> & Liveness::GetArgRegs(void)
+{
+  return _arg_regs;
 }
