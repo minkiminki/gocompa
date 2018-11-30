@@ -12,5 +12,6 @@
 
 
 void function_inlining_scope(CScope *m);
+void unused_function_scope(CScope *m);
 
 #endif // __SnuPL_OPT_INL_H__
