@@ -17,6 +17,7 @@ DEPS=ir.h \
 		opt_ue.h \
 		opt_ra.h \
 		opt_cpg.h \
+		opt_inl.h \
 		opt_ssa.h \
 		opt_la.h \
 		opt.h \
@@ -29,6 +30,7 @@ SRC=ir.cpp \
 		opt_bba.cpp \
 		opt_tco.cpp \
 		opt_cpg.cpp \
+		opt_inl.cpp \
 		opt_ue.cpp \
 		opt_ra.cpp \
 		opt_ssa.cpp \

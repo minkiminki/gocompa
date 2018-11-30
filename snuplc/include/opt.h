@@ -15,6 +15,7 @@
 #include "opt_ra.h"
 #include "opt_ssa.h"
 #include "opt_la.h"
+#include "opt_inl.h"
 #include "symtab.h"
 
 

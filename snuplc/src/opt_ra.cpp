@@ -97,6 +97,7 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
           cout << s << endl;
           _P1;
         }
+
         ERegister e = symb_to_reg[s];
 
         if(reg_to_stack.find(e) == reg_to_stack.end()){
