@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <set>
 #include <map>
+#include <vector>
 #include <cassert>
 #include <string>
 #include "opt_inl.h"
@@ -404,5 +405,75 @@ void function_inlining_scope(CScope *m) {
   return;
 }
 
+void get_calls(list<string> &flist, CCodeBlock *cb){
+  list<CTacInstr*>::const_iterator it = (cb->GetInstr()).begin();
+  while (it != (cb->GetInstr()).end()) {
+    CTacInstr* instr = *(it++);
+    assert(instr != NULL);
+    if(instr->GetOperation() == opCall){
+      CTacName *n = dynamic_cast<CTacName*>(instr->GetSrc(1));
+      assert(n != NULL);
+      if(!is_rte(n->GetSymbol()->GetName()))
+        nodup_insert(flist, n->GetSymbol()->GetName());
+    }
+  }
+}
+
 void unused_function_scope(CScope *m) {
+  map<string, CScope*> name_to_fun;
+  map<string, list<string>> call_graph;
+  list<string> needed;
+
+  get_calls(needed, m->GetCodeBlock());
+
+  vector<CScope*> &subs = const_cast<vector<CScope*>&>(m->GetSubscopes());
+
+  vector<CScope*>::const_iterator sit = subs.begin();
+  while (sit != subs.end()) {
+    CScope *sc = *sit++;
+    string n = sc->GetName();
+    list<string> flist;
+    get_calls(flist, sc->GetCodeBlock());
+    call_graph[n] = flist;
+    name_to_fun[n] = sc;
+  }
+
+  set<string> computed;
+
+  list<string>::iterator it = needed.begin();
+  while (it != needed.end()) {
+    list<string> nexts = call_graph[*it++];
+    list<string>::iterator nit = nexts.begin();
+    while (nit != nexts.end()) {
+      nodup_insert(needed, *nit++);
+    }
+  }
+
+  // it = needed.begin();
+  // while (it != needed.end()) {
+  //   _P1;
+  //   cout << (*it++) << endl;
+  // }
+
+
+  for(map<string, CScope*>::iterator mit = name_to_fun.begin(); mit != name_to_fun.end(); mit++){
+    list<string>::iterator fit = find(needed.begin(), needed.end(), mit->first);
+    if(fit == needed.end()){
+
+      vector<CScope*>::iterator fsit = find(subs.begin(), subs.end(), (mit->second));
+
+      // cout << (mit->second) << endl;
+      // _P2;
+
+      assert (fsit != subs.end());
+      subs.erase(fsit);
+
+      CSymbol *s = const_cast<CSymbol*>(m->GetSymbolTable()->FindSymbol(mit->first));
+      assert(s != NULL);
+
+      assert(m->GetSymbolTable()->RemoveSymbol(s));
+
+    }
+  }
+
 }
