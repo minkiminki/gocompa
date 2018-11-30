@@ -15,7 +15,7 @@ void full_optimize(int arch, CScope *m) {
   unused_function_scope(m);
   register_promotion_scope(m);
   to_ir_prime_scope(m);
-  // now it's ir_prime
+  // now it's ir_primex
   basic_block_analysis_scope(m);
   // get block info
   tail_call_optimization_scope(arch, m);
