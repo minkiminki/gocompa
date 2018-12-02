@@ -90,15 +90,15 @@ ostream& CTacInstr_prime::print(ostream &out, int indent) const
     out << "[CTacInstr: '" << _name << "']";
   }
 
-  {
-    out << " <<";
-    // out << " << " << _live_vars.size() << " -";
-    list<const CSymbol*>::const_iterator sit = _live_vars.begin();
-    while (sit != _live_vars.end()) {
-      out << " " << (*sit++)->GetName();
-    }
-    out << " >>";
-  }
+  // {
+  //   out << " <<";
+  //   // out << " << " << _live_vars.size() << " -";
+  //   list<const CSymbol*>::const_iterator sit = _live_vars.begin();
+  //   while (sit != _live_vars.end()) {
+  //     out << " " << (*sit++)->GetName();
+  //   }
+  //   out << " >>";
+  // }
 
   return out;
 }
@@ -108,6 +108,27 @@ CTacPhi::CTacPhi(CSymbol* s)
   : CTacInstr_prime(opPhi, new CTacName(s), new CTacName(s), new CTacName(s))
 {
 }
+
+void CTacPhi::SetLiveVars1(list<const CSymbol*>& live_vars)
+{
+  _live_vars1 = live_vars;
+}
+
+list<const CSymbol*>& CTacPhi::GetLiveVars1(void)
+{
+  return _live_vars1;
+}
+
+void CTacPhi::SetLiveVars2(list<const CSymbol*>& live_vars)
+{
+  _live_vars2 = live_vars;
+}
+
+list<const CSymbol*>& CTacPhi::GetLiveVars2(void)
+{
+  return _live_vars2;
+}
+
 
 void CTacPhi::SetSrcBlk(int num, CBasicBlock* blk)
 {
@@ -1144,6 +1165,7 @@ void CCodeBlock_prime::SSA_out()
 
 	CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(s_dest),
 							 src1, NULL);
+	instr_new->SetLiveVars(phi->GetLiveVars1());
 
 	instr_new->SetFromBlock(blk1);
 	(blk1->GetInstrs()).insert(instrend, instr_new);
@@ -1184,6 +1206,7 @@ void CCodeBlock_prime::SSA_out()
 
 	CTacInstr_prime *instr_new = new CTacInstr_prime(opAssign, new CTacTemp(s_dest),
 							 src2, NULL);
+	instr_new->SetLiveVars(phi->GetLiveVars2());
 
 	instr_new->SetFromBlock(blk2);
 	(blk2->GetInstrs()).insert(instrend, instr_new);

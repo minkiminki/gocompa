@@ -501,25 +501,8 @@ void liveness_analysis_block(CCodeBlock *cb) {
     }
   }
 
-  // bit = cbp->GetBlockTable()->GetBlockList().begin();
-  // while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
-  //   CBasicBlock* blk = *bit++;
-  //   cout << "(" << blk->GetBlockNum() << " -";
-  //   list<const CSymbol*>::iterator sit = uses1[blk].begin();
-  //   while (sit != uses1[blk].end()) {
-  //     cout << " " << (*sit++)->GetName();
-  //   }
-  //   cout << " |";
-  //   sit = uses2[blk].begin();
-  //   while (sit != uses2[blk].end()) {
-  //     cout << " " << (*sit++)->GetName();
-  //   }
-  //   cout << ")" << endl;
-  // }
-  // cout << "------------------------------------" << endl;
-
-
   map<const CSymbol*, list<const CSymbol*>> &assign_graph = liveness->GetAssignGraph();
+  map<const CSymbol*, list<const CSymbol*>> &assign_closure = liveness->GetAssignClosure();
 
   bit = cbp->GetBlockTable()->GetBlockList().begin();
   while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
@@ -542,10 +525,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray())){
 
 	      nodup_insert(live_vars, s_src1);
-	      // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(), s_src1);
-	      // if(fit == live_vars.end()){
-	      // 	nodup_insert(live_vars, s_src1);
-	      // }
 
 	    }
 	  }
@@ -557,10 +536,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	  const CSymbol* s_src2 = src2->GetSymbol();
 	  assert(s_src2 != NULL);
 	  if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray())){
-	    // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(),s_src2);
-	    // if(fit == live_vars.end()){
-	    //   nodup_insert(live_vars, s_src2);
-	    // }
 
 	    nodup_insert(live_vars, s_src2);
 	  }
@@ -574,10 +549,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    assert(s_dest != NULL);
 
 	    if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray())){
-	      // list<const CSymbol*>::iterator fit = find(live_vars.begin(), live_vars.end(),s_dest);
-	      // if(fit == live_vars.end()){
-	      // 	nodup_insert(live_vars, s_dest);
-	      // }
 	      nodup_insert(live_vars, s_dest);
 	    }
 	  }
@@ -587,21 +558,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	    if(s_dest->GetSymbolType() != stGlobal && !(s_dest->GetDataType()->IsArray())){
 
 	      erase_success(live_vars, s_dest);
-
-	      // if(erase_success(live_vars, s_dest) < 0){
-	      // 	// cout << s_dest << " isn't used" << endl;
-	      // 	// _P1;
-	      // 	// todo: DSE!!
-
-	      // 	if(instr->GetOperation() != opCall && instr->GetOperation() != opTailCall){
-	      // 	  instr->SetSrc(0, NULL);
-	      // 	  instr->SetSrc(1, NULL);
-	      // 	  instr->SetOperation(opNop);
-	      // 	}
-	      // 	instr->SetDest(NULL);
-
-	      // 	dse_success = true;
-	      // }
 
 	    }
 	  }
@@ -651,16 +607,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	assert(n != NULL);
 	int num = n->GetValue();
 
-	// if(erase_success(live_vars, arg[num-1]) < 0){
-	//   cout << instr << endl;
-	//   _P2;
-	//   // cout << arg[num-1];
-	//   // _P1;
-	// }
-
-	// assert(erase_success(live_vars, arg[num-1]) >= 0);
-
-
         if(num != 3 && num <= 6){
 
 	  {
@@ -708,7 +654,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	case 5: arg[4] = liveness->CreateArgReg(4); nodup_insert(live_vars, arg[4]);
 	case 4: arg[3] = liveness->CreateArgReg(3); nodup_insert(live_vars, arg[3]);
 	case 3:
-	  // arg[2] = liveness->CreateArgReg(2); nodup_insert(live_vars, arg[2]);
 	case 2: arg[1] = liveness->CreateArgReg(1); nodup_insert(live_vars, arg[1]);
 	case 1: arg[0] = liveness->CreateArgReg(0); nodup_insert(live_vars, arg[0]);
 	}
@@ -717,36 +662,86 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	instr->GetLiveVars().push_back(liveness->GetDeadCalleeSave(2));
 	instr->GetLiveVars().push_back(liveness->GetDeadParam(0));
 	instr->GetLiveVars().push_back(liveness->GetDeadParam(1));
-	// third paramter is in edx!!
-	// instr->GetLiveVars().push_back(liveness->GetDeadParam(2));
 	instr->GetLiveVars().push_back(liveness->GetDeadParam(3));
 	instr->GetLiveVars().push_back(liveness->GetDeadParam(4));
 	instr->GetLiveVars().push_back(liveness->GetDeadParam(5));
-	// instr->GetLiveVars().push_back(caller_save1);
-	// instr->GetLiveVars().push_back(caller_save2);
       }
     }
 
+    CBasicBlock* blk_prev1 = *blk->GetPrevBlks().begin();
+    CBasicBlock* blk_prev2 = NULL;
+    {
+      if(next(blk->GetPrevBlks().begin()) != blk->GetPrevBlks().end())
+	blk_prev2 = *next(blk->GetPrevBlks().begin());
+    }
+
+    list<const CSymbol*> live_vars1 = live_vars;
+    list<const CSymbol*> live_vars2 = live_vars;
     it = blk->GetPhis().begin();
     while (it != blk->GetPhis().end()) {
       list<CTacInstr*>::iterator it_temp = it++;
-      CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it_temp);
+      CTacPhi* instr = dynamic_cast<CTacPhi*>(*it_temp);
       assert(instr != NULL);
       CTacName* dest = dynamic_cast<CTacName*>(instr->GetDest());
       assert(dest != NULL);
       const CSymbol* s_dest = dest->GetSymbol();
       assert(s_dest != NULL);
-      erase_success(live_vars, s_dest);
-      // if(erase_success(live_vars, s_dest) < 0){
-      // 	// cout << s_dest << " isn't used" << endl;
-      // 	// _P1;
-      // 	// TODO: DSE!!
 
-      // 	(blk->GetPhis()).erase(it_temp);
-      // 	dse_success = true;
+      // erase_success(live_vars, s_dest);
+      erase_success(live_vars1, s_dest);
+      erase_success(live_vars2, s_dest);
 
-      // }
+      if(instr->GetSrcBlk(1) == blk_prev1){
+	assert(instr->GetSrcBlk(2)==blk_prev2);
+	{
+	  CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	  if(src1 != NULL){
+	    const CSymbol* s_src1 = src1->GetSymbol();
+	    assert(s_src1 != NULL);
+	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray()))
+	      nodup_insert(live_vars1, s_src1);
+	  }
+	}
+	{
+	  CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	  if(src2 != NULL){
+	    const CSymbol* s_src2 = src2->GetSymbol();
+	    assert(s_src2 != NULL);
+
+	    if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray()))
+	      nodup_insert(live_vars2, s_src2);
+	  }
+	}
+	instr->SetLiveVars1(live_vars1);
+	instr->SetLiveVars2(live_vars2);
+      }
+      else{
+	assert(instr->GetSrcBlk(2)==blk_prev1);
+	assert(instr->GetSrcBlk(1)==blk_prev2);
+	{
+	  CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
+	  if(src1 != NULL){
+	    const CSymbol* s_src1 = src1->GetSymbol();
+	    assert(s_src1 != NULL);
+	    if(s_src1->GetSymbolType() != stGlobal && !(s_src1->GetDataType()->IsArray()))
+	      nodup_insert(live_vars2, s_src1);
+	  }
+	}
+	{
+	  CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
+	  if(src2 != NULL){
+	    const CSymbol* s_src2 = src2->GetSymbol();
+	    assert(s_src2 != NULL);
+
+	    if(s_src2->GetSymbolType() != stGlobal && !(s_src2->GetDataType()->IsArray()))
+	      nodup_insert(live_vars1, s_src2);
+	  }
+	}
+	instr->SetLiveVars1(live_vars2);
+	instr->SetLiveVars2(live_vars1);
+      }
     }
+
   }
 
   {
@@ -846,24 +841,75 @@ void liveness_analysis_block(CCodeBlock *cb) {
   	  }
   	}
       }
-    }
 
-    // cout << "liveness ---------------------------------------------" << endl;
-    // map<const CSymbol*, list<const CSymbol*>>::iterator git = live_graph.begin();
-    // while (git != live_graph.end()) {
-    //   if(git->first->GetSymbolType() == stRegister) {
-    // 	git++;
-    // 	continue;
-    //   }
-    //   cout << (git->first->GetName()) << " -";
-    //   list<const CSymbol*> &slist = git->second;
-    //   list<const CSymbol*>::const_iterator sit = slist.begin();
-    //   while (sit != slist.end()) {
-    // 	cout << " " << (*sit++)->GetName();
-    //   }
-    //   cout << endl;
-    //   git++;
-    // }
+      it = blk->GetPhis().begin();
+      while (it != blk->GetPhis().end()) {
+  	CTacPhi* instr = dynamic_cast<CTacPhi*>(*it++);
+  	assert(instr != NULL);
+  	{
+  	  list<const CSymbol*> &slist = instr->GetLiveVars1();
+  	  {
+  	    list<const CSymbol*>::const_iterator sit = slist.begin();
+  	    while (sit != slist.end()) {
+  	      const CSymbol* s = *sit++;
+  	      if(live_graph.find(s) == live_graph.end()){
+  		list<const CSymbol *> list_tmp;
+  		live_graph[s] = list_tmp;
+  	      }
+  	    }
+  	  }
+  	  {
+  	    list<const CSymbol*>::const_iterator sit1 = slist.begin();
+  	    while (sit1 != slist.end()) {
+  	      const CSymbol* s1 = *sit1++;
+  	      list<const CSymbol*> &lives1 = live_graph[s1];
+  	      list<const CSymbol*>::const_iterator sit2 = sit1;
+  	      while (sit2 != slist.end()) {
+  		const CSymbol* s2 = *sit2++;
+  		list<const CSymbol*> &lives2 = live_graph[s2];
+  		nodup_insert(lives1, s2);
+  		nodup_insert(lives2, s1);
+  	      }
+  	    }
+  	  }
+  	}
+      }
+
+      it = blk->GetPhis().begin();
+      while (it != blk->GetPhis().end()) {
+  	CTacPhi* instr = dynamic_cast<CTacPhi*>(*it++);
+  	assert(instr != NULL);
+  	{
+  	  list<const CSymbol*> &slist = instr->GetLiveVars2();
+  	  {
+  	    list<const CSymbol*>::const_iterator sit = slist.begin();
+  	    while (sit != slist.end()) {
+  	      const CSymbol* s = *sit++;
+  	      if(live_graph.find(s) == live_graph.end()){
+  		list<const CSymbol *> list_tmp;
+  		live_graph[s] = list_tmp;
+  	      }
+  	    }
+  	  }
+  	  {
+  	    list<const CSymbol*>::const_iterator sit1 = slist.begin();
+  	    while (sit1 != slist.end()) {
+  	      const CSymbol* s1 = *sit1++;
+  	      list<const CSymbol*> &lives1 = live_graph[s1];
+  	      list<const CSymbol*>::const_iterator sit2 = sit1;
+  	      while (sit2 != slist.end()) {
+  		const CSymbol* s2 = *sit2++;
+  		list<const CSymbol*> &lives2 = live_graph[s2];
+  		nodup_insert(lives1, s2);
+  		nodup_insert(lives2, s1);
+  	      }
+  	    }
+  	  }
+  	}
+      }
+
+
+    }
 
   }
 
@@ -939,8 +985,15 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	  continue;
 	}
       }
+    }
 
-      it = blk->GetPhis().begin();
+    assign_closure = assign_graph;
+
+    bit = cbp->GetBlockTable()->GetBlockList().begin();
+    while (bit != cbp->GetBlockTable()->GetBlockList().end()) {
+      CBasicBlock* blk = *bit++;
+
+      list<CTacInstr*>::const_iterator it = blk->GetPhis().begin();
       while (it != blk->GetPhis().end()) {
   	CTacInstr_prime* instr = dynamic_cast<CTacInstr_prime*>(*it++);
   	assert(instr != NULL);
@@ -949,17 +1002,17 @@ void liveness_analysis_block(CCodeBlock *cb) {
   	if(dest == NULL) continue;
   	if(dynamic_cast<CTacReference*>(dest) != NULL) continue;
   	const CSymbol* s_dest = dest->GetSymbol();
-  	list<const CSymbol*> &assign_dest = assign_graph[s_dest];
+  	list<const CSymbol*> &assign_dest = assign_closure[s_dest];
 
   	{
   	  CTacName* src1 = dynamic_cast<CTacName*>(instr->GetSrc(1));
   	  if(src1 != NULL && dynamic_cast<CTacReference*>(src1) == NULL) {
   	    const CSymbol* s_src1 = src1->GetSymbol();
-  	    if(assign_graph.find(s_src1) == assign_graph.end()){
+  	    if(assign_closure.find(s_src1) == assign_closure.end()){
   	      list<const CSymbol *> list_tmp;
-  	      assign_graph[s_src1] = list_tmp;
+  	      assign_closure[s_src1] = list_tmp;
   	    }
-  	    list<const CSymbol*> &assign_src1 = assign_graph[s_src1];
+  	    list<const CSymbol*> &assign_src1 = assign_closure[s_src1];
   	    nodup_insert(assign_dest, s_src1);
   	    nodup_insert(assign_src1, s_dest);
   	  }
@@ -969,11 +1022,11 @@ void liveness_analysis_block(CCodeBlock *cb) {
   	  CTacName* src2 = dynamic_cast<CTacName*>(instr->GetSrc(2));
   	  if(src2 != NULL && dynamic_cast<CTacReference*>(src2) == NULL) {
   	    const CSymbol* s_src2 = src2->GetSymbol();
-  	    if(assign_graph.find(s_src2) == assign_graph.end()){
+  	    if(assign_closure.find(s_src2) == assign_closure.end()){
   	      list<const CSymbol *> list_tmp;
-  	      assign_graph[s_src2] = list_tmp;
+  	      assign_closure[s_src2] = list_tmp;
   	    }
-  	    list<const CSymbol*> &assign_src2 = assign_graph[s_src2];
+  	    list<const CSymbol*> &assign_src2 = assign_closure[s_src2];
   	    nodup_insert(assign_dest, s_src2);
   	    nodup_insert(assign_src2, s_dest);
   	  }
@@ -984,23 +1037,51 @@ void liveness_analysis_block(CCodeBlock *cb) {
     bool success = true;
     while(success){
       success = false;
-
       map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
       while (git != assign_graph.end()) {
-  	const CSymbol* s1 = git->first;
+    	const CSymbol* s1 = git->first;
+    	list<const CSymbol*> &slist1 = git->second;
+    	git++;
+    	list<const CSymbol*>::const_iterator sit1 = slist1.begin();
+    	while (sit1 != slist1.end()) {
+    	  const CSymbol *s2 = *sit1++;
+    	  list<const CSymbol*> &slist2 = assign_graph[s2];
+    	  list<const CSymbol*>::const_iterator sit2 = slist2.begin();
+    	  while (sit2 != slist2.end()) {
+    	    const CSymbol *s3 = *sit2++;
+    	    if(s1 != s3){
+    	      list<const CSymbol*> &slist3 = assign_graph[s3];
+    	      if(nodup_insert(slist1, s3) == 0){
+    		success = true;
+    		// cout << s1 << s2 << s3 << endl;
+    	      }
+    	      if(nodup_insert(slist3, s1) == 0){
+    		success = true;
+    		// cout << s1 << s2 << s3 << endl;
+    	      }
+    	    }
+    	  }
+    	}
+      }
+    }
 
+    success = true;
+    while(success){
+      success = false;
+      map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_closure.begin();
+      while (git != assign_closure.end()) {
+  	const CSymbol* s1 = git->first;
   	list<const CSymbol*> &slist1 = git->second;
   	git++;
   	list<const CSymbol*>::const_iterator sit1 = slist1.begin();
   	while (sit1 != slist1.end()) {
   	  const CSymbol *s2 = *sit1++;
-
-  	  list<const CSymbol*> &slist2 = assign_graph[s2];
+  	  list<const CSymbol*> &slist2 = assign_closure[s2];
   	  list<const CSymbol*>::const_iterator sit2 = slist2.begin();
   	  while (sit2 != slist2.end()) {
   	    const CSymbol *s3 = *sit2++;
   	    if(s1 != s3){
-  	      list<const CSymbol*> &slist3 = assign_graph[s3];
+  	      list<const CSymbol*> &slist3 = assign_closure[s3];
   	      if(nodup_insert(slist1, s3) == 0){
   		success = true;
   		// cout << s1 << s2 << s3 << endl;
@@ -1013,26 +1094,45 @@ void liveness_analysis_block(CCodeBlock *cb) {
   	  }
   	}
       }
-
     }
 
-    // cout << "assign ---------------------------------------------" << endl;
-    // map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
-    // while (git != assign_graph.end()) {
-    //   if(git->first->GetSymbolType() == stRegister) {
+    // {
+    //   cout << "assign ---------------------------------------------" << endl;
+    //   map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_graph.begin();
+    //   while (git != assign_graph.end()) {
+    // 	if(git->first->GetSymbolType() == stRegister) {
+    // 	  git++;
+    // 	  continue;
+    // 	}
+    // 	cout << (git->first->GetName()) << " -";
+    // 	list<const CSymbol*> &slist = git->second;
+    // 	list<const CSymbol*>::const_iterator sit = slist.begin();
+    // 	while (sit != slist.end()) {
+    // 	  cout << " " << (*sit++)->GetName();
+    // 	}
+    // 	cout << endl;
     // 	git++;
-    // 	continue;
     //   }
-    //   cout << (git->first->GetName()) << " -";
-    //   list<const CSymbol*> &slist = git->second;
-    //   list<const CSymbol*>::const_iterator sit = slist.begin();
-    //   while (sit != slist.end()) {
-    // 	cout << " " << (*sit++)->GetName();
-    //   }
-    //   cout << endl;
-    //   git++;
     // }
 
+    // {
+    //   cout << "assign closrue ---------------------------------------------" << endl;
+    //   map<const CSymbol*, list<const CSymbol*>>::iterator git = assign_closure.begin();
+    //   while (git != assign_closure.end()) {
+    // 	if(git->first->GetSymbolType() == stRegister) {
+    // 	  git++;
+    // 	  continue;
+    // 	}
+    // 	cout << (git->first->GetName()) << " -";
+    // 	list<const CSymbol*> &slist = git->second;
+    // 	list<const CSymbol*>::const_iterator sit = slist.begin();
+    // 	while (sit != slist.end()) {
+    // 	  cout << " " << (*sit++)->GetName();
+    // 	}
+    // 	cout << endl;
+    // 	git++;
+    //   }
+    // }
 
   }
 

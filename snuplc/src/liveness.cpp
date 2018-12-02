@@ -236,6 +236,12 @@ map<const CSymbol*, list<const CSymbol*>>& Liveness::GetAssignGraph(void)
   return _assign_graph;
 }
 
+
+map<const CSymbol*, list<const CSymbol*>>& Liveness::GetAssignClosure(void)
+{
+  return _assign_closure;
+}
+
 map<const CSymbol*, list<const CSymbol*>>& Liveness::GetLiveGraph(void)
 {
   return _live_graph;
@@ -352,16 +358,17 @@ int Liveness::Allocate(void)
     const CSymbol* s = *sit++;
 
     list<const CSymbol*> & _assigns = _assign_graph[s];
+    list<const CSymbol*> & _assigns_closure = _assign_closure[s];
     list<const CSymbol*> & _lives = _live_graph[s];
 
     list<ERegister> can;
     {
       list<const CSymbol*>::const_iterator cit = _assigns.begin();
       while (cit != _assigns.end()) {
-	const CSymbol* c = *cit++;
-	if(_allocated.find(c) != _allocated.end()){
-	  nodup_insert(can, _allocated[c]);
-	}
+    	const CSymbol* c = *cit++;
+    	if(_allocated.find(c) != _allocated.end()){
+    	  nodup_insert(can, _allocated[c]);
+    	}
       }
     }
 
@@ -377,6 +384,21 @@ int Liveness::Allocate(void)
       }
     }
 
+    list<ERegister> may;
+    {
+      list<const CSymbol*>::const_iterator cit = _assigns_closure.begin();
+      while (cit != _assigns_closure.end()) {
+    	const CSymbol* c = *cit++;
+    	if(find(_assigns.begin(), _assigns.end(), c) != _assigns.end()) continue;
+    	if(find(_lives.begin(), _lives.end(), c) != _lives.end()) {
+	  continue;
+	}
+    	if(_allocated.find(c) != _allocated.end()){
+    	  nodup_insert(may, _allocated[c]);
+    	}
+      }
+    }
+
     {
       bool success = false;
       list<ERegister>::const_iterator eit = can.begin();
@@ -388,15 +410,27 @@ int Liveness::Allocate(void)
 	if(find(cant.begin(), cant.end(), e) != cant.end()) continue;
 	if(e > max) max = e;
 	_allocated[s] = e;
-	// cout << ERegName[e] << endl;
-	// _P1;
-
-
-	// TODO : erase it
 	const_cast<CSymbol*>(s)->SetName(s->GetName() + "_" + ERegName[e]);
-
 	success = true;
 	break;
+      }
+      if(success) continue;
+    }
+
+    {
+      bool success = false;
+      list<ERegister>::const_iterator eit = may.begin();
+      while (eit != may.end()) {
+        ERegister e = *eit++;
+    	if(e > rgMAX){
+    	  continue;
+    	}
+    	if(find(cant.begin(), cant.end(), e) != cant.end()) continue;
+    	if(e > max) max = e;
+    	_allocated[s] = e;
+    	const_cast<CSymbol*>(s)->SetName(s->GetName() + "_" + ERegName[e]);
+    	success = true;
+    	break;
       }
       if(success) continue;
     }
@@ -418,7 +452,12 @@ int Liveness::Allocate(void)
       // _P2;
 
       // TODO : erase it
-      const_cast<CSymbol*>(s)->SetName(s->GetName() + "_" + ERegName[e]);
+      if(e <= rgMAX){
+	const_cast<CSymbol*>(s)->SetName(s->GetName() + "_" + ERegName[e]);
+      }
+      else{
+	const_cast<CSymbol*>(s)->SetName(s->GetName() + "_stk" + to_string(e-rgMAX));
+      }
 
     }
   }

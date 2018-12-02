@@ -245,6 +245,12 @@ class CTacPhi : public CTacInstr_prime {
     void SetSrcBlk(int num, CBasicBlock* blk);
     CBasicBlock* GetSrcBlk(int num);
 
+  list<const CSymbol*>& GetLiveVars1(void);
+  list<const CSymbol*>& GetLiveVars2(void);
+  void SetLiveVars1(list<const CSymbol*>& live_vars);
+  void SetLiveVars2(list<const CSymbol*>& live_vars);
+
+
     /// @}
 
     /// @name output
@@ -260,6 +266,8 @@ class CTacPhi : public CTacInstr_prime {
   protected:
     CBasicBlock *src1_blk;
     CBasicBlock *src2_blk;
+    list<const CSymbol*> _live_vars1;
+    list<const CSymbol*> _live_vars2;
 };
 
 //------------------------------------------------------------------------------
@@ -378,6 +386,7 @@ class Liveness {
   // const CSymbol* GetCallerSave(int index);
   map<CBasicBlock*, list<const CSymbol*>> & GetUses(int index);
   map<const CSymbol*, list<const CSymbol*>> & GetAssignGraph(void);
+  map<const CSymbol*, list<const CSymbol*>> & GetAssignClosure(void);
   map<const CSymbol*, list<const CSymbol*>> & GetLiveGraph(void);
   map<const CSymbol*, ERegister> & GetAllocated(void);
   list<const CSymbol*> & GetSymbList(void);
@@ -410,6 +419,7 @@ class Liveness {
   int tempnum;
   int _max;
   map<const CSymbol*, list<const CSymbol*>> _assign_graph;
+  map<const CSymbol*, list<const CSymbol*>> _assign_closure;
   map<const CSymbol*, list<const CSymbol*>> _live_graph;
   map<const CSymbol*, ERegister> _allocated;
   list<const CSymbol*> _symblist;
