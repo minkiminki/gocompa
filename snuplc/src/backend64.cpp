@@ -78,21 +78,20 @@ int GetAlign_prime (const CType* ct)
 // find register type - 만든 이유는 Load 인자를 인티저로 바꾸기 귀찮았기 때문
 int getRegType(string reg)
 {
-  if(reg.compare("%rax") == 0) return 0;
-  if(reg.compare("%rbx") == 0) return 1;
+  if(reg.compare("%r9") == 0) return 0;
+  if(reg.compare("%r8") == 0) return 1;
   if(reg.compare("%rcx") == 0) return 2;
-  if(reg.compare("%rdx") == 0) return 3;
-  if(reg.compare("%rsi") == 0) return 4;
-  if(reg.compare("%rdi") == 0) return 5;
-  if(reg.compare("%r8") == 0) return 6;
-  if(reg.compare("%r9") == 0) return 7;
+  if(reg.compare("%rsi") == 0) return 3;
+  if(reg.compare("%rdi") == 0) return 4;
+  if(reg.compare("%rbx") == 0) return 5;
+  if(reg.compare("%r12") == 0) return 6;
+  if(reg.compare("%r13") == 0) return 7;
   if(reg.compare("%r10") == 0) return 8;
   if(reg.compare("%r11") == 0) return 9;
-  if(reg.compare("%r12") == 0) return 10;
-  if(reg.compare("%r13") == 0) return 11;
-  if(reg.compare("%r14") == 0) return 12;
-  if(reg.compare("%r15") == 0) return 13;
-  if(reg.compare("%r16") == 0) return 14;
+  if(reg.compare("%r14") == 0) return 10;
+  if(reg.compare("%r15") == 0) return 11;
+  if(reg.compare("%rax") == 0) return 12;
+  if(reg.compare("%rdx") == 0) return 13;
   return -1;
 }
 
@@ -638,11 +637,11 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
 
   string reg = regs[rcount];
   src = SetSrcRegister(i->GetSrc(1), &isRef, &isSrcMem, reg, &cmt);
+  src = getRegister(src, OperandSize(i->GetSrc(1)));
   if(isRef) {
     cmt = "";
     isRef = false;
     isSrcMem = false;
-    src = getRegister(src, OperandSize(i->GetSrc(1)));
     reg = regs[++rcount]; //reg used in SetSrcRegister, assign new
   }
 
@@ -656,10 +655,9 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
       src = getRegister(reg, OperandSize(i->GetSrc(1)));
     }
   }
-  else
-    dst = getRegister(dst, OperandSize(i->GetDest()));
+  dst = getRegister(dst, OperandSize(i->GetDest()));
 
-  string postfix = GetOpPostfix(OperandSize(i->GetSrc(1)));
+  string postfix = GetOpPostfix(OperandSize(i->GetDest()));
   EmitInstruction("mov" + postfix, src + ", " + dst, cmt);
   return;
 }
@@ -978,7 +976,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           EmitInstruction("pushq", "%rax");
         }
         else {
-          Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
+          Load(i->GetSrc(1), param_regs[paramIndex], cmt.str());
         }
       } //EmitInstruction("pushq", "%rax");
       break;
