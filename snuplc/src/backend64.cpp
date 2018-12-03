@@ -46,14 +46,14 @@ string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
 static bool isTailCall = false;
 string all_regs[4][14] = {
-  {"%al", "%bl", "%cl", "%dl", "%sil", "%dil", "%r8b", "%r9b", "%r10b",
-    "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"},
-  {"%ax", "%bx", "%cx", "%dx", "%si", "%di", "%r8w", "%r91", "%r10w",
-    "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"},
-  {"%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi", "%r8d", "%r9d", "%r10d",
-    "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"},
-  {"%rax", "%rbx", "%rcx", "%rdx", "%rsi", "%rdi", "%r8", "%r9", "%r10",
-    "%r11", "%r12", "%r13", "%r14", "%r15"}
+  {"%r9b", "%r8b", "%cl", "%sil", "%dil", "%bl", "%r12b", "%r13b", "%r10b",
+    "%r11b", "%r14b", "%r15b", "%al", "%dl"},
+  {"%r9w", "%r8w", "%cx", "%si", "%di", "%bx", "%r12w", "%r13w", "%r10w",
+    "%r11w", "%r14w", "%r15w", "%ax", "%dx"},
+  {"%r9d", "%r8d", "%ecx", "%esi", "%edi", "%ebx", "%r12d", "%r13d", "%r10d",
+    "%r11d", "%r14d", "%r15d", "%eax", "%edx"},
+  {"%r9", "%r8", "%rcx", "%rsi", "%rdi", "%rbx", "%r12", "%r13", "%r10",
+    "%r11", "%r14", "%r15", "%rax", "%rdx"},
 };
 map<const CSymbol*, ERegister> symb_to_reg;
 
@@ -94,6 +94,11 @@ int getRegType(string reg)
   if(reg.compare("%r15") == 0) return 13;
   if(reg.compare("%r16") == 0) return 14;
   return -1;
+}
+
+string getRegString(int regNum)
+{
+  return all_regs[3][regNum];
 }
 
 // get register string based on operand's size
@@ -521,16 +526,16 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
     cmt = "";
     reg = regs[++rcount];
     isRef = false;
-    src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
   }
+  src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
 
   src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
   if(isRef) {
     cmt = "";
     reg = regs[++rcount];
     isRef = false;
-    src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
   }
+  src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
   
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
   if(isMem){
@@ -570,8 +575,7 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
 
     Load(src1, dst, &cmt, src1Size);
     mnm = mnm + GetOpPostfix(src2Size);
-    if(isMem == false)
-      dst = getRegister(dst, OperandSize(i->GetDest()));
+    dst = getRegister(dst, OperandSize(i->GetDest()));
     src2 = getRegister(src2, src2Size);
     EmitInstruction(mnm, src2 + ", " + dst, cmt);
     if(storeDest) {
@@ -588,10 +592,11 @@ void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
   string cmt = comment;
   string regs[3] = {"%rax", "%rdx", ""};
   int rcount = 0;
-  bool isRef = false, isMem = false;
+  bool isRef = false, isMem = false, shouldMov = true;
 
   string reg = regs[rcount];
   src1 = SetSrcRegister(i->GetSrc(1), &isRef, &isMem, reg, &cmt);
+  if(isMem == false) shouldMov = false;
   if(isRef) {
     cmt = "";
     reg = regs[++rcount];
@@ -599,6 +604,7 @@ void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
   }
 
   src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  if(isMem == false) shouldMov = false;
   if(isRef) {
     cmt = "";
     reg = regs[++rcount];
@@ -607,7 +613,7 @@ void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
   
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
 
-  if(rcount == 0) {
+  if(shouldMov) {
     Load(src1, "%rax", &cmt, OperandSize(i->GetSrc(1)));
     src1 = "%rax";
   }
@@ -698,6 +704,33 @@ void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
   src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
   Store(src1, dst, cmt, OperandSize(i->GetDest()));
 
+  return;
+}
+
+void CBackendx86_64::EmitOpAddress(CTacInstr *i, string comment)
+{
+  EOperation op = i->GetOperation();
+  string src, dst;
+  string cmt = comment;
+  string regs[3] = {"%rax", "%rdx", ""};
+  int rcount = 0;
+  bool isRef = false, isSrcMem = false, isDstMem = false;
+
+  string reg = regs[rcount];
+
+  src = SetDstRegister(i->GetSrc(1), &isRef, &isSrcMem, reg, &cmt);
+  if(isRef){
+    reg = regs[++rcount];
+  }
+  dst = SetSrcRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
+
+  // if dst, src are in memory, we should use reg as dst
+  if(isDstMem && isSrcMem && (isRef == false)) {
+    dst = getRegister(reg, OperandSize(i->GetDest()));
+  }
+
+  string postfix = GetOpPostfix(OperandSize(i->GetDest()));
+  EmitInstruction("lea" + postfix, src + ", " + dst, cmt);
   return;
 }
 
@@ -792,23 +825,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
      }
   */
   switch (op) {
-    case opAdd: 
-    case opSub: 
-    case opAnd: 
-    case opOr:  
-    case opMul:
-      Load(src1, dst, &cmt, OperandSize(i->GetDest()));
-      EmitInstruction(mnm, src2 + ", " + dst, cmt);
-      break;
-    case opDiv:
-      EmitInstruction("cqo");
-      EmitInstruction(mnm, src2);
-      cmt = "";
-      //dst = getRegister(dst, OperandSize(i->GetDest()));
-      src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
-      //Store(src1, dst, cmt, OperandSize(i->GetSrc(1)));
-      Store(src1, dst, cmt, OperandSize(i->GetDest()));
-      return;
     case opNeg:
     case opNot:
       // convert dst with size
@@ -821,15 +837,6 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
         dst = getRegister(dst, OperandSize(i->GetDest()));
       Store(src1, dst, cmt, OperandSize(i->GetDest()));
       return;
-    case opAssign:
-      if(is_mem[0]){
-        Load(src1, dst, &cmt, OperandSize(i->GetDest()));
-      } else {
-        Store(src1, old_dst, cmt, OperandSize(i->GetDest()));
-        cmt = "";
-        return; // to avoid doing Store into old_dst
-      }
-      break;
     case opAddress:
       EmitInstruction("leaq", src1 + ", " + dst, cmt);
       cmt = "";
@@ -877,9 +884,11 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
       break;
     case opNeg:
     case opNot:
-    case opAddress:
     case opGoto:
       EmitOperation(i, cmt.str());
+      break;
+    case opAddress:
+      EmitOpAddress(i, cmt.str());
       break;
     case opAssign:
       EmitOpAssign(i, cmt.str());
@@ -1141,10 +1150,6 @@ string CBackendx86_64::Operand(const CTac *op)
       case stParam:
         {
           ostringstream o;
-          /*int regN = symb_to_reg.find(s);
-          if(regN < 13) {
-            o << getRegister(13);
-          }*/
           if(s->isInReg()){
             o << s->GetBaseRegister();
           }
@@ -1195,6 +1200,14 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
         case stParam:
           {
             ostringstream o;
+            int regN = symb_to_reg.find(s)->second;
+            if(regN <= rgMAX) {
+              o << getRegString(regN);
+            } else {
+              o << s->GetOffset() << "(" << "%rbp" << ")";
+              *isMem = true;
+            }
+            /*
             if(s->isInReg()){
               o << s->GetBaseRegister();
             }
@@ -1202,6 +1215,7 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
               o << s->GetOffset() << "(" << "%rbp" << ")";
               *isMem = true;
             }
+            */
             operand = o.str();
           }
           break;
