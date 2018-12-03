@@ -976,7 +976,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           EmitInstruction("pushq", "%rax");
         }
         else {
-          Load(i->GetSrc(1), param_regs[paramIndex], cmt.str());
+          Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
         }
       } //EmitInstruction("pushq", "%rax");
       break;
@@ -1198,13 +1198,21 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
         case stParam:
           {
             ostringstream o;
-            int regN = symb_to_reg.find(s)->second;
-            if(regN <= rgMAX) {
-              o << getRegString(regN);
-            } else {
+            map<const CSymbol*, ERegister>::iterator it = symb_to_reg.find(s);
+            if(it != symb_to_reg.end()) { 
+              int regN = it->second;
+              if(regN <= rgMAX) {
+                o << getRegString(regN);
+              } else {
+                o << s->GetOffset() << "(" << "%rbp" << ")";
+                *isMem = true;
+              }
+            }
+            else {
               o << s->GetOffset() << "(" << "%rbp" << ")";
               *isMem = true;
             }
+
             /*
             if(s->isInReg()){
               o << s->GetBaseRegister();
