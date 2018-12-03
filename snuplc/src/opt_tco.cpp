@@ -120,24 +120,47 @@ void tail_call_optimization_block(int arch, CCodeBlock *cb) {
 	assert(s != NULL);
         if((s->GetDataType()->IsPointer()) || (s->GetDataType()->IsArray())){
 	  if((s->GetSymbolType() != stGlobal) && (s->GetSymbolType() != stParam)){
-	    if(iit != instrs.rend()){
-	      instr0 = *iit;
-	      assert(instr0 != NULL);
-	      if(instr0->GetOperation() == opAddress){
-		if(n == dynamic_cast<CTacName*>(instr0->GetDest())){
-		  n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
-		  assert(n != NULL);
-		  const CSymbol *s = n->GetSymbol();
-		  assert(s != NULL);
-		  if((s->GetSymbolType() == stGlobal) || (s->GetSymbolType() == stParam)){
-		    i--;
-		    continue;
+
+	    bool exitloop2 = false;
+	    list<CTacInstr*>::const_reverse_iterator iit0 = iit;
+	    while(iit0 != instrs.rend()){
+	      instr0 = *iit0++;
+	      if(instr0->GetOperation() == opAssign &&
+		 dynamic_cast<CTacName*>(instr0->GetDest())->GetSymbol() == s){
+		n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
+		if(n == NULL){
+		  assert(dynamic_cast<CTacConst*>(instr0->GetSrc(1))!= NULL);
+		  break;
+		}
+		assert(n != NULL);
+		const CSymbol *s = n->GetSymbol();
+		assert(s != NULL);
+		if((s->GetSymbolType() != stGlobal) && (s->GetSymbolType() != stParam)){
+		  exitloop2 = true;
+		  if(iit0 != instrs.rend()){
+		    instr0 = *iit0;
+		    assert(instr0 != NULL);
+		    if(instr0->GetOperation() == opAddress){
+		      if(n == dynamic_cast<CTacName*>(instr0->GetDest())){
+			n = dynamic_cast<CTacName*>(instr0->GetSrc(1));
+			assert(n != NULL);
+			const CSymbol *s = n->GetSymbol();
+			assert(s != NULL);
+			if((s->GetSymbolType() == stGlobal) || (s->GetSymbolType() == stParam)){
+			  exitloop2 = false;
+			  break;
+			}
+		      }
+		    }
 		  }
 		}
+		break;
 	      }
 	    }
-	    exitloop = true;
-	    break;
+	    if(exitloop2){
+	      exitloop = true;
+	      break;
+	    }
 	  }
 	}
 	i--;
