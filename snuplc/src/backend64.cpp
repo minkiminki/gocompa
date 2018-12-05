@@ -715,6 +715,7 @@ void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
   isMem = false;
 
   src2 = SetSrcRegister(i->GetSrc(2), &isRef, &isMem, reg, &cmt);
+  src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
   //if src2 is reference or not in memeory and register
   if(isRef) {
     cmt = "";
@@ -730,7 +731,8 @@ void CBackendx86_64::EmitOpDivision(CTacInstr *i, string comment)
   mnm = mnm + GetOpPostfix(OperandSize(i->GetSrc(1)));
   EmitInstruction("cqo");
   EmitInstruction(mnm, src2);
-  src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  //src1 = getRegister(src1, OperandSize(i->GetSrc(1)));
+  //dst = getRegister(dst, OperandSize(i->GetDest()));
   Store(src1, dst, cmt, OperandSize(i->GetDest()));
 
   return;
@@ -1104,6 +1106,7 @@ void CBackendx86_64::Load(string src, string dst, string* comment, int size)
   }
 
   // emit the load instruction
+  src = getRegister(src, size);
   EmitInstruction(mnm + mod, src + ", " + dst, *comment);
   *comment = "";
 }
@@ -1125,18 +1128,17 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
   }
 
   // emit the load instruction
-  EmitInstruction(mnm + mod, Operand(src) + ", " + dst, comment);
+  string srcstr = Operand(src);
+  srcstr = getRegister(srcstr, OperandSize(src));
+  EmitInstruction(mnm + mod, srcstr + ", " + dst, comment);
 }
 void CBackendx86_64::Store(string src, string dst, string comment, int size)
 {
   string mod = "q";
   
-  switch (size) {
-    case 1: mod = "b"; break;
-    case 2: mod = "w"; break;
-    case 4: mod = "l"; break;
-    case 8: mod = "q"; break;
-  }
+  mod = GetOpPostfix(size);
+  src = getRegister(src, size);
+  dst = getRegister(dst, size);
 
   EmitInstruction("mov" + mod, src + ", " + dst, comment);
 }
