@@ -1055,8 +1055,8 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
     case opDIM:
       {
         Load(i->GetSrc(1), "%rax", cmt.str());
-        Load(i->GetSrc(2), "%rbx");
-        EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
+        Load(i->GetSrc(2), "%rdx");
+        EmitInstruction("movl", "(%rax, %rdx, 4), %eax");
         Store(i->GetDest(), "%rax");
         break;
       }
