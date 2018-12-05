@@ -78,6 +78,16 @@ int GetAlign_prime (const CType* ct)
 // find register type - 만든 이유는 Load 인자를 인티저로 바꾸기 귀찮았기 때문
 int getRegType(string reg)
 {
+  if(reg[0] != '%')
+    return -1;
+  else
+    for(int i=0; i<14; i++)
+      for(int j=0; j<4; j++)
+      {
+        if(reg.compare(all_regs[j][i]) == 0)
+          return i;
+      }
+  /*
   if(reg.compare("%r9") == 0) return 0;
   if(reg.compare("%r8") == 0) return 1;
   if(reg.compare("%rcx") == 0) return 2;
@@ -92,6 +102,7 @@ int getRegType(string reg)
   if(reg.compare("%r15") == 0) return 11;
   if(reg.compare("%rax") == 0) return 12;
   if(reg.compare("%rdx") == 0) return 13;
+  */
   return -1;
 }
 
@@ -115,6 +126,16 @@ string getRegister(string reg, int size)
     case 8: return all_regs[3][regNum];
     default: return "";
   }
+}
+
+bool isSameReg(string reg1, string reg2)
+{
+  reg1 = getRegister(reg1, 8);
+  reg2 = getRegister(reg2, 8);
+  if(reg1.compare(reg2) == 0)
+    return true;
+  else
+    return false;
 }
 
 // CBackendx86_64
@@ -572,11 +593,21 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
       src1 = temp;
     }
 
-    Load(src1, dst, &cmt, src1Size);
-    mnm = mnm + GetOpPostfix(src2Size);
     dst = getRegister(dst, OperandSize(i->GetDest()));
-    src2 = getRegister(src2, src2Size);
-    EmitInstruction(mnm, src2 + ", " + dst, cmt);
+
+    mnm = mnm + GetOpPostfix(OperandSize(i->GetDest()));
+    if(isSameReg(src2, dst)) {
+      src1 = getRegister(src1, OperandSize(i->GetDest()));
+      EmitInstruction(mnm, src1 + ", " + dst, cmt);
+    }
+    else if(isSameReg(src1, dst)) {
+      src2 = getRegister(src2, OperandSize(i->GetDest()));
+      EmitInstruction(mnm, src2 + ", " + dst, cmt);
+    }
+    else {
+      Load(src1, dst, &cmt, src1Size);
+      EmitInstruction(mnm, src2 + ", " + dst, cmt);
+    }
     if(storeDest) {
       Store(dst, old_dst, cmt, OperandSize(i->GetDest()));
     }
@@ -955,7 +986,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         // function result
         CTacTemp *t = dynamic_cast<CTacTemp*>(i->GetDest());
         if (t != NULL) {
-          Store(i->GetDest(), 'a');
+          Store(i->GetDest(), "%rax");
         }
       }
       break;
@@ -976,7 +1007,11 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           EmitInstruction("pushq", "%rax");
         }
         else {
-          Load(i->GetSrc(1), param_regs[paramIndex-1], cmt.str());
+          string reg = Operand(i->GetSrc(1));
+          int size = OperandSize(i->GetSrc(1));
+          string cmtstr = cmt.str();
+          reg = getRegister(reg, size);
+          Load(reg, param_regs[paramIndex-1], &cmtstr, size);
         }
       } //EmitInstruction("pushq", "%rax");
       break;
@@ -998,8 +1033,10 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           // Load(param_regs[paramIndex-1], i->GetDest(), cmt.str());
 
           EmitInstruction("movq", param_regs[paramIndex]+", %rax", cmt.str());
-          // Load(i->GetSrc(1), "%rax", cmt.str());
-          Store(i->GetDest(), 'a');
+          int size = OperandSize(i->GetDest());
+          string src = getRegister("%rax", size);
+          string dst = getRegister(Operand(i->GetDest()), size);
+          Store(src, dst, "", size);
         }
       } //EmitInstruction("pushq", "%rax");
       break;
@@ -1018,7 +1055,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         Load(i->GetSrc(1), "%rax", cmt.str());
         Load(i->GetSrc(2), "%rbx");
         EmitInstruction("movl", "(%rax, %rbx, 4), %eax");
-        Store(i->GetDest(), 'a');
+        Store(i->GetDest(), "%rax");
         break;
       }
 
@@ -1034,7 +1071,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         EmitInstruction("addl", "$4, %eax");
         _out << s << ":" << endl;
 
-        Store(i->GetDest(), 'a');
+        Store(i->GetDest(), "%rax");
         break;
       }
 
@@ -1104,24 +1141,29 @@ void CBackendx86_64::Store(string src, string dst, string comment, int size)
   EmitInstruction("mov" + mod, src + ", " + dst, comment);
 }
 
-void CBackendx86_64::Store(CTac *dst, char src_base, string comment)
+void CBackendx86_64::Store(CTac *dst, string src, string comment)
 {
   assert(dst != NULL);
 
   string mnm = "mov";
   string mod = "q";
-  string src = "%";
 
   // compose the source register name based on the operand size
+  int dstSize = OperandSize(dst);
+  mod = GetOpPostfix(dstSize);
+  src = getRegister(src, dstSize);
+  /*
   switch (OperandSize(dst)) {
-    case 1: mod = "b"; src += string(1, src_base) + "l"; break;
-    case 2: mod = "w"; src += string(1, src_base) + "x"; break;
-    case 4: mod = "l"; src += "e" + string(1, src_base) + "x"; break;
-    case 8: mod = "q"; src += "r" + string(1, src_base) + "x"; break;
+    case 1: mod = "b"; src = getRegister(src, 1); break;
+    case 2: mod = "w"; src = getRegister(src, 2); break;
+    case 4: mod = "l"; src = getRegister(src, 4); break;
+    case 8: mod = "q"; src = getRegister(src, 8); break;
   }
+  */
 
   // emit the store instruction
-  EmitInstruction(mnm + mod, src + ", " + Operand(dst), comment);
+  string dststr = getRegister(Operand(dst), dstSize);
+  EmitInstruction(mnm + mod, src + ", " + dststr, comment);
 }
 
 string CBackendx86_64::Operand(const CTac *op)
@@ -1148,13 +1190,28 @@ string CBackendx86_64::Operand(const CTac *op)
       case stParam:
         {
           ostringstream o;
+          map<const CSymbol*, ERegister>::iterator it = symb_to_reg.find(s);
+          if(it != symb_to_reg.end()) { 
+            int regN = it->second;
+            if(regN <= rgMAX) {
+              o << getRegString(regN);
+            } else {
+              o << s->GetOffset() << "(" << "%rbp" << ")";
+            }
+          }
+          else {
+            o << s->GetOffset() << "(" << "%rbp" << ")";
+          }
+          operand = o.str();
+          /*
+          ostringstream o;
           if(s->isInReg()){
             o << s->GetBaseRegister();
           }
           else{
             o << s->GetOffset() << "(" << "%rbp" << ")";
           }
-          operand = o.str();
+          */
         }
         break;
     }
@@ -1212,16 +1269,6 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
               o << s->GetOffset() << "(" << "%rbp" << ")";
               *isMem = true;
             }
-
-            /*
-            if(s->isInReg()){
-              o << s->GetBaseRegister();
-            }
-            else{
-              o << s->GetOffset() << "(" << "%rbp" << ")";
-              *isMem = true;
-            }
-            */
             operand = o.str();
           }
           break;
