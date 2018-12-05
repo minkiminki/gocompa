@@ -616,7 +616,6 @@ void liveness_analysis_block(CCodeBlock *cb) {
 	int num = n->GetValue();
 
 	if(num != 2 && num <= 5){
-	  if(num >= 2) num--;
 	  nodup_insert(live_vars, (liveness->GetArgRegs())[num]);
 
 	  {
