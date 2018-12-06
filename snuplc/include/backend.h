@@ -248,6 +248,7 @@ class CBackendx86_64 : public CBackend {
     virtual void EmitOpConditional(CTacInstr *i, string comment="");
     virtual void EmitOpAssign(CTacInstr *i, string comment="");
     virtual void EmitOpDivision(CTacInstr *i, string comment="");
+    virtual void EmitOpAddress(CTacInstr *i, string comment="");
 
     /// @brief emit opertion op
 		virtual void EmitOperation(CTacInstr *i, string comment);
@@ -266,7 +267,7 @@ class CBackendx86_64 : public CBackend {
 		void Load(string src, string dst, string* comment, int size=0);
 
     /// @brief emit a store instruction
-    void Store(CTac *dst, char src_base, string comment="");
+    void Store(CTac *dst, string src_base="", string comment="");
 		void Store(string src="", string dst="", string comment="", int size=0);
 
     /// @brief return an operand string for @a op
