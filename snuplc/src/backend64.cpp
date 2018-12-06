@@ -1000,7 +1000,8 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           int size = OperandSize(i->GetSrc(1));
           string cmtstr = cmt.str();
           reg = getRegister(reg, size);
-          Load(reg, param_regs[paramIndex-1], &cmtstr, size);
+          if(isSameReg(reg, param_regs[paramIndex-1]) == false)
+            Load(reg, param_regs[paramIndex-1], &cmtstr, size);
         }
       } //EmitInstruction("pushq", "%rax");
       break;
@@ -1015,17 +1016,14 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
         if(paramIndex > 6) {
           // TODO
-          // Load(i->GetSrc(1), "%rax", cmt.str());
-          // EmitInstruction("pushq", "%rax");
         }
         else {
-          // Load(param_regs[paramIndex-1], i->GetDest(), cmt.str());
-
-          EmitInstruction("movq", param_regs[paramIndex]+", %rax", cmt.str());
           int size = OperandSize(i->GetDest());
-          string src = getRegister("%rax", size);
           string dst = getRegister(Operand(i->GetDest()), size);
-          Store(src, dst, "", size);
+          if(isSameReg(param_regs[paramIndex], dst) == false){
+            string src = getRegister(param_regs[paramIndex], size);
+            Store(src, dst, cmt.str(), size);
+          }
         }
       } //EmitInstruction("pushq", "%rax");
       break;
