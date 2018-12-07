@@ -46,14 +46,14 @@ string callee_regs[5] = {"%rbx\0","%r12\0","%r13\0","%r14\0","%r15\0"};
 string caller_regs[2] = {"%r10\0", "%r11\0"};
 static bool isTailCall = false;
 string all_regs[4][14] = {
-  {"%r9b", "%r8b", "%cl", "%sil", "%dil", "%bl", "%r12b", "%r13b", "%r10b",
-    "%r11b", "%r14b", "%r15b", "%al", "%dl"},
-  {"%r9w", "%r8w", "%cx", "%si", "%di", "%bx", "%r12w", "%r13w", "%r10w",
-    "%r11w", "%r14w", "%r15w", "%ax", "%dx"},
-  {"%r9d", "%r8d", "%ecx", "%esi", "%edi", "%ebx", "%r12d", "%r13d", "%r10d",
-    "%r11d", "%r14d", "%r15d", "%eax", "%edx"},
-  {"%r9", "%r8", "%rcx", "%rsi", "%rdi", "%rbx", "%r12", "%r13", "%r10",
-    "%r11", "%r14", "%r15", "%rax", "%rdx"},
+  {"%r9b", "%r8b", "%cl", "%sil", "%dil", "%r10b", "%r11b", "%bl", "%r12b",
+     "%r13b", "%r14b", "%r15b", "%al", "%dl"},
+  {"%r9w", "%r8w", "%cx", "%si", "%di", "%r10w", "%r11w", "%bx", "%r12w",
+    "%r13w", "%r14w", "%r15w", "%ax", "%dx"},
+  {"%r9d", "%r8d", "%ecx", "%esi", "%edi", "%r10d", "%r11d", "%ebx", "%r12d",
+    "%r13d", "%r14d", "%r15d", "%eax", "%edx"},
+  {"%r9", "%r8", "%rcx", "%rsi", "%rdi", "%r10", "%r11", "%rbx", "%r12",
+    "%r13", "%r14", "%r15", "%rax", "%rdx"},
 };
 map<const CSymbol*, ERegister> symb_to_reg;
 
@@ -541,7 +541,7 @@ void CBackendx86_64::EmitOpBinary(CTacInstr *i, string comment)
     isRef = false;
   }
   src2 = getRegister(src2, OperandSize(i->GetSrc(2)));
-  
+
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
   if(isMem){
     // if rcount == 2 : src1, src2 are in regs
@@ -625,7 +625,7 @@ void CBackendx86_64::EmitOpConditional(CTacInstr *i, string comment)
     reg = regs[++rcount];
     isRef = false;
   }
-  
+
   dst = SetDstRegister(i->GetDest(), &isRef, &isMem, reg, &cmt);
 
   if(shouldMov) {
@@ -789,7 +789,7 @@ void CBackendx86_64::EmitOperation(CTacInstr *i, string comment)
   string src1, src2, dst, old_dst;
   if(get_src1) {
     src1 = Operand(i->GetSrc(1), &is_ref, &is_mem[0]);
-    
+
     if(is_ref) {
       // memory면 한번 주소 레지스터로 가져와야함
       if(is_mem[0]) {
@@ -1120,7 +1120,7 @@ void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)
 void CBackendx86_64::Store(string src, string dst, string comment, int size)
 {
   string mod = "q";
-  
+
   mod = GetOpPostfix(size);
   src = getRegister(src, size);
   dst = getRegister(dst, size);
@@ -1178,7 +1178,7 @@ string CBackendx86_64::Operand(const CTac *op)
         {
           ostringstream o;
           map<const CSymbol*, ERegister>::iterator it = symb_to_reg.find(s);
-          if(it != symb_to_reg.end()) { 
+          if(it != symb_to_reg.end()) {
             int regN = it->second;
             if(regN <= rgMAX) {
               o << getRegString(regN);
@@ -1243,7 +1243,7 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
           {
             ostringstream o;
             map<const CSymbol*, ERegister>::iterator it = symb_to_reg.find(s);
-            if(it != symb_to_reg.end()) { 
+            if(it != symb_to_reg.end()) {
               int regN = it->second;
               if(regN <= rgMAX) {
                 o << getRegString(regN);
