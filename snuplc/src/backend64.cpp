@@ -87,22 +87,7 @@ int getRegType(string reg)
         if(reg.compare(all_regs[j][i]) == 0)
           return i;
       }
-  /*
-  if(reg.compare("%r9") == 0) return 0;
-  if(reg.compare("%r8") == 0) return 1;
-  if(reg.compare("%rcx") == 0) return 2;
-  if(reg.compare("%rsi") == 0) return 3;
-  if(reg.compare("%rdi") == 0) return 4;
-  if(reg.compare("%rbx") == 0) return 5;
-  if(reg.compare("%r12") == 0) return 6;
-  if(reg.compare("%r13") == 0) return 7;
-  if(reg.compare("%r10") == 0) return 8;
-  if(reg.compare("%r11") == 0) return 9;
-  if(reg.compare("%r14") == 0) return 10;
-  if(reg.compare("%r15") == 0) return 11;
-  if(reg.compare("%rax") == 0) return 12;
-  if(reg.compare("%rdx") == 0) return 13;
-  */
+
   return -1;
 }
 
@@ -677,6 +662,8 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
   }
 
   dst = SetDstRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
+  if(isSameReg(src,dst))
+    return;
 
   // if dst, src are in memory, we should move src(mem) into reg
   if(isDstMem) {
@@ -1013,7 +1000,8 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           int size = OperandSize(i->GetSrc(1));
           string cmtstr = cmt.str();
           reg = getRegister(reg, size);
-          Load(reg, param_regs[paramIndex-1], &cmtstr, size);
+          if(isSameReg(reg, param_regs[paramIndex-1]) == false)
+            Load(reg, param_regs[paramIndex-1], &cmtstr, size);
         }
       } //EmitInstruction("pushq", "%rax");
       break;
@@ -1028,17 +1016,14 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
 
         if(paramIndex > 6) {
           // TODO
-          // Load(i->GetSrc(1), "%rax", cmt.str());
-          // EmitInstruction("pushq", "%rax");
         }
         else {
-          // Load(param_regs[paramIndex-1], i->GetDest(), cmt.str());
-
-          EmitInstruction("movq", param_regs[paramIndex]+", %rax", cmt.str());
           int size = OperandSize(i->GetDest());
-          string src = getRegister("%rax", size);
           string dst = getRegister(Operand(i->GetDest()), size);
-          Store(src, dst, "", size);
+          if(isSameReg(param_regs[paramIndex], dst) == false){
+            string src = getRegister(param_regs[paramIndex], size);
+            Store(src, dst, cmt.str(), size);
+          }
         }
       } //EmitInstruction("pushq", "%rax");
       break;
