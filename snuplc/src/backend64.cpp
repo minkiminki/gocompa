@@ -1370,17 +1370,7 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 
     if ((st == stLocal) || (st == stParam)) {
       ostringstream loc;
-      if(s->isInReg()){
-        loc << right << setw(4) << s->GetBaseRegister();
-        // << "(" << "" << ")";
-        _out << _ind << "#   "
-          << left << setw(10) << loc.str() << "  "
-          << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
-          << s
-          << endl;
-
-      }
-      else{
+      if(s->isInReg() == false){
         loc << right << setw(4) << s->GetOffset()
           << "(" << "%rbp" << ")";
         _out << _ind << "#   "
@@ -1388,9 +1378,25 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
           << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
           << s
           << endl;
-
       }
 
+    }
+  }
+  _out << endl;
+  _out << _ind << "# register allocation:" << endl;
+  for (size_t i=0; i<slist.size(); i++) {
+    CSymbol *s = slist[i];
+    ESymbolType st = s->GetSymbolType();
+    if ((st == stLocal) || (st == stParam)) {
+      //ostringstream loc;
+      if(s->isInReg()){
+        //loc << right << setw(4);
+        _out << _ind << "#   "
+        //<< left << setw(10) << loc.str() << "  "
+        //  << right << setw(2) << "  "
+          << s
+          << endl;
+      }
     }
   }
   _out << endl;
