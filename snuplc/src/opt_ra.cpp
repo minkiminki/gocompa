@@ -18,7 +18,15 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
   vector<CSymbol*> slist = symtab->GetSymbols();
 
   // compute stack offset
-  int callee_save = 5;
+  // int callee_save = 5;
+  int maxreg = cbp->GetBlockTable()->GetLiveness()->GetMax();
+
+  int callee_save;
+
+  if(maxreg > rgMAX) callee_save = 5;
+  else if(maxreg < rgRBX) callee_save = 0;
+  else callee_save = maxreg - rgR11;
+
   int param_ofs = -(callee_save)*8;
   int local_ofs = param_ofs;
   size_t sp_align = 8; // stack pointer alignment
