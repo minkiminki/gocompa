@@ -18,7 +18,15 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
   vector<CSymbol*> slist = symtab->GetSymbols();
 
   // compute stack offset
-  int callee_save = 5;
+  // int callee_save = 5;
+  int maxreg = cbp->GetBlockTable()->GetLiveness()->GetMax();
+
+  int callee_save;
+
+  if(maxreg > rgMAX) callee_save = 5;
+  else if(maxreg < rgRBX) callee_save = 0;
+  else callee_save = maxreg - rgR11;
+
   int param_ofs = -(callee_save)*8;
   int local_ofs = param_ofs;
   size_t sp_align = 8; // stack pointer alignment
@@ -87,8 +95,7 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
         size += ssize - align;      // align is negative
         local_ofs += align;
 
-        s->SetBaseRegister("");
-        // s->SetBaseRegister("%rbp");
+        s->SetBaseRegister("%rbp");
         s->SetOffset(local_ofs);
       }
       else{
@@ -99,33 +106,32 @@ void register_allocation_block(int arch, CSymtab *symtab, CCodeBlock *cb) {
         }
 
         ERegister e = symb_to_reg[s];
+        if(e > rgMAX){
+          if(reg_to_stack.find(e) == reg_to_stack.end()){
+            int ssize = 8;
+            int align = 8;
+            local_ofs -= ssize;
 
-        if(reg_to_stack.find(e) == reg_to_stack.end()){
-          int ssize = 8;
-          int align = 8;
-          local_ofs -= ssize;
+            if ((align > 1) && (local_ofs % align != 0)) {
+              // align towards smaller addresses
+              align = (local_ofs - align +1) / align * align - local_ofs;
+            } else {
+              align = 0;
+            }
 
-          if ((align > 1) && (local_ofs % align != 0)) {
-            // align towards smaller addresses
-            align = (local_ofs - align +1) / align * align - local_ofs;
-          } else {
-            align = 0;
+            size += ssize - align;      // align is negative
+            local_ofs += align;
+
+            s->SetBaseRegister("%rbp");
+            s->SetOffset(local_ofs);
+            // cout << ERegName[e] << " : " << local_ofs << endl;
+            reg_to_stack[e] = local_ofs;
           }
-
-          size += ssize - align;      // align is negative
-          local_ofs += align;
-
-          s->SetBaseRegister("");
-          // s->SetBaseRegister("%rbp");
-          s->SetOffset(local_ofs);
-          // cout << ERegName[e] << " : " << local_ofs << endl;
-          reg_to_stack[e] = local_ofs;
-        }
-        else{
-          // local_ofs = reg_to_stack[e];
-          s->SetBaseRegister("");
-          // s->SetBaseRegister("%rbp");
-          s->SetOffset(reg_to_stack[e]);
+          else{
+            // local_ofs = reg_to_stack[e];
+            s->SetBaseRegister("%rbp");
+            s->SetOffset(reg_to_stack[e]);
+          }
         }
       }
 

@@ -14,11 +14,11 @@ const char ERegName[][5] = {
   "%rcx",
   "%rsi",
   "%rdi",
+  "%r10",
+  "%r11",
   "%rbx",
   "%r12",
   "%r13",
-  "%r10",
-  "%r11",
   "%r14",
   "%r15",
 };
@@ -36,9 +36,9 @@ void CSymbol::SetName(string name)
 
 bool CSymbol::isInReg(void) const
 {
-  if( _rbase.compare("") == 0) return false;
+  //if( _rbase.compare("") == 0) return false;
 
-  // if( _rbase.compare("%rbp") == 0) return false;
+  if( _rbase.compare("%rbp") == 0) return false;
   else return true;
 }
 

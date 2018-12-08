@@ -48,11 +48,11 @@ enum ERegister {
   rgRCX,
   rgRSI,
   rgRDI,
+  rgR10,
+  rgR11,
   rgRBX,
   rgR12,
   rgR13,
-  rgR10,
-  rgR11,
   rgR14,
   rgR15,
 };

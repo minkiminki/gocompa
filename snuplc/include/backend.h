@@ -220,11 +220,8 @@ class CBackendx86_64 : public CBackend {
 		/// if we tries to only save registers when necessary, we might have to use regs information.
 		/// 1: save, 0: don't save
 		/// bit order: (low) rbx, r12, r13, r13, r15 (high)
-		virtual void EmitCalleePush(const boost::dynamic_bitset<> used_regs);
-		virtual void EmitCalleePop(const boost::dynamic_bitset<> used_regs);
-		/// bit order: (low) r10, r11 (high)
-		virtual void EmitCallerPush(const boost::dynamic_bitset<> used_regs);
-		virtual void EmitCallerPop(const boost::dynamic_bitset<> used_regs);
+		virtual void EmitCalleePush(int maxreg);
+		virtual void EmitCalleePop(int maxreg);
 		virtual void EmitParamPush(const int param_num);
 
     /// @brief emit global data
@@ -252,7 +249,7 @@ class CBackendx86_64 : public CBackend {
 
     /// @brief emit opertion op
 		virtual void EmitOperation(CTacInstr *i, string comment);
-    
+
     /// @brief emit instruction @i
     virtual void EmitInstruction(CTacInstr *i);
 
