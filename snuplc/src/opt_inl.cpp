@@ -396,10 +396,10 @@ void function_inlining_scope(CScope *m) {
 
   function_inlining_block(m, functions, symbols, labels);
 
-  // vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
-  // while (sit != m->GetSubscopes().end()) {
-  //   function_inlining_block(*sit++, functions, symbols, labels);
-  // }
+  vector<CScope*>::const_iterator sit =m->GetSubscopes().begin();
+  while (sit != m->GetSubscopes().end()) {
+    function_inlining_block(*sit++, functions, symbols, labels);
+  }
 
 
   return;
