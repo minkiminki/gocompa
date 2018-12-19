@@ -9,6 +9,7 @@ var a : integer;
 		b : integer;
     c : boolean;
     d : boolean;
+    e : boolean;
 
 function ReadNumber(str: char[]): integer;
 var i: integer;
@@ -46,46 +47,34 @@ begin
   end;
   WriteInt(a); WriteLn();
 
-  WriteStr("(test3) if(a>b) := a*b\n");
-	c := a*b;
-  WriteInt(c); WriteLn();
-
-  WriteStr("(test4) c := a/b\n");
-	c := a/b;
-  WriteInt(c); WriteLn();
-
-  WriteStr("(test5) c := -a\n");
-	c := -a;
-  WriteInt(c); WriteLn();
-
-  WriteStr("(test6) e := !d, if(e) 1 else 0 \n");
-	e := !d;
+  WriteStr("(test3) e := !b, if(e) 1 else 0 \n");
+  e := !d;
   if(e) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 
-  WriteStr("(test7) e := d || false, if(e) 1 else 0 \n");
+  WriteStr("(test4) e := b || false, if(e) 1 else 0 \n");
   e := d || false;
   if(e) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 
-  WriteStr("(test8) e := d && false, if(3) 1 else 0 \n");
+  WriteStr("(test5) e := b && false, if(3) 1 else 0 \n");
   e := d && false;
   if(e) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 
-  WriteStr("(test9) e := a = b, if(e) 1 else 0 \n");
+  WriteStr("(test6) e := a = b, if(e) 1 else 0 \n");
   if(a = b) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 
-  WriteStr("(test10) if(a > b) 1 else 0 \n");
+  WriteStr("(test7) if(a > b) 1 else 0 \n");
   if(a > b) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 
-  WriteStr("(test10) if(a >= b) 1 else 0 \n");
+  WriteStr("(test8) if(a >= b) 1 else 0 \n");
   if(a >= b) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 
-  WriteStr("(test10) if(a < b) 1 else 0 \n");
+  WriteStr("(test9) if(a < b) 1 else 0 \n");
   if(a < b) then WriteInt(1) else WriteInt(0) end;
   WriteLn();
 

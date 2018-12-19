@@ -29,12 +29,12 @@ begin
   WriteStr("Fibonacci numbers"); WriteLn();
   WriteLn();
 
-  i := ReadNumber("Enter a number (0 to exit): ");
+  //i := ReadNumber("Enter a number (0 to exit): ");
 
-  while (i > 0) do
-    WriteStr("fibonacci("); WriteInt(i); WriteStr(") = ");
-    WriteInt(fib(i)); WriteLn();
+  //while (i > 0) do
+    WriteStr("fibonacci("); WriteInt(42); WriteStr(") = ");
+    WriteInt(fib(42)); WriteLn()
 
-  i := ReadNumber("Enter a number (0 to exit): ")
-  end
+  //i := ReadNumber("Enter a number (0 to exit): ")
+ // end
 end fibonacci.
