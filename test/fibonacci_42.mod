@@ -32,8 +32,8 @@ begin
   //i := ReadNumber("Enter a number (0 to exit): ");
 
   //while (i > 0) do
-    WriteStr("fibonacci("); WriteInt(42); WriteStr(") = ");
-    WriteInt(fib(42)); WriteLn()
+    WriteStr("fibonacci("); WriteInt(45); WriteStr(") = ");
+    WriteInt(fib(45)); WriteLn()
 
   //i := ReadNumber("Enter a number (0 to exit): ")
  // end
