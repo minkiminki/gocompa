@@ -245,7 +245,7 @@ void CBackendx86_64::EmitScope(CScope *scope)
   // const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
   EmitCalleePush(maxreg);
 
-  // EmitParamPush(param_num);
+  EmitParamPush(param_num);
 
   //EmitInstruction("pushl", "%rbx", "save callee saved registers");
   //EmitInstruction("pushl", "%rsi");
@@ -316,7 +316,7 @@ void CBackendx86_64::EmitEpilogue()
   int maxreg = cb->GetBlockTable()->GetLiveness()->GetMax();
   // const boost::dynamic_bitset<> callee_used_regs(5, 31ul);
   EmitCalleePop(maxreg);
-  // EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
+  EmitInstruction("addq", Imm(param_size) + ", %rsp", "remove params");
 
   EmitInstruction("popq", "%rbp");
   if(isTailCall==false)
@@ -426,7 +426,7 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
       int dim = a->GetNDim();
 
       ostringstream dst;
-      assert(!s->isInReg());
+      //assert(!s->isInReg());
       //dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
       dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
       // since base reg is not assigned, put all local data into reg now
@@ -443,7 +443,7 @@ void CBackendx86_64::EmitLocalData(CScope *scope)
         assert(a != NULL);
 
         ostringstream dst;
-        assert(!s->isInReg());
+        //assert(!s->isInReg());
         dst << s->GetOffset()+ofs << "(" << "%rbp" << ")";
         //        dst << s->GetOffset()+ofs << "(" << s->GetBaseRegister() << ")";
         ofs += 4;
@@ -749,12 +749,13 @@ void CBackendx86_64::EmitOpAddress(CTacInstr *i, string comment)
   dst = SetSrcRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
 
   // if dst, src are in memory, we should use reg as dst
-  if(isDstMem && isSrcMem && (isRef == false)) {
-    dst = getRegister(reg, OperandSize(i->GetDest()));
-  }
+  //if(isDstMem && isSrcMem && (isRef == false)) {
+    reg = getRegister(reg, OperandSize(i->GetDest()));
+  //}
 
   string postfix = GetOpPostfix(OperandSize(i->GetDest()));
-  EmitInstruction("lea" + postfix, src + ", " + dst, cmt);
+  EmitInstruction("lea" + postfix, src + ", " + reg, cmt);
+  EmitInstruction("mov" + postfix, reg + ", " + dst, cmt);
   return;
 }
 
@@ -1006,7 +1007,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
           int size = OperandSize(i->GetSrc(1));
           string cmtstr = cmt.str();
           reg = getRegister(reg, size);
-          if(isSameReg(reg, param_regs[paramIndex-1]) == false)
+          //if(isSameReg(reg, param_regs[paramIndex-1]) == false)
             Load(reg, param_regs[paramIndex-1], &cmtstr, size);
         }
       } //EmitInstruction("pushq", "%rax");
@@ -1020,6 +1021,7 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
         // cout << t << " - " << paramIndex << endl;
         // _P1;
 
+        /*
         if(paramIndex > 6) {
           // TODO
         }
@@ -1031,7 +1033,9 @@ void CBackendx86_64::EmitInstruction(CTacInstr *i)
             Store(src, dst, cmt.str(), size);
           }
         }
-      } //EmitInstruction("pushq", "%rax");
+      */
+      }
+      //EmitInstruction("pushq", "%rax");
       break;
 
       // special
@@ -1183,6 +1187,7 @@ string CBackendx86_64::Operand(const CTac *op)
       case stParam:
         {
           ostringstream o;
+          /*
           map<const CSymbol*, ERegister>::iterator it = symb_to_reg.find(s);
           if(it != symb_to_reg.end()) {
             int regN = it->second;
@@ -1196,7 +1201,6 @@ string CBackendx86_64::Operand(const CTac *op)
             o << s->GetOffset() << "(" << "%rbp" << ")";
           }
           operand = o.str();
-          /*
           ostringstream o;
           if(s->isInReg()){
             o << s->GetBaseRegister();
@@ -1205,6 +1209,8 @@ string CBackendx86_64::Operand(const CTac *op)
             o << s->GetOffset() << "(" << "%rbp" << ")";
           }
           */
+          o << s->GetOffset() << "(" << "%rbp" << ")";
+          operand = o.str();
         }
         break;
     }
@@ -1248,6 +1254,7 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
         case stParam:
           {
             ostringstream o;
+            /*
             map<const CSymbol*, ERegister>::iterator it = symb_to_reg.find(s);
             if(it != symb_to_reg.end()) {
               int regN = it->second;
@@ -1259,9 +1266,10 @@ string CBackendx86_64::Operand(const CTac *op, bool* isRef, bool* isMem)
               }
             }
             else {
+            */
               o << s->GetOffset() << "(" << "%rbp" << ")";
               *isMem = true;
-            }
+            //}
             operand = o.str();
           }
           break;
@@ -1376,7 +1384,7 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
 
     if ((st == stLocal) || (st == stParam)) {
       ostringstream loc;
-      if(s->isInReg() == false){
+      //if(s->isInReg() == false){
         loc << right << setw(4) << s->GetOffset()
           << "(" << "%rbp" << ")";
         _out << _ind << "#   "
@@ -1384,11 +1392,11 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
           << right << setw(2) << GetSize_prime(s->GetDataType()) << "  "
           << s
           << endl;
-      }
+      //}
 
     }
   }
-  _out << endl;
+/*  _out << endl;
   _out << _ind << "# register allocation:" << endl;
   for (size_t i=0; i<slist.size(); i++) {
     CSymbol *s = slist[i];
@@ -1405,11 +1413,13 @@ void CBackendx86_64::StackDump(CSymtab *symtab)
       }
     }
   }
+*/
   _out << endl;
 
 }
 
 void CBackendx86_64::EmitCalleePush(int maxreg){
+  maxreg = 100;
   if(maxreg >= rgRBX){
     EmitInstruction("pushq", callee_regs[0], "save callee saved registers");
   }
@@ -1428,6 +1438,7 @@ void CBackendx86_64::EmitCalleePush(int maxreg){
 }
 
 void CBackendx86_64::EmitCalleePop(int maxreg){
+  maxreg = 100;
   if(maxreg >= rgR15){
     EmitInstruction("popq", callee_regs[4], "restore callee saved registers");
   }

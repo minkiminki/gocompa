@@ -1,0 +1,563 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AddInstr	snuplc/src/ir.cpp	/^CTacInstr* CCodeBlock::AddInstr(CTacInstr *instr)$/;"	f	class:CCodeBlock
+AddReference	snuplc/src/ir.cpp	/^int CTacLabel::AddReference(int ofs)$/;"	f	class:CTacLabel
+BIN	snuplc/Makefile	/^BIN=$(patsubst %.cpp,$(BIN_DIR)\/%.o,$(MOD))$/;"	m
+BIN_DIR	snuplc/Makefile	/^BIN_DIR=bin$/;"	m
+CArrayType	snuplc/include/type.h	/^class CArrayType : public CType {$/;"	c
+CAstArrayDesignator	snuplc/include/ast.h	/^class CAstArrayDesignator : public CAstDesignator {$/;"	c
+CAstBinaryOp	snuplc/include/ast.h	/^class CAstBinaryOp : public CAstOperation {$/;"	c
+CAstConstant	snuplc/include/ast.h	/^class CAstConstant : public CAstOperand {$/;"	c
+CAstDesignator	snuplc/include/ast.h	/^class CAstDesignator : public CAstOperand {$/;"	c
+CAstExpression	snuplc/include/ast.h	/^class CAstExpression : public CAstNode {$/;"	c
+CAstFunctionCall	snuplc/include/ast.h	/^class CAstFunctionCall : public CAstExpression {$/;"	c
+CAstModule	snuplc/include/ast.h	/^class CAstModule : public CAstScope {$/;"	c
+CAstNode	snuplc/include/ast.h	/^class CAstNode {$/;"	c
+CAstOperand	snuplc/include/ast.h	/^class CAstOperand : public CAstExpression {$/;"	c
+CAstOperation	snuplc/include/ast.h	/^class CAstOperation : public CAstExpression {$/;"	c
+CAstProcedure	snuplc/include/ast.h	/^class CAstProcedure : public CAstScope {$/;"	c
+CAstScope	snuplc/include/ast.h	/^class CAstScope : public CAstNode {$/;"	c
+CAstSpecialOp	snuplc/include/ast.h	/^class CAstSpecialOp : public CAstOperation {$/;"	c
+CAstStatAssign	snuplc/include/ast.h	/^class CAstStatAssign : public CAstStatement {$/;"	c
+CAstStatCall	snuplc/include/ast.h	/^class CAstStatCall : public CAstStatement {$/;"	c
+CAstStatIf	snuplc/include/ast.h	/^class CAstStatIf : public CAstStatement {$/;"	c
+CAstStatReturn	snuplc/include/ast.h	/^class CAstStatReturn : public CAstStatement {$/;"	c
+CAstStatWhile	snuplc/include/ast.h	/^class CAstStatWhile : public CAstStatement {$/;"	c
+CAstStatement	snuplc/include/ast.h	/^class CAstStatement : public CAstNode {$/;"	c
+CAstStringConstant	snuplc/include/ast.h	/^class CAstStringConstant : public CAstOperand {$/;"	c
+CAstType	snuplc/include/ast.h	/^class CAstType : public CAstNode {$/;"	c
+CAstUnaryOp	snuplc/include/ast.h	/^class CAstUnaryOp : public CAstOperation {$/;"	c
+CBackend	snuplc/include/backend.h	/^class CBackend {$/;"	c
+CBackend	snuplc/src/backend.cpp	/^CBackend::CBackend(ostream &out)$/;"	f	class:CBackend
+CBackend	snuplc/src/backend64.cpp	/^CBackend::CBackend(ostream &out)$/;"	f	class:CBackend
+CBackendx86	snuplc/include/backend.h	/^class CBackendx86 : public CBackend {$/;"	c
+CBackendx86	snuplc/src/backend.cpp	/^CBackendx86::CBackendx86(ostream &out)$/;"	f	class:CBackendx86
+CBackendx86_64	snuplc/include/backend.h	/^class CBackendx86_64 : public CBackend {$/;"	c
+CBackendx86_64	snuplc/src/backend64.cpp	/^CBackendx86_64::CBackendx86_64(ostream &out)$/;"	f	class:CBackendx86_64
+CBoolType	snuplc/include/type.h	/^class CBoolType : public CScalarType {$/;"	c
+CC	rte/AMD64/Makefile	/^CC=gcc$/;"	m
+CC	rte/IA32/Makefile	/^CC=gcc$/;"	m
+CC	snuplc/Makefile	/^CC=g++$/;"	m
+CC	test/rte/AMD64/Makefile	/^CC=gcc$/;"	m
+CC	test/rte/IA32/Makefile	/^CC=gcc$/;"	m
+CCFLAGS	rte/AMD64/Makefile	/^CCFLAGS=-m64 -march=x86-64 -std=c99 -O1$/;"	m
+CCFLAGS	rte/IA32/Makefile	/^CCFLAGS=-march=i686 -m32 -std=c99 -O1$/;"	m
+CCFLAGS	snuplc/Makefile	/^CCFLAGS=-std=c++0x -Iinclude -O2$/;"	m
+CCFLAGS	test/rte/AMD64/Makefile	/^CCFLAGS=-m64 -march=x86-64 -std=c99 -O1$/;"	m
+CCFLAGS	test/rte/IA32/Makefile	/^CCFLAGS=-march=i686 -m32 -std=c99 -O1$/;"	m
+CCharType	snuplc/include/type.h	/^class CCharType : public CScalarType {$/;"	c
+CCodeBlock	snuplc/include/ir.h	/^class CCodeBlock {$/;"	c
+CCodeBlock	snuplc/src/ir.cpp	/^CCodeBlock::CCodeBlock(CScope *owner)$/;"	f	class:CCodeBlock
+CDataInitString	snuplc/include/data.h	/^class CDataInitString : public CDataInitializer {$/;"	c
+CDataInitializer	snuplc/include/data.h	/^class CDataInitializer {$/;"	c
+CIntType	snuplc/include/type.h	/^class CIntType : public CScalarType {$/;"	c
+CModule	snuplc/include/ir.h	/^class CModule : public CScope {$/;"	c
+CModule	snuplc/src/ir.cpp	/^CModule::CModule(CAstNode *ast)$/;"	f	class:CModule
+CNullType	snuplc/include/type.h	/^class CNullType : public CScalarType {$/;"	c
+CParser	snuplc/include/parser.h	/^class CParser {$/;"	c
+CPointerType	snuplc/include/type.h	/^class CPointerType : public CScalarType {$/;"	c
+CProcedure	snuplc/include/ir.h	/^class CProcedure : public CScope {$/;"	c
+CProcedure	snuplc/src/ir.cpp	/^CProcedure::CProcedure(CAstNode *ast, CScope *parent)$/;"	f	class:CProcedure
+CScalarType	snuplc/include/type.h	/^class CScalarType : public CType {$/;"	c
+CScanner	snuplc/include/scanner.h	/^class CScanner {$/;"	c
+CScope	snuplc/include/ir.h	/^class CScope {$/;"	c
+CScope	snuplc/src/ir.cpp	/^CScope::CScope(CAstNode *ast, CScope *parent)$/;"	f	class:CScope
+CSymGlobal	snuplc/include/symtab.h	/^class CSymGlobal : public CSymbol {$/;"	c
+CSymLocal	snuplc/include/symtab.h	/^class CSymLocal : public CSymbol {$/;"	c
+CSymParam	snuplc/include/symtab.h	/^class CSymParam : public CSymLocal {$/;"	c
+CSymProc	snuplc/include/symtab.h	/^class CSymProc : public CSymbol {$/;"	c
+CSymbol	snuplc/include/symtab.h	/^class CSymbol {$/;"	c
+CSymtab	snuplc/include/symtab.h	/^class CSymtab {$/;"	c
+CTac	snuplc/include/ir.h	/^class CTac {$/;"	c
+CTac	snuplc/src/ir.cpp	/^CTac::CTac(void)$/;"	f	class:CTac
+CTacAddr	snuplc/include/ir.h	/^class CTacAddr : public CTac {$/;"	c
+CTacAddr	snuplc/src/ir.cpp	/^CTacAddr::CTacAddr(void)$/;"	f	class:CTacAddr
+CTacConst	snuplc/include/ir.h	/^class CTacConst : public CTacAddr {$/;"	c
+CTacConst	snuplc/src/ir.cpp	/^CTacConst::CTacConst(int value)$/;"	f	class:CTacConst
+CTacInstr	snuplc/include/ir.h	/^class CTacInstr : public CTac {$/;"	c
+CTacInstr	snuplc/src/ir.cpp	/^CTacInstr::CTacInstr(EOperation op, CTac *dst, CTacAddr *src1, CTacAddr *src2)$/;"	f	class:CTacInstr
+CTacInstr	snuplc/src/ir.cpp	/^CTacInstr::CTacInstr(string name)$/;"	f	class:CTacInstr
+CTacLabel	snuplc/include/ir.h	/^class CTacLabel : public CTacInstr {$/;"	c
+CTacLabel	snuplc/src/ir.cpp	/^CTacLabel::CTacLabel(const string label)$/;"	f	class:CTacLabel
+CTacName	snuplc/include/ir.h	/^class CTacName : public CTacAddr {$/;"	c
+CTacName	snuplc/src/ir.cpp	/^CTacName::CTacName(const CSymbol *symbol)$/;"	f	class:CTacName
+CTacReference	snuplc/include/ir.h	/^class CTacReference: public CTacName {$/;"	c
+CTacReference	snuplc/src/ir.cpp	/^CTacReference::CTacReference(const CSymbol *symbol, const CSymbol *deref)$/;"	f	class:CTacReference
+CTacTemp	snuplc/include/ir.h	/^class CTacTemp: public CTacName {$/;"	c
+CTacTemp	snuplc/src/ir.cpp	/^CTacTemp::CTacTemp(const CSymbol *symbol)$/;"	f	class:CTacTemp
+CToken	snuplc/include/scanner.h	/^class CToken {$/;"	c
+CType	snuplc/include/type.h	/^class CType {$/;"	c
+CTypeManager	snuplc/include/type.h	/^class CTypeManager {$/;"	c
+CleanupControlFlow	snuplc/src/ir.cpp	/^void CCodeBlock::CleanupControlFlow(void)$/;"	f	class:CCodeBlock
+ComputeStackOffsets	snuplc/src/backend.cpp	/^size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,$/;"	f	class:CBackendx86
+ComputeStackOffsets	snuplc/src/backend64.cpp	/^size_t CBackendx86_64::ComputeStackOffsets(CSymtab *symtab,$/;"	f	class:CBackendx86_64
+Condition	snuplc/src/backend.cpp	/^string CBackendx86::Condition(EOperation cond) const$/;"	f	class:CBackendx86
+Condition	snuplc/src/backend64.cpp	/^string CBackendx86_64::Condition(EOperation cond) const$/;"	f	class:CBackendx86_64
+CreateLabel	snuplc/src/ir.cpp	/^CTacLabel* CCodeBlock::CreateLabel(const char *hint)$/;"	f	class:CCodeBlock
+CreateLabel	snuplc/src/ir.cpp	/^CTacLabel* CScope::CreateLabel(const char *hint)$/;"	f	class:CScope
+CreateTemp	snuplc/src/ir.cpp	/^CTacTemp* CCodeBlock::CreateTemp(const CType *type)$/;"	f	class:CCodeBlock
+CreateTemp	snuplc/src/ir.cpp	/^CTacTemp* CScope::CreateTemp(const CType *type)$/;"	f	class:CScope
+DEPS	snuplc/Makefile	/^DEPS=ir.h \\$/;"	m
+DEPS_	snuplc/Makefile	/^DEPS_=$(patsubst %,$(INC_DIR)\/%,$(DEPS))$/;"	m
+DIM	rte/AMD64/ARRAY.s	/^DIM:$/;"	l
+DIM	rte/IA32/ARRAY.s	/^DIM:$/;"	l
+DIM	test/rte/AMD64/ARRAY.s	/^DIM:$/;"	l
+DIM	test/rte/IA32/ARRAY.s	/^DIM:$/;"	l
+DOFS	rte/AMD64/ARRAY.s	/^DOFS:$/;"	l
+DOFS	rte/IA32/ARRAY.s	/^DOFS:$/;"	l
+DOFS	test/rte/AMD64/ARRAY.s	/^DOFS:$/;"	l
+DOFS	test/rte/IA32/ARRAY.s	/^DOFS:$/;"	l
+DumpAST	snuplc/src/snuplc.cpp	/^void DumpAST(string file, CAstModule *ast)$/;"	f
+DumpTAC	snuplc/src/snuplc.cpp	/^void DumpTAC(string file, CModule *m)$/;"	f
+ECharacter	snuplc/include/scanner.h	/^    enum ECharacter {$/;"	g	class:CScanner
+EOperation	snuplc/include/ir.h	/^enum EOperation {$/;"	g
+EOperationName	snuplc/src/ir.cpp	/^char EOperationName[][OPERATION_STRLEN] = {$/;"	v
+EScope	snuplc/include/symtab.h	/^enum EScope {$/;"	g
+ESymbolType	snuplc/include/symtab.h	/^enum ESymbolType {$/;"	g
+EToken	snuplc/include/scanner.h	/^enum EToken {$/;"	g
+Emit	snuplc/src/backend.cpp	/^bool CBackend::Emit(CModule *m)$/;"	f	class:CBackend
+Emit	snuplc/src/backend64.cpp	/^bool CBackend::Emit(CModule *m)$/;"	f	class:CBackend
+EmitCalleePop	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitCalleePop(char regs){$/;"	f	class:CBackendx86_64
+EmitCalleePush	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitCalleePush(char regs){$/;"	f	class:CBackendx86_64
+EmitCode	snuplc/src/backend.cpp	/^void CBackend::EmitCode(void)$/;"	f	class:CBackend
+EmitCode	snuplc/src/backend.cpp	/^void CBackendx86::EmitCode(void)$/;"	f	class:CBackendx86
+EmitCode	snuplc/src/backend64.cpp	/^void CBackend::EmitCode(void)$/;"	f	class:CBackend
+EmitCode	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitCode(void)$/;"	f	class:CBackendx86_64
+EmitCodeBlock	snuplc/src/backend.cpp	/^void CBackendx86::EmitCodeBlock(CCodeBlock *cb)$/;"	f	class:CBackendx86
+EmitCodeBlock	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitCodeBlock(CCodeBlock *cb)$/;"	f	class:CBackendx86_64
+EmitData	snuplc/src/backend.cpp	/^void CBackend::EmitData(void)$/;"	f	class:CBackend
+EmitData	snuplc/src/backend.cpp	/^void CBackendx86::EmitData(void)$/;"	f	class:CBackendx86
+EmitData	snuplc/src/backend64.cpp	/^void CBackend::EmitData(void)$/;"	f	class:CBackend
+EmitData	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitData(void)$/;"	f	class:CBackendx86_64
+EmitFooter	snuplc/src/backend.cpp	/^void CBackend::EmitFooter(void)$/;"	f	class:CBackend
+EmitFooter	snuplc/src/backend.cpp	/^void CBackendx86::EmitFooter(void)$/;"	f	class:CBackendx86
+EmitFooter	snuplc/src/backend64.cpp	/^void CBackend::EmitFooter(void)$/;"	f	class:CBackend
+EmitFooter	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitFooter(void)$/;"	f	class:CBackendx86_64
+EmitGlobalData	snuplc/src/backend.cpp	/^void CBackendx86::EmitGlobalData(CScope *scope)$/;"	f	class:CBackendx86
+EmitGlobalData	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitGlobalData(CScope *scope)$/;"	f	class:CBackendx86_64
+EmitHeader	snuplc/src/backend.cpp	/^void CBackend::EmitHeader(void)$/;"	f	class:CBackend
+EmitHeader	snuplc/src/backend.cpp	/^void CBackendx86::EmitHeader(void)$/;"	f	class:CBackendx86
+EmitHeader	snuplc/src/backend64.cpp	/^void CBackend::EmitHeader(void)$/;"	f	class:CBackend
+EmitHeader	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitHeader(void)$/;"	f	class:CBackendx86_64
+EmitInstruction	snuplc/src/backend.cpp	/^void CBackendx86::EmitInstruction(CTacInstr *i)$/;"	f	class:CBackendx86
+EmitInstruction	snuplc/src/backend.cpp	/^void CBackendx86::EmitInstruction(string mnemonic, string args, string comment)$/;"	f	class:CBackendx86
+EmitInstruction	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitInstruction(CTacInstr *i)$/;"	f	class:CBackendx86_64
+EmitInstruction	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitInstruction(string mnemonic, string args, string comment)$/;"	f	class:CBackendx86_64
+EmitLocalData	snuplc/src/backend.cpp	/^void CBackendx86::EmitLocalData(CScope *scope)$/;"	f	class:CBackendx86
+EmitLocalData	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitLocalData(CScope *scope)$/;"	f	class:CBackendx86_64
+EmitScope	snuplc/src/backend.cpp	/^void CBackendx86::EmitScope(CScope *scope)$/;"	f	class:CBackendx86
+EmitScope	snuplc/src/backend64.cpp	/^void CBackendx86_64::EmitScope(CScope *scope)$/;"	f	class:CBackendx86_64
+GetAlign	snuplc/include/type.h	/^    virtual int GetAlign(void) const { return 0; };$/;"	f	class:CNullType
+GetAlign	snuplc/include/type.h	/^    virtual int GetAlign(void) const { return 1; };$/;"	f	class:CBoolType
+GetAlign	snuplc/include/type.h	/^    virtual int GetAlign(void) const { return 1; };$/;"	f	class:CCharType
+GetAlign	snuplc/include/type.h	/^    virtual int GetAlign(void) const { return 4; };$/;"	f	class:CIntType
+GetAlign	snuplc/include/type.h	/^    virtual int GetAlign(void) const { return 4; };$/;"	f	class:CPointerType
+GetBaseType	snuplc/include/type.h	/^    const CType* GetBaseType(void) const { return _basetype; };$/;"	f	class:CPointerType
+GetCharPosition	snuplc/include/scanner.h	/^    int GetCharPosition() const { return _char; };$/;"	f	class:CScanner
+GetCharPosition	snuplc/include/scanner.h	/^    int GetCharPosition(void) const { return _char; };$/;"	f	class:CToken
+GetCodeBlock	snuplc/src/ir.cpp	/^CCodeBlock* CScope::GetCodeBlock(void) const$/;"	f	class:CScope
+GetDeclaration	snuplc/src/ir.cpp	/^CSymbol* CModule::GetDeclaration(void) const$/;"	f	class:CModule
+GetDeclaration	snuplc/src/ir.cpp	/^CSymbol* CProcedure::GetDeclaration(void) const$/;"	f	class:CProcedure
+GetDerefSymbol	snuplc/src/ir.cpp	/^const CSymbol* CTacReference::GetDerefSymbol(void) const$/;"	f	class:CTacReference
+GetDest	snuplc/src/ir.cpp	/^CTac* CTacInstr::GetDest(void) const$/;"	f	class:CTacInstr
+GetId	snuplc/src/ir.cpp	/^unsigned int CTacInstr::GetId(void) const$/;"	f	class:CTacInstr
+GetInnerType	snuplc/include/type.h	/^    const CType* GetInnerType(void) const { return _innertype; };$/;"	f	class:CArrayType
+GetInstr	snuplc/src/ir.cpp	/^const list<CTacInstr*>& CCodeBlock::GetInstr(void) const$/;"	f	class:CCodeBlock
+GetLabel	snuplc/src/ir.cpp	/^const string CTacLabel::GetLabel(void) const$/;"	f	class:CTacLabel
+GetLineNumber	snuplc/include/scanner.h	/^    int GetLineNumber(void) const { return _line; };$/;"	f	class:CScanner
+GetLineNumber	snuplc/include/scanner.h	/^    int GetLineNumber(void) const { return _line; };$/;"	f	class:CToken
+GetNElem	snuplc/include/type.h	/^    int GetNElem(void) const { return _nelem; };$/;"	f	class:CArrayType
+GetName	snuplc/src/ir.cpp	/^string CCodeBlock::GetName(void) const$/;"	f	class:CCodeBlock
+GetName	snuplc/src/ir.cpp	/^string CScope::GetName(void) const$/;"	f	class:CScope
+GetNumSrc	snuplc/src/ir.cpp	/^unsigned int CTacInstr::GetNumSrc(void) const$/;"	f	class:CTacInstr
+GetOperation	snuplc/src/ir.cpp	/^EOperation CTacInstr::GetOperation(void) const$/;"	f	class:CTacInstr
+GetOwner	snuplc/src/ir.cpp	/^CScope* CCodeBlock::GetOwner(void) const$/;"	f	class:CCodeBlock
+GetParent	snuplc/src/ir.cpp	/^CScope* CScope::GetParent(void) const$/;"	f	class:CScope
+GetRefCnt	snuplc/src/ir.cpp	/^int CTacLabel::GetRefCnt(void) const$/;"	f	class:CTacLabel
+GetScope	snuplc/src/backend.cpp	/^CScope* CBackendx86::GetScope(void) const$/;"	f	class:CBackendx86
+GetScope	snuplc/src/backend64.cpp	/^CScope* CBackendx86_64::GetScope(void) const$/;"	f	class:CBackendx86_64
+GetSize	snuplc/include/type.h	/^    virtual unsigned int GetSize(void) const { return 0; };$/;"	f	class:CNullType
+GetSize	snuplc/include/type.h	/^    virtual unsigned int GetSize(void) const { return 1; };$/;"	f	class:CBoolType
+GetSize	snuplc/include/type.h	/^    virtual unsigned int GetSize(void) const { return 1; };$/;"	f	class:CCharType
+GetSize	snuplc/include/type.h	/^    virtual unsigned int GetSize(void) const { return 4; };$/;"	f	class:CIntType
+GetSize	snuplc/include/type.h	/^    virtual unsigned int GetSize(void) const { return 4; };$/;"	f	class:CPointerType
+GetSrc	snuplc/src/ir.cpp	/^CTacAddr* CTacInstr::GetSrc(int index) const$/;"	f	class:CTacInstr
+GetSubscopes	snuplc/src/ir.cpp	/^const vector<CScope*>& CScope::GetSubscopes(void) const$/;"	f	class:CScope
+GetSymbol	snuplc/src/ir.cpp	/^const CSymbol* CTacName::GetSymbol(void) const$/;"	f	class:CTacName
+GetSymbolTable	snuplc/src/ir.cpp	/^CSymtab* CScope::GetSymbolTable(void) const$/;"	f	class:CScope
+GetType	snuplc/include/scanner.h	/^    EToken GetType(void) const { return _type; };$/;"	f	class:CToken
+GetValue	snuplc/include/scanner.h	/^    string GetValue(void) const { return _value; };$/;"	f	class:CToken
+GetValue	snuplc/src/ir.cpp	/^int CTacConst::GetValue(void) const$/;"	f	class:CTacConst
+Good	snuplc/include/scanner.h	/^    bool Good(void) const { return _good; };$/;"	f	class:CScanner
+HasError	snuplc/include/parser.h	/^    bool HasError(void) const { return _abort; };$/;"	f	class:CParser
+INC_DIR	snuplc/Makefile	/^INC_DIR=include$/;"	m
+Imm	snuplc/src/backend.cpp	/^string CBackendx86::Imm(int value) const$/;"	f	class:CBackendx86
+Imm	snuplc/src/backend64.cpp	/^string CBackendx86_64::Imm(int value) const$/;"	f	class:CBackendx86_64
+IsArray	snuplc/include/type.h	/^    virtual bool IsArray(void) const { return false; };$/;"	f	class:CType
+IsArray	snuplc/include/type.h	/^    virtual bool IsArray(void) const { return true; };$/;"	f	class:CArrayType
+IsBoolean	snuplc/include/type.h	/^    virtual bool IsBoolean(void) const { return false; };$/;"	f	class:CType
+IsBoolean	snuplc/include/type.h	/^    virtual bool IsBoolean(void) const { return true; };$/;"	f	class:CBoolType
+IsBranch	snuplc/src/ir.cpp	/^bool CTacInstr::IsBranch(void) const$/;"	f	class:CTacInstr
+IsChar	snuplc/include/type.h	/^    virtual bool IsChar(void) const { return false; };$/;"	f	class:CType
+IsChar	snuplc/include/type.h	/^    virtual bool IsChar(void) const { return true; };$/;"	f	class:CCharType
+IsInt	snuplc/include/type.h	/^    virtual bool IsInt(void) const { return false; };$/;"	f	class:CType
+IsInt	snuplc/include/type.h	/^    virtual bool IsInt(void) const { return true; };$/;"	f	class:CIntType
+IsNull	snuplc/include/type.h	/^    virtual bool IsNull(void) const { return false; };$/;"	f	class:CType
+IsNull	snuplc/include/type.h	/^    virtual bool IsNull(void) const { return true; };$/;"	f	class:CNullType
+IsPointer	snuplc/include/type.h	/^    virtual bool IsPointer(void) const { return false; };$/;"	f	class:CType
+IsPointer	snuplc/include/type.h	/^    virtual bool IsPointer(void) const { return true; };$/;"	f	class:CPointerType
+IsRelOp	snuplc/src/ir.cpp	/^bool IsRelOp(EOperation t)$/;"	f
+IsScalar	snuplc/include/type.h	/^    virtual bool IsScalar(void) const { return false; };$/;"	f	class:CType
+IsScalar	snuplc/include/type.h	/^    virtual bool IsScalar(void) const { return true; };$/;"	f	class:CBoolType
+IsScalar	snuplc/include/type.h	/^    virtual bool IsScalar(void) const { return true; };$/;"	f	class:CCharType
+IsScalar	snuplc/include/type.h	/^    virtual bool IsScalar(void) const { return true; };$/;"	f	class:CIntType
+IsScalar	snuplc/include/type.h	/^    virtual bool IsScalar(void) const { return true; };$/;"	f	class:CPointerType
+Label	snuplc/src/backend.cpp	/^string CBackendx86::Label(const CTacLabel* label) const$/;"	f	class:CBackendx86
+Label	snuplc/src/backend.cpp	/^string CBackendx86::Label(string label) const$/;"	f	class:CBackendx86
+Label	snuplc/src/backend64.cpp	/^string CBackendx86_64::Label(const CTacLabel* label) const$/;"	f	class:CBackendx86_64
+Label	snuplc/src/backend64.cpp	/^string CBackendx86_64::Label(string label) const$/;"	f	class:CBackendx86_64
+Load	snuplc/src/backend.cpp	/^void CBackendx86::Load(CTacAddr *src, string dst, string comment)$/;"	f	class:CBackendx86
+Load	snuplc/src/backend64.cpp	/^void CBackendx86_64::Load(CTacAddr *src, string dst, string comment)$/;"	f	class:CBackendx86_64
+MAX_SIZE	snuplc/include/type.h	/^    const static unsigned long long MAX_SIZE = INT_MAX; \/\/\/< max. size of array$/;"	m	class:CArrayType
+MOD	snuplc/Makefile	/^MOD=scanner.cpp \\$/;"	m
+MOD_DEPS	snuplc/Makefile	/^MOD_DEPS=$(patsubst %.cpp,$(INC_DIR)\/%.h,$(MOD))$/;"	m
+OBJ	snuplc/Makefile	/^OBJ=$(patsubst %.cpp,$(OBJ_DIR)\/%.o, $(SRC))$/;"	m
+OBJ_DIR	snuplc/Makefile	/^OBJ_DIR=obj$/;"	m
+OPEN	snuplc/include/type.h	/^    const static int OPEN = -1;   \/\/\/< open array (dimensions unspecified)$/;"	m	class:CArrayType
+OPERATION_STRLEN	snuplc/src/ir.cpp	48;"	d	file:
+Operand	snuplc/src/backend.cpp	/^string CBackendx86::Operand(const CTac *op)$/;"	f	class:CBackendx86
+Operand	snuplc/src/backend64.cpp	/^string CBackendx86_64::Operand(const CTac *op)$/;"	f	class:CBackendx86_64
+OperandSize	snuplc/src/backend.cpp	/^int CBackendx86::OperandSize(CTac *t) const$/;"	f	class:CBackendx86
+OperandSize	snuplc/src/backend64.cpp	/^int CBackendx86_64::OperandSize(CTac *t) const$/;"	f	class:CBackendx86_64
+PRIV_DIR	snuplc/Makefile	/^PRIV_DIR=private$/;"	m
+ParseArgs	snuplc/src/snuplc.cpp	/^void ParseArgs(int argc, char *argv[])$/;"	f
+ROOT	test/Makefile	/^ROOT=..$/;"	m
+RTE_OBJ	rte/AMD64/Makefile	/^RTE_OBJ=$(patsubst %.s,%.o,$(RTE_SRC))$/;"	m
+RTE_OBJ	rte/IA32/Makefile	/^RTE_OBJ=$(patsubst %.s,%.o,$(RTE_SRC))$/;"	m
+RTE_OBJ	test/rte/AMD64/Makefile	/^RTE_OBJ=$(patsubst %.s,%.o,$(RTE_SRC))$/;"	m
+RTE_OBJ	test/rte/IA32/Makefile	/^RTE_OBJ=$(patsubst %.s,%.o,$(RTE_SRC))$/;"	m
+RTE_SRC	rte/AMD64/Makefile	/^RTE_SRC=ARRAY.s IO.s$/;"	m
+RTE_SRC	rte/IA32/Makefile	/^RTE_SRC=ARRAY.s IO.s$/;"	m
+RTE_SRC	test/rte/AMD64/Makefile	/^RTE_SRC=ARRAY.s IO.s$/;"	m
+RTE_SRC	test/rte/IA32/Makefile	/^RTE_SRC=ARRAY.s IO.s$/;"	m
+ReadInt	rte/AMD64/IO.s	/^ReadInt:$/;"	l
+ReadInt	rte/IA32/IO.s	/^ReadInt:$/;"	l
+ReadInt	test/rte/AMD64/IO.s	/^ReadInt:$/;"	l
+ReadInt	test/rte/IA32/IO.s	/^ReadInt:$/;"	l
+RunCompile	snuplc/src/snuplc.cpp	/^void RunCompile(string file)$/;"	f
+RunDOT	snuplc/src/snuplc.cpp	/^void RunDOT(string file)$/;"	f
+SRC	snuplc/Makefile	/^SRC=ir.cpp \\$/;"	m
+SRC_DIR	snuplc/Makefile	/^SRC_DIR=src$/;"	m
+SetDest	snuplc/src/ir.cpp	/^void CTacInstr::SetDest(CTac* dst)$/;"	f	class:CTacInstr
+SetId	snuplc/src/ir.cpp	/^void CTacInstr::SetId(unsigned int id)$/;"	f	class:CTacInstr
+SetScope	snuplc/src/backend.cpp	/^void CBackendx86::SetScope(CScope *scope)$/;"	f	class:CBackendx86
+SetScope	snuplc/src/backend64.cpp	/^void CBackendx86_64::SetScope(CScope *scope)$/;"	f	class:CBackendx86_64
+Store	snuplc/src/backend.cpp	/^void CBackendx86::Store(CTac *dst, char src_base, string comment)$/;"	f	class:CBackendx86
+Store	snuplc/src/backend64.cpp	/^void CBackendx86_64::Store(CTac *dst, char src_base, string comment)$/;"	f	class:CBackendx86_64
+Syntax	snuplc/src/snuplc.cpp	/^void Syntax(string msg)$/;"	f
+WriteChar	rte/AMD64/IO.s	/^WriteChar:$/;"	l
+WriteChar	rte/IA32/IO.s	/^WriteChar:$/;"	l
+WriteChar	test/rte/AMD64/IO.s	/^WriteChar:$/;"	l
+WriteChar	test/rte/IA32/IO.s	/^WriteChar:$/;"	l
+WriteInt	rte/AMD64/IO.s	/^WriteInt:$/;"	l
+WriteInt	rte/IA32/IO.s	/^WriteInt:$/;"	l
+WriteInt	test/rte/AMD64/IO.s	/^WriteInt:$/;"	l
+WriteInt	test/rte/IA32/IO.s	/^WriteInt:$/;"	l
+WriteLn	rte/AMD64/IO.s	/^WriteLn:$/;"	l
+WriteLn	rte/IA32/IO.s	/^WriteLn:$/;"	l
+WriteLn	test/rte/AMD64/IO.s	/^WriteLn:$/;"	l
+WriteLn	test/rte/IA32/IO.s	/^WriteLn:$/;"	l
+WriteStr	rte/AMD64/IO.s	/^WriteStr:$/;"	l
+WriteStr	rte/IA32/IO.s	/^WriteStr:$/;"	l
+WriteStr	test/rte/AMD64/IO.s	/^WriteStr:$/;"	l
+WriteStr	test/rte/IA32/IO.s	/^WriteStr:$/;"	l
+__SNUPL_H__	rte/AMD64/snupl.h	34;"	d
+__SNUPL_H__	rte/IA32/snupl.h	34;"	d
+__SNUPL_H__	test/rte/AMD64/snupl.h	34;"	d
+__SNUPL_H__	test/rte/IA32/snupl.h	34;"	d
+__SnuPL_AST_H__	snuplc/include/ast.h	36;"	d
+__SnuPL_BACKEND_H__	snuplc/include/backend.h	36;"	d
+__SnuPL_DATA_H__	snuplc/include/data.h	34;"	d
+__SnuPL_IR_H__	snuplc/include/ir.h	38;"	d
+__SnuPL_PARSER_H__	snuplc/include/parser.h	36;"	d
+__SnuPL_SCANNER_H__	snuplc/include/scanner.h	37;"	d
+__SnuPL_SYMTAB_H__	snuplc/include/symtab.h	34;"	d
+__SnuPL_TYPE_H__	snuplc/include/type.h	35;"	d
+_abort	snuplc/include/parser.h	/^    bool          _abort;         \/\/\/< error flag$/;"	m	class:CParser
+_addr	snuplc/include/ast.h	/^    CTacAddr   *_addr;              \/\/\/< result of this node in three-address$/;"	m	class:CAstNode
+_arg	snuplc/include/ast.h	/^    vector<CAstExpression*> _arg;   \/\/\/< parameter list$/;"	m	class:CAstFunctionCall
+_array	snuplc/include/type.h	/^    vector<CArrayType*> _array;   \/\/\/< array types$/;"	m	class:CTypeManager
+_ast	snuplc/include/ir.h	/^    CAstNode *_ast;                  \/\/\/< abstract syntax tree$/;"	m	class:CScope
+_basetype	snuplc/include/type.h	/^    const CType   *_basetype;     \/\/\/< base type$/;"	m	class:CPointerType
+_body	snuplc/include/ast.h	/^    CAstStatement *_body;           \/\/\/< body$/;"	m	class:CAstStatWhile
+_boolean	snuplc/include/type.h	/^    CBoolType     *_boolean;      \/\/\/< boolean base type$/;"	m	class:CTypeManager
+_call	snuplc/include/ast.h	/^    CAstFunctionCall *_call;        \/\/\/< call expression$/;"	m	class:CAstStatCall
+_cb	snuplc/include/ast.h	/^    CCodeBlock *_cb;                \/\/\/< (entry) code block for this scope$/;"	m	class:CAstScope
+_cb	snuplc/include/ir.h	/^    CCodeBlock* _cb;                 \/\/\/< list of code blocks$/;"	m	class:CScope
+_char	snuplc/include/scanner.h	/^    int     _char;                  \/\/\/< current stream position (character pos)$/;"	m	class:CScanner
+_char	snuplc/include/scanner.h	/^    int    _char;                   \/\/\/< input stream position (character pos)$/;"	m	class:CToken
+_char	snuplc/include/type.h	/^    CCharType     *_char;         \/\/\/< char base type$/;"	m	class:CTypeManager
+_children	snuplc/include/ast.h	/^    vector<CAstScope*> _children;   \/\/\/< subordinate scopes$/;"	m	class:CAstScope
+_children	snuplc/include/ir.h	/^    vector<CScope*> _children;       \/\/\/< list of functions$/;"	m	class:CScope
+_cond	snuplc/include/ast.h	/^    CAstExpression *_cond;          \/\/\/< condition$/;"	m	class:CAstStatIf
+_cond	snuplc/include/ast.h	/^    CAstExpression *_cond;          \/\/\/< condition$/;"	m	class:CAstStatWhile
+_curr_scope	snuplc/include/backend.h	/^    CScope *_curr_scope;            \/\/\/< current scope$/;"	m	class:CBackendx86
+_curr_scope	snuplc/include/backend.h	/^    CScope *_curr_scope;            \/\/\/< current scope$/;"	m	class:CBackendx86_64
+_data	snuplc/include/data.h	/^    const string   _data;         \/\/\/< string data$/;"	m	class:CDataInitString
+_data	snuplc/include/symtab.h	/^    const CDataInitializer *_data;\/\/\/< data initializer$/;"	m	class:CSymbol
+_datatype	snuplc/include/symtab.h	/^    const CType   *_datatype;     \/\/\/< data type$/;"	m	class:CSymbol
+_delete_in	snuplc/include/scanner.h	/^    bool    _delete_in;             \/\/\/< delete input stream upon destruction$/;"	m	class:CScanner
+_deref	snuplc/include/ir.h	/^    const CSymbol *_deref;           \/\/\/< symbol this reference is pointing to$/;"	m	class:CTacReference
+_done	snuplc/include/ast.h	/^    bool _done;                     \/\/\/< flag indicating all index expressions$/;"	m	class:CAstArrayDesignator
+_dst	snuplc/include/ir.h	/^    CTac          *_dst;             \/\/\/< destination operand$/;"	m	class:CTacInstr
+_elseBody	snuplc/include/ast.h	/^    CAstStatement *_elseBody;       \/\/\/< else body$/;"	m	class:CAstStatIf
+_error_token	snuplc/include/parser.h	/^    CToken        _error_token;   \/\/\/< error token$/;"	m	class:CParser
+_expr	snuplc/include/ast.h	/^    CAstExpression *_expr;          \/\/\/< return expression$/;"	m	class:CAstStatReturn
+_global_id	snuplc/include/ast.h	/^    static int _global_id;          \/\/\/< holds the (global) next id$/;"	m	class:CAstNode
+_global_tm	snuplc/include/type.h	/^    static CTypeManager *_global_tm; \/\/\/< global type manager instance$/;"	m	class:CTypeManager
+_good	snuplc/include/scanner.h	/^    bool    _good;                  \/\/\/< scanner status flag$/;"	m	class:CScanner
+_id	snuplc/include/ast.h	/^    int        _id;                 \/\/\/< id of the node$/;"	m	class:CAstNode
+_id	snuplc/include/ir.h	/^    unsigned int   _id;              \/\/\/< unique instruction id$/;"	m	class:CTacInstr
+_idx	snuplc/include/ast.h	/^    static int       _idx;          \/\/\/< static counter$/;"	m	class:CAstStringConstant
+_idx	snuplc/include/ast.h	/^    vector<CAstExpression*> _idx;   \/\/\/< index expressions$/;"	m	class:CAstArrayDesignator
+_ifBody	snuplc/include/ast.h	/^    CAstStatement *_ifBody;         \/\/\/< if body$/;"	m	class:CAstStatIf
+_in	snuplc/include/scanner.h	/^    istream *_in;                   \/\/\/< input stream$/;"	m	class:CScanner
+_ind	snuplc/include/backend.h	/^    string _ind;                    \/\/\/< indentation$/;"	m	class:CBackendx86
+_ind	snuplc/include/backend.h	/^    string _ind;                    \/\/\/< indentation$/;"	m	class:CBackendx86_64
+_index	snuplc/include/symtab.h	/^    int            _index;        \/\/\/< index$/;"	m	class:CSymParam
+_innertype	snuplc/include/type.h	/^    const CType   *_innertype;    \/\/\/< inner type$/;"	m	class:CArrayType
+_inst_id	snuplc/include/ir.h	/^    unsigned int _inst_id;           \/\/\/< next id for instructions$/;"	m	class:CCodeBlock
+_integer	snuplc/include/type.h	/^    CIntType      *_integer;      \/\/\/< integer base type$/;"	m	class:CTypeManager
+_label	snuplc/include/ir.h	/^    const string _label;             \/\/\/< label$/;"	m	class:CTacLabel
+_label_id	snuplc/include/ir.h	/^    unsigned int _label_id;          \/\/\/< next id for labels$/;"	m	class:CScope
+_left	snuplc/include/ast.h	/^    CAstExpression *_left;          \/\/\/< left operand$/;"	m	class:CAstBinaryOp
+_lhs	snuplc/include/ast.h	/^    CAstDesignator *_lhs;           \/\/\/< LHS (designator)$/;"	m	class:CAstStatAssign
+_line	snuplc/include/scanner.h	/^    int     _line;                  \/\/\/< current stream position (line)$/;"	m	class:CScanner
+_line	snuplc/include/scanner.h	/^    int    _line;                   \/\/\/< input stream position (line)$/;"	m	class:CToken
+_m	snuplc/include/backend.h	/^    CModule *_m;                    \/\/\/< module$/;"	m	class:CBackend
+_message	snuplc/include/parser.h	/^    string        _message;       \/\/\/< error message$/;"	m	class:CParser
+_module	snuplc/include/parser.h	/^    CAstModule   *_module;        \/\/\/< root node of the program$/;"	m	class:CParser
+_name	snuplc/include/ast.h	/^    string    _name;                \/\/\/< name$/;"	m	class:CAstScope
+_name	snuplc/include/ir.h	/^    string         _name;            \/\/\/< name (for debugging purposes)$/;"	m	class:CTacInstr
+_name	snuplc/include/ir.h	/^    string _name;                    \/\/\/< name$/;"	m	class:CScope
+_name	snuplc/include/symtab.h	/^    string         _name;         \/\/\/< name$/;"	m	class:CSymbol
+_nelem	snuplc/include/type.h	/^    int            _nelem;        \/\/\/< element count$/;"	m	class:CArrayType
+_next	snuplc/include/ast.h	/^    CAstStatement* _next;           \/\/\/< next statement$/;"	m	class:CAstStatement
+_null	snuplc/include/type.h	/^    CNullType     *_null;         \/\/\/< null base type$/;"	m	class:CTypeManager
+_offset	snuplc/include/ast.h	/^    CAstExpression *_offset;        \/\/\/< address computation expression$/;"	m	class:CAstArrayDesignator
+_offset	snuplc/include/symtab.h	/^    int            _offset;       \/\/\/< offset$/;"	m	class:CSymbol
+_op	snuplc/include/ir.h	/^    EOperation     _op;              \/\/\/< opcode$/;"	m	class:CTacInstr
+_oper	snuplc/include/ast.h	/^    EOperation _oper;               \/\/\/< operation$/;"	m	class:CAstOperation
+_operand	snuplc/include/ast.h	/^    CAstExpression *_operand;       \/\/\/< operand$/;"	m	class:CAstSpecialOp
+_operand	snuplc/include/ast.h	/^    CAstExpression *_operand;       \/\/\/< operand$/;"	m	class:CAstUnaryOp
+_ops	snuplc/include/ir.h	/^    list<CTacInstr*> _ops;           \/\/\/< operation list$/;"	m	class:CCodeBlock
+_out	snuplc/include/backend.h	/^    ostream &_out;                  \/\/\/< output stream$/;"	m	class:CBackend
+_owner	snuplc/include/ir.h	/^    CScope *_owner;                  \/\/\/< block owner$/;"	m	class:CCodeBlock
+_param	snuplc/include/symtab.h	/^    vector<CSymParam*> _param;      \/\/\/< parameter list$/;"	m	class:CSymProc
+_parent	snuplc/include/ast.h	/^    CAstScope *_parent;             \/\/\/< superordinate scope$/;"	m	class:CAstScope
+_parent	snuplc/include/ir.h	/^    CScope *_parent;                 \/\/\/< superordinate scope$/;"	m	class:CScope
+_parent	snuplc/include/symtab.h	/^    CSymtab       *_parent;       \/\/\/< parent$/;"	m	class:CSymtab
+_parenthesized	snuplc/include/ast.h	/^    bool       _parenthesized;      \/\/\/< expression was parenthesized$/;"	m	class:CAstExpression
+_ptr	snuplc/include/type.h	/^    vector<CPointerType*> _ptr;   \/\/\/< pointer types$/;"	m	class:CTypeManager
+_rbase	snuplc/include/symtab.h	/^    string         _rbase;        \/\/\/< base register$/;"	m	class:CSymbol
+_refcnt	snuplc/include/ir.h	/^    int _refcnt;                     \/\/\/< reference counter$/;"	m	class:CTacLabel
+_rhs	snuplc/include/ast.h	/^    CAstExpression *_rhs;           \/\/\/< RHS (expression)$/;"	m	class:CAstStatAssign
+_right	snuplc/include/ast.h	/^    CAstExpression *_right;         \/\/\/< right operand$/;"	m	class:CAstBinaryOp
+_saved_char	snuplc/include/scanner.h	/^    int     _saved_char;            \/\/\/< saved stream position (character pos)$/;"	m	class:CScanner
+_saved_line	snuplc/include/scanner.h	/^    int     _saved_line;            \/\/\/< saved stream position (line)$/;"	m	class:CScanner
+_scanner	snuplc/include/parser.h	/^    CScanner     *_scanner;       \/\/\/< CScanner instance$/;"	m	class:CParser
+_scope	snuplc/include/ast.h	/^    CAstScope      *_scope;         \/\/\/< enclosing scope$/;"	m	class:CAstStatReturn
+_src1	snuplc/include/ir.h	/^    CTacAddr      *_src1;            \/\/\/< source operand 1$/;"	m	class:CTacInstr
+_src2	snuplc/include/ir.h	/^    CTacAddr      *_src2;            \/\/\/< source operand 2$/;"	m	class:CTacInstr
+_statseq	snuplc/include/ast.h	/^    CAstStatement* _statseq;        \/\/\/< statement sequence$/;"	m	class:CAstScope
+_sym	snuplc/include/ast.h	/^    CSymGlobal      *_sym;          \/\/\/< symbol holding the string$/;"	m	class:CAstStringConstant
+_symbol	snuplc/include/ast.h	/^    CSymProc *_symbol;              \/\/\/< corresponding symbol$/;"	m	class:CAstProcedure
+_symbol	snuplc/include/ast.h	/^    const CSymProc *_symbol;        \/\/\/< symbol$/;"	m	class:CAstFunctionCall
+_symbol	snuplc/include/ast.h	/^    const CSymbol *_symbol;         \/\/\/< symbol$/;"	m	class:CAstDesignator
+_symbol	snuplc/include/ir.h	/^    const CSymbol *_symbol;          \/\/\/< symbol$/;"	m	class:CTacName
+_symboltype	snuplc/include/symtab.h	/^    ESymbolType    _symboltype;   \/\/\/< symbol type$/;"	m	class:CSymbol
+_symtab	snuplc/include/ast.h	/^    CSymtab   *_symtab;             \/\/\/< symbol table$/;"	m	class:CAstScope
+_symtab	snuplc/include/ir.h	/^    CSymtab *_symtab;                \/\/\/< symbol table$/;"	m	class:CScope
+_symtab	snuplc/include/symtab.h	/^    CSymtab       *_symtab;       \/\/\/< symbol table owning this symbol$/;"	m	class:CSymbol
+_symtab	snuplc/include/symtab.h	/^    map<string, CSymbol*> _symtab;\/\/\/< local symbol table$/;"	m	class:CSymtab
+_temp_id	snuplc/include/ir.h	/^    unsigned int _temp_id;           \/\/\/< next id for temporaries$/;"	m	class:CScope
+_token	snuplc/include/ast.h	/^    CToken     _token;              \/\/\/< token in input stream that triggered$/;"	m	class:CAstNode
+_token	snuplc/include/parser.h	/^    CToken        _token;         \/\/\/< current token$/;"	m	class:CParser
+_token	snuplc/include/scanner.h	/^    CToken *_token;                 \/\/\/< next token in input stream$/;"	m	class:CScanner
+_type	snuplc/include/ast.h	/^    const CType     *_type;         \/\/\/< constant type$/;"	m	class:CAstStringConstant
+_type	snuplc/include/ast.h	/^    const CType *_type;             \/\/\/< constant type$/;"	m	class:CAstConstant
+_type	snuplc/include/ast.h	/^    const CType *_type;             \/\/\/< forced type of this op$/;"	m	class:CAstSpecialOp
+_type	snuplc/include/ast.h	/^    const CType *_type;             \/\/\/< type$/;"	m	class:CAstType
+_type	snuplc/include/scanner.h	/^    EToken _type;                   \/\/\/< token type$/;"	m	class:CToken
+_value	snuplc/include/ast.h	/^    CDataInitString *_value;        \/\/\/< data initializer (holds string data)$/;"	m	class:CAstStringConstant
+_value	snuplc/include/ast.h	/^    long long _value;               \/\/\/< constant value$/;"	m	class:CAstConstant
+_value	snuplc/include/ir.h	/^    int _value;                      \/\/\/< constant value$/;"	m	class:CTacConst
+_value	snuplc/include/scanner.h	/^    string _value;                  \/\/\/< token value$/;"	m	class:CToken
+_voidptr	snuplc/include/type.h	/^    CPointerType  *_voidptr;      \/\/\/< void pointer type$/;"	m	class:CTypeManager
+a	test/test01.mod.s	/^a:                                  # <int>$/;"	l
+b	test/test01.mod.s	/^b:                                  # <int>$/;"	l
+c	test/test01.mod.s	/^c:                                  # <int>$/;"	l
+cEOF	snuplc/include/scanner.h	/^      cEOF,                         \/\/\/< input stream EoF$/;"	e	enum:CScanner::ECharacter
+cIOError	snuplc/include/scanner.h	/^      cIOError,                     \/\/\/< input stream error$/;"	e	enum:CScanner::ECharacter
+cInvChar	snuplc/include/scanner.h	/^      cInvChar,                     \/\/\/< invalid character$/;"	e	enum:CScanner::ECharacter
+cInvEnc	snuplc/include/scanner.h	/^      cInvEnc,                      \/\/\/< invalid escape sequence$/;"	e	enum:CScanner::ECharacter
+cOkay	snuplc/include/scanner.h	/^      cOkay =0,                     \/\/\/< character parsed$/;"	e	enum:CScanner::ECharacter
+createSnuPLArray	rte/AMD64/snupl.c	/^void* createSnuPLArray(const void *data, size_t elem_size, int dim, ...)$/;"	f
+createSnuPLArray	rte/IA32/snupl.c	/^void* createSnuPLArray(const void *data, size_t elem_size, int dim, ...)$/;"	f
+createSnuPLArray	test/rte/AMD64/snupl.c	/^void* createSnuPLArray(const void *data, size_t elem_size, int dim, ...)$/;"	f
+createSnuPLArray	test/rte/IA32/snupl.c	/^void* createSnuPLArray(const void *data, size_t elem_size, int dim, ...)$/;"	f
+dotAttr	snuplc/src/ir.cpp	/^string CCodeBlock::dotAttr(void) const$/;"	f	class:CCodeBlock
+dotID	snuplc/src/ir.cpp	/^string CCodeBlock::dotID(void) const$/;"	f	class:CCodeBlock
+dotID	snuplc/src/ir.cpp	/^string CScope::dotID(void) const$/;"	f	class:CScope
+dump	rte/AMD64/test_array.c	/^void dump(void *a)$/;"	f
+dump	rte/IA32/test_array.c	/^void dump(void *a)$/;"	f
+dump	test/rte/AMD64/test_array.c	/^void dump(void *a)$/;"	f
+dump	test/rte/IA32/test_array.c	/^void dump(void *a)$/;"	f
+dump_asm	snuplc/src/snuplc.cpp	/^bool dump_asm = true;$/;"	v
+dump_dot	snuplc/src/snuplc.cpp	/^bool dump_dot = true;$/;"	v
+dump_tac	snuplc/src/snuplc.cpp	/^bool dump_tac = false;$/;"	v
+files	snuplc/src/snuplc.cpp	/^vector<string> files;$/;"	v
+keywords	snuplc/include/scanner.h	/^    static map<string, EToken> keywords;\/\/\/< reserved keywords with corr. tokens$/;"	m	class:CScanner
+l_test01_exit	test/test01.mod.s	/^l_test01_exit:$/;"	l
+main	rte/AMD64/test_array.c	/^int main(void)$/;"	f
+main	rte/AMD64/test_io.c	/^void main(int argc, char **argv)$/;"	f
+main	rte/IA32/test_array.c	/^int main(void)$/;"	f
+main	rte/IA32/test_io.c	/^void main(int argc, char **argv)$/;"	f
+main	snuplc/src/snuplc.cpp	/^int main(int argc, char *argv[])$/;"	f
+main	test/rte/AMD64/test_array.c	/^int main(void)$/;"	f
+main	test/rte/AMD64/test_io.c	/^void main(int argc, char **argv)$/;"	f
+main	test/rte/IA32/test_array.c	/^int main(void)$/;"	f
+main	test/rte/IA32/test_io.c	/^void main(int argc, char **argv)$/;"	f
+main	test/test01.mod.s	/^main:$/;"	l
+opAdd	snuplc/include/ir.h	/^  opAdd=0,                          \/\/\/< +  addition$/;"	e	enum:EOperation
+opAddress	snuplc/include/ir.h	/^  opAddress,                        \/\/\/< reference: dst = &src1$/;"	e	enum:EOperation
+opAnd	snuplc/include/ir.h	/^  opAnd,                            \/\/\/< && binary and$/;"	e	enum:EOperation
+opAssign	snuplc/include/ir.h	/^  opAssign,                         \/\/\/< assignment$/;"	e	enum:EOperation
+opBiggerEqual	snuplc/include/ir.h	/^  opBiggerEqual,                    \/\/\/< >= bigger or equal$/;"	e	enum:EOperation
+opBiggerThan	snuplc/include/ir.h	/^  opBiggerThan,                     \/\/\/< >  bigger than$/;"	e	enum:EOperation
+opCall	snuplc/include/ir.h	/^  opCall,                           \/\/\/< call:  dst = call src1$/;"	e	enum:EOperation
+opCast	snuplc/include/ir.h	/^  opCast,                           \/\/\/< type cast: dst = (type)src1$/;"	e	enum:EOperation
+opDeref	snuplc/include/ir.h	/^  opDeref,                          \/\/\/< dereference: dst = *src1$/;"	e	enum:EOperation
+opDiv	snuplc/include/ir.h	/^  opDiv,                            \/\/\/< \/  division$/;"	e	enum:EOperation
+opEqual	snuplc/include/ir.h	/^  opEqual,                          \/\/\/< =  equal$/;"	e	enum:EOperation
+opGoto	snuplc/include/ir.h	/^  opGoto,                           \/\/\/< dst = target$/;"	e	enum:EOperation
+opLabel	snuplc/include/ir.h	/^  opLabel,                          \/\/\/< jump label; no arguments$/;"	e	enum:EOperation
+opLessEqual	snuplc/include/ir.h	/^  opLessEqual,                      \/\/\/< <= less or equal$/;"	e	enum:EOperation
+opLessThan	snuplc/include/ir.h	/^  opLessThan,                       \/\/\/< <  less than$/;"	e	enum:EOperation
+opMul	snuplc/include/ir.h	/^  opMul,                            \/\/\/< *  multiplication$/;"	e	enum:EOperation
+opNeg	snuplc/include/ir.h	/^  opNeg,                            \/\/\/< -  negation$/;"	e	enum:EOperation
+opNop	snuplc/include/ir.h	/^  opNop,                            \/\/\/< no operation$/;"	e	enum:EOperation
+opNot	snuplc/include/ir.h	/^  opNot,                            \/\/\/< !  binary not$/;"	e	enum:EOperation
+opNotEqual	snuplc/include/ir.h	/^  opNotEqual,                       \/\/\/< #  not equal$/;"	e	enum:EOperation
+opOr	snuplc/include/ir.h	/^  opOr,                             \/\/\/< || binary or$/;"	e	enum:EOperation
+opParam	snuplc/include/ir.h	/^  opParam,                          \/\/\/< parameter: dst = index,src1 = parameter$/;"	e	enum:EOperation
+opPos	snuplc/include/ir.h	/^  opPos,                            \/\/\/< +  unary +$/;"	e	enum:EOperation
+opReturn	snuplc/include/ir.h	/^  opReturn,                         \/\/\/< return: return optional src1$/;"	e	enum:EOperation
+opSub	snuplc/include/ir.h	/^  opSub,                            \/\/\/< -  subtraction$/;"	e	enum:EOperation
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, EOperation t)$/;"	f
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, const CCodeBlock &t)$/;"	f
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, const CCodeBlock *t)$/;"	f
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, const CScope &t)$/;"	f
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, const CScope *t)$/;"	f
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, const CTac &t)$/;"	f
+operator <<	snuplc/src/ir.cpp	/^ostream& operator<<(ostream &out, const CTac *t)$/;"	f
+print	snuplc/src/ir.cpp	/^ostream& CCodeBlock::print(ostream &out, int indent) const$/;"	f	class:CCodeBlock
+print	snuplc/src/ir.cpp	/^ostream& CModule::print(ostream &out, int indent) const$/;"	f	class:CModule
+print	snuplc/src/ir.cpp	/^ostream& CProcedure::print(ostream &out, int indent) const$/;"	f	class:CProcedure
+print	snuplc/src/ir.cpp	/^ostream& CScope::print(ostream &out, int indent) const$/;"	f	class:CScope
+print	snuplc/src/ir.cpp	/^ostream& CTacConst::print(ostream &out, int indent) const$/;"	f	class:CTacConst
+print	snuplc/src/ir.cpp	/^ostream& CTacInstr::print(ostream &out, int indent) const$/;"	f	class:CTacInstr
+print	snuplc/src/ir.cpp	/^ostream& CTacLabel::print(ostream &out, int indent) const$/;"	f	class:CTacLabel
+print	snuplc/src/ir.cpp	/^ostream& CTacName::print(ostream &out, int indent) const$/;"	f	class:CTacName
+print	snuplc/src/ir.cpp	/^ostream& CTacReference::print(ostream &out, int indent) const$/;"	f	class:CTacReference
+rte_path	snuplc/src/snuplc.cpp	/^string rte_path = "rte\/AMD64\/";$/;"	v
+run_dot	snuplc/src/snuplc.cpp	/^bool run_dot  = true;$/;"	v
+run_gcc	snuplc/src/snuplc.cpp	/^bool run_gcc  = false;$/;"	v
+sGlobal	snuplc/include/symtab.h	/^  sGlobal,                        \/\/\/< global$/;"	e	enum:EScope
+sLocal	snuplc/include/symtab.h	/^  sLocal,                         \/\/\/< local$/;"	e	enum:EScope
+stGlobal	snuplc/include/symtab.h	/^  stGlobal,         \/\/\/< global symbol$/;"	e	enum:ESymbolType
+stLocal	snuplc/include/symtab.h	/^  stLocal,          \/\/\/< local symbol$/;"	e	enum:ESymbolType
+stParam	snuplc/include/symtab.h	/^  stParam,          \/\/\/< parameter symbol$/;"	e	enum:ESymbolType
+stProcedure	snuplc/include/symtab.h	/^  stProcedure,      \/\/\/< procedure symbol$/;"	e	enum:ESymbolType
+stReserved	snuplc/include/symtab.h	/^  stReserved,       \/\/\/< reserved names$/;"	e	enum:ESymbolType
+tAnd	snuplc/include/scanner.h	/^  tAnd,                             \/\/\/< '&&'$/;"	e	enum:EToken
+tAssign	snuplc/include/scanner.h	/^  tAssign,                          \/\/\/< assignment operator$/;"	e	enum:EToken
+tBegin	snuplc/include/scanner.h	/^  tBegin,                           \/\/\/< 'begin'$/;"	e	enum:EToken
+tBoolConst	snuplc/include/scanner.h	/^  tBoolConst,                       \/\/\/< boolean constant$/;"	e	enum:EToken
+tBoolean	snuplc/include/scanner.h	/^  tBoolean,                         \/\/\/< 'boolean'$/;"	e	enum:EToken
+tChar	snuplc/include/scanner.h	/^  tChar,                            \/\/\/< 'char'$/;"	e	enum:EToken
+tCharConst	snuplc/include/scanner.h	/^  tCharConst,                       \/\/\/< character constant$/;"	e	enum:EToken
+tColon	snuplc/include/scanner.h	/^  tColon,                           \/\/\/< a colon$/;"	e	enum:EToken
+tComma	snuplc/include/scanner.h	/^  tComma,                           \/\/\/< a comma$/;"	e	enum:EToken
+tComment	snuplc/include/scanner.h	/^  tComment,                         \/\/\/< comment ('\/\/ .... \\n')$/;"	e	enum:EToken
+tDo	snuplc/include/scanner.h	/^  tDo,                              \/\/\/< 'do'$/;"	e	enum:EToken
+tDot	snuplc/include/scanner.h	/^  tDot,                             \/\/\/< a dot$/;"	e	enum:EToken
+tEOF	snuplc/include/scanner.h	/^  tEOF,                             \/\/\/< end of file$/;"	e	enum:EToken
+tElse	snuplc/include/scanner.h	/^  tElse,                            \/\/\/< 'else'$/;"	e	enum:EToken
+tEnd	snuplc/include/scanner.h	/^  tEnd,                             \/\/\/< 'end'$/;"	e	enum:EToken
+tFunction	snuplc/include/scanner.h	/^  tFunction,                        \/\/\/< 'function'$/;"	e	enum:EToken
+tIOError	snuplc/include/scanner.h	/^  tIOError,                         \/\/\/< I\/O error$/;"	e	enum:EToken
+tIdent	snuplc/include/scanner.h	/^  tIdent=0,                         \/\/\/< ident$/;"	e	enum:EToken
+tIf	snuplc/include/scanner.h	/^  tIf,                              \/\/\/< 'if'$/;"	e	enum:EToken
+tInteger	snuplc/include/scanner.h	/^  tInteger,                         \/\/\/< 'integer'$/;"	e	enum:EToken
+tLBrak	snuplc/include/scanner.h	/^  tLBrak,                           \/\/\/< a left bracket$/;"	e	enum:EToken
+tLParens	snuplc/include/scanner.h	/^  tLParens,                         \/\/\/< a left parenthesis$/;"	e	enum:EToken
+tModule	snuplc/include/scanner.h	/^  tModule,                          \/\/\/< 'module'$/;"	e	enum:EToken
+tMulDiv	snuplc/include/scanner.h	/^  tMulDiv,                          \/\/\/< '*' or '\/'$/;"	e	enum:EToken
+tNot	snuplc/include/scanner.h	/^  tNot,                             \/\/\/< '!'$/;"	e	enum:EToken
+tNumber	snuplc/include/scanner.h	/^  tNumber,                          \/\/\/< number$/;"	e	enum:EToken
+tOr	snuplc/include/scanner.h	/^  tOr,                              \/\/\/< '||'$/;"	e	enum:EToken
+tPlusMinus	snuplc/include/scanner.h	/^  tPlusMinus,                       \/\/\/< '+' or '-'$/;"	e	enum:EToken
+tProcedure	snuplc/include/scanner.h	/^  tProcedure,                       \/\/\/< 'procedure'$/;"	e	enum:EToken
+tRBrak	snuplc/include/scanner.h	/^  tRBrak,                           \/\/\/< a right bracket$/;"	e	enum:EToken
+tRParens	snuplc/include/scanner.h	/^  tRParens,                         \/\/\/< a right parenthesis$/;"	e	enum:EToken
+tRelOp	snuplc/include/scanner.h	/^  tRelOp,                           \/\/\/< relational operator$/;"	e	enum:EToken
+tReturn	snuplc/include/scanner.h	/^  tReturn,                          \/\/\/< 'return'$/;"	e	enum:EToken
+tSemicolon	snuplc/include/scanner.h	/^  tSemicolon,                       \/\/\/< a semicolon$/;"	e	enum:EToken
+tString	snuplc/include/scanner.h	/^  tString,                          \/\/\/< string constant$/;"	e	enum:EToken
+tThen	snuplc/include/scanner.h	/^  tThen,                            \/\/\/< 'then'$/;"	e	enum:EToken
+tUndefined	snuplc/include/scanner.h	/^  tUndefined,                       \/\/\/< undefined$/;"	e	enum:EToken
+tVarDecl	snuplc/include/scanner.h	/^  tVarDecl,                         \/\/\/< 'var'$/;"	e	enum:EToken
+tWhile	snuplc/include/scanner.h	/^  tWhile,                           \/\/\/< 'while'$/;"	e	enum:EToken
+testInput	rte/AMD64/test_io.c	/^void testInput(void)$/;"	f
+testInput	rte/IA32/test_io.c	/^void testInput(void)$/;"	f
+testInput	test/rte/AMD64/test_io.c	/^void testInput(void)$/;"	f
+testInput	test/rte/IA32/test_io.c	/^void testInput(void)$/;"	f
+testOutput	rte/AMD64/test_io.c	/^void testOutput(void)$/;"	f
+testOutput	rte/IA32/test_io.c	/^void testOutput(void)$/;"	f
+testOutput	test/rte/AMD64/test_io.c	/^void testOutput(void)$/;"	f
+testOutput	test/rte/IA32/test_io.c	/^void testOutput(void)$/;"	f
+testWriteChar	rte/AMD64/test_io.c	/^void testWriteChar(char c)$/;"	f
+testWriteChar	rte/IA32/test_io.c	/^void testWriteChar(char c)$/;"	f
+testWriteChar	test/rte/AMD64/test_io.c	/^void testWriteChar(char c)$/;"	f
+testWriteChar	test/rte/IA32/test_io.c	/^void testWriteChar(char c)$/;"	f
+testWriteInt	rte/AMD64/test_io.c	/^void testWriteInt(int v)$/;"	f
+testWriteInt	rte/IA32/test_io.c	/^void testWriteInt(int v)$/;"	f
+testWriteInt	test/rte/AMD64/test_io.c	/^void testWriteInt(int v)$/;"	f
+testWriteInt	test/rte/IA32/test_io.c	/^void testWriteInt(int v)$/;"	f
+testWriteLn	rte/AMD64/test_io.c	/^void testWriteLn(void)$/;"	f
+testWriteLn	rte/IA32/test_io.c	/^void testWriteLn(void)$/;"	f
+testWriteLn	test/rte/AMD64/test_io.c	/^void testWriteLn(void)$/;"	f
+testWriteLn	test/rte/IA32/test_io.c	/^void testWriteLn(void)$/;"	f
+testWriteStr	rte/AMD64/test_io.c	/^void testWriteStr(const char *s)$/;"	f
+testWriteStr	rte/IA32/test_io.c	/^void testWriteStr(const char *s)$/;"	f
+testWriteStr	test/rte/AMD64/test_io.c	/^void testWriteStr(const char *s)$/;"	f
+testWriteStr	test/rte/IA32/test_io.c	/^void testWriteStr(const char *s)$/;"	f
+toDot	snuplc/src/ir.cpp	/^void CCodeBlock::toDot(ostream &out, int indent) const$/;"	f	class:CCodeBlock
+toDot	snuplc/src/ir.cpp	/^void CScope::toDot(ostream &out, int indent) const$/;"	f	class:CScope
+~CBackend	snuplc/src/backend.cpp	/^CBackend::~CBackend(void)$/;"	f	class:CBackend
+~CBackend	snuplc/src/backend64.cpp	/^CBackend::~CBackend(void)$/;"	f	class:CBackend
+~CBackendx86	snuplc/src/backend.cpp	/^CBackendx86::~CBackendx86(void)$/;"	f	class:CBackendx86
+~CBackendx86_64	snuplc/src/backend64.cpp	/^CBackendx86_64::~CBackendx86_64(void)$/;"	f	class:CBackendx86_64
+~CCodeBlock	snuplc/src/ir.cpp	/^CCodeBlock::~CCodeBlock(void)$/;"	f	class:CCodeBlock
+~CModule	snuplc/src/ir.cpp	/^CModule::~CModule(void)$/;"	f	class:CModule
+~CProcedure	snuplc/src/ir.cpp	/^CProcedure::~CProcedure(void)$/;"	f	class:CProcedure
+~CScope	snuplc/src/ir.cpp	/^CScope::~CScope(void)$/;"	f	class:CScope
+~CTac	snuplc/src/ir.cpp	/^CTac::~CTac(void)$/;"	f	class:CTac
+~CTacAddr	snuplc/src/ir.cpp	/^CTacAddr::~CTacAddr(void)$/;"	f	class:CTacAddr
+~CTacInstr	snuplc/src/ir.cpp	/^CTacInstr::~CTacInstr(void)$/;"	f	class:CTacInstr
+~CTacLabel	snuplc/src/ir.cpp	/^CTacLabel::~CTacLabel(void)$/;"	f	class:CTacLabel

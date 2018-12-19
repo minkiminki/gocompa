@@ -1,0 +1,29 @@
+
+--This line, and those below, will be ignored--
+
+M    snuplc/Makefile
+M    snuplc/include/backend.h
+M    snuplc/include/ir.h
+A    snuplc/include/ir2.h
+A    snuplc/include/opt.h
+A    snuplc/include/opt_bba.h
+A    snuplc/include/opt_pre.h
+A    snuplc/include/opt_ra.h
+A    snuplc/include/opt_tco.h
+A    snuplc/include/opt_ue.h
+M    snuplc/include/symtab.h
+M    snuplc/include/type.h
+AM   snuplc/snuplc
+M    snuplc/src/backend.cpp
+M    snuplc/src/backend64.cpp
+A    snuplc/src/backend_default.cpp
+M    snuplc/src/ir.cpp
+A    snuplc/src/ir2.cpp
+A    snuplc/src/opt.cpp
+A    snuplc/src/opt_bba.cpp
+A    snuplc/src/opt_pre.cpp
+A    snuplc/src/opt_ra.cpp
+A    snuplc/src/opt_tco.cpp
+A    snuplc/src/opt_ue.cpp
+M    snuplc/src/snuplc.cpp
+A    snuplc/src/symbolinfo.cpp
