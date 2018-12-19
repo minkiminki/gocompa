@@ -10,7 +10,7 @@ void full_optimize(int arch, CScope *m) {
   // now pointer variables have proper types
   // dofs_inlining_scope(m);
   // DIM and DOFS inlined
-  // function_inlining_scope(m);
+  function_inlining_scope(m);
   // unused_function_scope(m);
   pointer_typing_scope(m);
   register_promotion_scope(m);
