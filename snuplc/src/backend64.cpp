@@ -668,6 +668,9 @@ void CBackendx86_64::EmitOpAssign(CTacInstr *i, string comment)
   }
 
   dst = SetDstRegister(i->GetDest(), &isRef, &isDstMem, reg, &cmt);
+  if(isRef) {
+    isDstMem = true;
+  }
   if(isSameReg(src,dst))
     return;
 
